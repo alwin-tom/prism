@@ -42,9 +42,23 @@ With the OTP bypass on, the development code is accepted by `POST /api/v1/auth/o
 docker compose up --build
 ```
 
-The site is served at `http://localhost:8088`. PostgreSQL data and uploaded media survive container restarts (`pgdata` and `media` volumes). Set `PRISM_ADMIN_INITIAL_PHONE` and `PRISM_ADMIN_INITIAL_PASSWORD` in the environment before the first start. The password must be at least 10 characters. An existing admin is not overwritten.
+The site is served at `http://localhost:8088`. PostgreSQL data and uploaded media survive container restarts (`pgdata` and `media` volumes). Set `PRISM_ADMIN_INITIAL_PHONE` and `PRISM_ADMIN_INITIAL_PASSWORD` in the environment before the first start. The password must be at least 10 characters. An existing admin is not overwritten. For Compose, set `PRISM_PUBLIC_BASE_URL` and `PRISM_API_BASE_URL` in `.env` (defaults are `http://localhost:8088`).
 
-Coolify can deploy the same Compose file. Point the public URL at the frontend service and set `PRISM_PUBLIC_BASE_URL` to that origin. In a production profile (`SPRING_PROFILES_ACTIVE=prod` or `production`) both bypass flags must be false, `PRISM_COOKIE_SECURE` must be true, and `JWT_SECRET` must be a non-default secret of at least 32 bytes. The process refuses to start otherwise.
+### Production (`https://webaux.app`)
+
+Coolify (or any reverse proxy) can deploy the same Compose file. Point DNS and TLS at the **frontend** service and set:
+
+```bash
+SPRING_PROFILES_ACTIVE=prod
+PRISM_PUBLIC_BASE_URL=https://webaux.app
+PRISM_API_BASE_URL=https://webaux.app
+PRISM_COOKIE_SECURE=true
+JWT_SECRET=<unique secret, at least 32 characters>
+PRISM_OTP_BYPASS_ENABLED=false
+PRISM_PAYMENT_BYPASS_ENABLED=false
+```
+
+Use a strong `DATABASE_PASSWORD`. Redirect `www` to the apex (or the reverse) so CORS matches the single public origin. Razorpay webhooks go to `https://webaux.app/api/v1/payments/webhooks/razorpay`. In a production profile the process refuses to start if a bypass is enabled, cookie secure is off, or `JWT_SECRET` is missing/weak/default.
 
 ## Tests
 

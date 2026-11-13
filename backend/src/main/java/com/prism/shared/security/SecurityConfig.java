@@ -53,9 +53,19 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         List<String> origins = new ArrayList<>();
-        origins.add(properties.getPublicBaseUrl());
+        String publicBase = trimOrigin(properties.getPublicBaseUrl());
+        if (!publicBase.isBlank()) {
+            origins.add(publicBase);
+            String wwwSibling = wwwSibling(publicBase);
+            if (!wwwSibling.isBlank() && !origins.contains(wwwSibling)) {
+                origins.add(wwwSibling);
+            }
+        }
         if (!origins.contains("http://localhost:5173")) {
             origins.add("http://localhost:5173");
+        }
+        if (!origins.contains("http://localhost:8088")) {
+            origins.add("http://localhost:8088");
         }
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
@@ -64,6 +74,33 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private static String trimOrigin(String value) {
+        if (value == null) {
+            return "";
+        }
+        String trimmed = value.trim();
+        while (trimmed.endsWith("/")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1);
+        }
+        return trimmed;
+    }
+
+    private static String wwwSibling(String origin) {
+        if (origin.startsWith("https://www.")) {
+            return "https://" + origin.substring("https://www.".length());
+        }
+        if (origin.startsWith("http://www.")) {
+            return "http://" + origin.substring("http://www.".length());
+        }
+        if (origin.startsWith("https://")) {
+            return "https://www." + origin.substring("https://".length());
+        }
+        if (origin.startsWith("http://")) {
+            return "http://www." + origin.substring("http://".length());
+        }
+        return "";
     }
 
     @Bean
