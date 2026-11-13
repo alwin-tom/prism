@@ -339,10 +339,32 @@ export function EditorPage() {
             const next = structuredClone(current);
             ensureCanvas(next.configuration);
             save.mutate(next);
-          }} disabled={save.isPending}>Save draft</Button>
+          }} disabled={save.isPending || Boolean(current.editorDocument?.root)}>Save draft</Button>
         </div>
       </header>
       <div className="stage-body">
+        {current.editorDocument?.root ? (
+          <div className="stage-canvas" style={{ gridColumn: "1 / -1" }}>
+            <p className="preview-note" style={{ padding: "12px 16px 0" }}>
+              This draft uses the AI page document. Quotes and sections live in the visual editor — open <Link to={`/app/events/${id}/studio`}>Visual editor</Link> to change them.
+            </p>
+            <div className="preview-frame">
+              <PublicSite
+                preview
+                mediaEventId={id}
+                event={{
+                  slug: current.slug,
+                  eventName: current.eventName,
+                  availability: "PUBLISHED",
+                  templateCode: current.templateCode,
+                  configuration: shownConfiguration(current),
+                  editorDocument: current.editorDocument,
+                }}
+              />
+            </div>
+          </div>
+        ) : (
+          <>
         <div className="stage-tools" role="toolbar" aria-label="Add to the page">
           <button type="button" aria-label="Heading" title="Heading" onClick={() => update((copy) => addCanvasPiece(copy, "text", { weight: "display", text: "Heading", fontSize: 42, h: 72 }))}><Heading1 size={18} /></button>
           <button type="button" aria-label="Text" title="Text" onClick={() => update((copy) => addCanvasPiece(copy, "text"))}><Type size={18} /></button>
@@ -365,6 +387,8 @@ export function EditorPage() {
             <PublicSite preview mediaEventId={id} onEdit={(edit) => update((copy) => { ensureCanvas(copy.configuration); applySiteEdit(copy, edit); }, edit.history)} event={{ slug: current.slug, eventName: current.eventName, availability: "PUBLISHED", templateCode: current.templateCode, configuration: shownConfiguration(current) }} />
           </div>
         </div>
+          </>
+        )}
         <aside className="stage-side">
           <div className="tabs" role="tablist">
             {[4, 5, 6, 7, 8].map((value) => (
@@ -691,6 +715,7 @@ function openFullPreview(id: string, event: EventSite) {
     eventName: event.eventName,
     templateCode: event.templateCode,
     configuration: event.configuration,
+    editorDocument: event.editorDocument,
   }));
   window.open(`/app/events/${id}/preview`, "_blank", "noopener");
 }
@@ -783,7 +808,10 @@ export function DraftPreviewPage() {
   }
   return (
     <div className="full-preview">
-      <div className="draft-watermark" aria-hidden="true" />
+      <div className="draft-watermark" aria-hidden="true">
+        <img src="/favicon-96x96.png" alt="" width="32" height="32" />
+        <span>WebAux</span>
+      </div>
       <PublicSite
         preview
         mediaEventId={id}

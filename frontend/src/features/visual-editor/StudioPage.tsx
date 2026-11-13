@@ -392,7 +392,15 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
                   type="button"
                   draggable
                   onDragStart={(event) => event.dataTransfer.setData("application/prism-element", item.type)}
-                  onClick={() => change((copy) => { const node = addChild(copy, selectedId, item.type); setSelectedId(node.id); })}
+                  onClick={() => change((copy) => {
+                    const node = addChild(copy, selectedId, item.type);
+                    if (item.type === "COUNTDOWN") {
+                      const start = String(site.data?.configuration?.event?.startAt ?? "").trim();
+                      if (start) updateNode(copy, node.id, { props: { target: start } }, breakpoint);
+                    }
+                    setSelectedId(node.id);
+                    setAlsoSelected([]);
+                  })}
                 >{item.name}</button>
               ))}
             </div>
@@ -419,6 +427,7 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
               document={document}
               breakpoint={breakpoint}
               mediaEventId={id}
+              countdownFallback={site.data?.configuration?.event?.startAt}
               onUploadPicture={async (nodeId, file) => {
                 const mediaId = await uploadPicture(id, file);
                 await queryClient.invalidateQueries({ queryKey: ["media", id] });
@@ -451,7 +460,15 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
                 });
                 setSelectedId(id);
               }}
-              onDropType={(parentId, type) => change((copy) => { const node = addChild(copy, parentId, type); setSelectedId(node.id); setAlsoSelected([]); })}
+              onDropType={(parentId, type) => change((copy) => {
+                const node = addChild(copy, parentId, type);
+                if (type === "COUNTDOWN") {
+                  const start = String(site.data?.configuration?.event?.startAt ?? "").trim();
+                  if (start) updateNode(copy, node.id, { props: { target: start } }, breakpoint);
+                }
+                setSelectedId(node.id);
+                setAlsoSelected([]);
+              })}
               onResize={(patches, coalesce) => change((copy) => {
                 for (const patch of patches) {
                   const node = findNode(copy.root, patch.id);
@@ -497,9 +514,14 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
               <label>Label
                 <input value={String(selected.props.label ?? "")} onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { label: event.target.value } }, breakpoint))} />
               </label>
-              <label>Target date
-                <input value={String(selected.props.target ?? "")} placeholder="2026-12-31" onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { target: event.target.value } }, breakpoint))} />
+              <label>Target date and time
+                <input
+                  type="datetime-local"
+                  value={toDatetimeLocal(String(selected.props.target ?? "") || String(site.data?.configuration?.event?.startAt ?? ""))}
+                  onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { target: fromDatetimeLocal(event.target.value) } }, breakpoint))}
+                />
               </label>
+              <p className="studio-hint">Counts down in days, hours, minutes, and seconds to the date you set.</p>
             </>
           ) : null}
           {selected.type === "HEADING" ? (
@@ -508,9 +530,24 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
             </label>
           ) : null}
           {selected.type === "BUTTON" ? (
-            <label>Link
-              <input value={String(selected.props.href ?? "")} onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { href: event.target.value } }, breakpoint))} />
-            </label>
+            <>
+              <label>Action
+                <select
+                  value={String(selected.props.href ?? "").trim().toLowerCase() === "#rsvp" ? "rsvp" : "link"}
+                  onChange={(event) => change((copy) => updateNode(copy, selected.id, {
+                    props: { href: event.target.value === "rsvp" ? "#rsvp" : "" },
+                  }, breakpoint))}
+                >
+                  <option value="link">Open a link</option>
+                  <option value="rsvp">Guest reply</option>
+                </select>
+              </label>
+              {String(selected.props.href ?? "").trim().toLowerCase() === "#rsvp" ? null : (
+                <label>Link
+                  <input value={String(selected.props.href ?? "")} onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { href: event.target.value } }, breakpoint))} />
+                </label>
+              )}
+            </>
           ) : null}
           {selected.type === "IMAGE" ? (
             <PictureField
@@ -903,6 +940,22 @@ function ColourField({ label, value, fallback, onChange }: { label: string; valu
 
 function AlignButton({ label, pressed, onClick, children }: { label: string; pressed: boolean; onClick: () => void; children: ReactNode }) {
   return <button type="button" aria-label={label} title={label} aria-pressed={pressed} onClick={onClick}>{children}</button>;
+}
+
+function toDatetimeLocal(value: string) {
+  if (!value) return "";
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    return value.length >= 16 ? value.slice(0, 16) : value;
+  }
+  const date = new Date(parsed);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function fromDatetimeLocal(value: string) {
+  if (!value) return "";
+  return value.length === 16 ? `${value}:00` : value;
 }
 
 function CarouselSlides({ eventId, slides, onUpload, onPick, onShift, onRemove }: {

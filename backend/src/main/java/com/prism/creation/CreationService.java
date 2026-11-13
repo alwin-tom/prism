@@ -453,7 +453,43 @@ public class CreationService {
             throw ApiException.badRequest("The draft changed before generation finished.");
         }
         editor.install(event, revision, document, session.userId);
+        syncEventStart(event, revision, session);
+        syncRsvp(event, revision, session);
         rename(event, session, plan, session.userId);
+    }
+
+    private void syncEventStart(EventSite event, EventRevision revision, WebsiteCreationSession session) {
+        String iso = CountdownEnricher.isoFromAnswers(session.answersJson);
+        if (iso == null || iso.isBlank() || revision.configurationJson == null || !revision.configurationJson.isObject()) {
+            return;
+        }
+        ObjectNode configuration = revision.configurationJson.deepCopy();
+        configuration.with("event").put("startAt", iso);
+        revision.configurationJson = configuration;
+    }
+
+    private void syncRsvp(EventSite event, EventRevision revision, WebsiteCreationSession session) {
+        if (revision.configurationJson == null || !revision.configurationJson.isObject()) {
+            return;
+        }
+        if (!wantsRsvp(session.answersJson)) {
+            return;
+        }
+        ObjectNode configuration = revision.configurationJson.deepCopy();
+        configuration.with("rsvp").put("enabled", true);
+        revision.configurationJson = configuration;
+    }
+
+    private static boolean wantsRsvp(JsonNode answers) {
+        if (answers == null || !answers.isObject()) {
+            return false;
+        }
+        return isYes(answers.path("rsvp").asText("")) || isYes(answers.path("simpleRsvp").asText(""));
+    }
+
+    private static boolean isYes(String value) {
+        String normalized = value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+        return "yes".equals(normalized) || "true".equals(normalized) || "1".equals(normalized);
     }
 
     private void rename(EventSite event, WebsiteCreationSession session, JsonNode plan, UUID userId) {

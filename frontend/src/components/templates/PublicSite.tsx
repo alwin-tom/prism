@@ -51,7 +51,21 @@ export function PublicSite({ event, preview = false, mediaEventId, onEdit }: { e
     return (
       <main className="event-site" style={themeStyle}>
         <FontRequest owner="theme" families={[theme.font, theme.displayFont]} />
-        <VisualPage document={event.editorDocument} followViewport mediaEventId={preview ? mediaEventId : undefined} />
+        <VisualPage
+          document={event.editorDocument}
+          followViewport
+          mediaEventId={preview ? mediaEventId : undefined}
+          countdownFallback={configuration.event.startAt}
+          rsvp={{
+            slug: event.slug,
+            preview,
+            enabled: configuration.rsvp.enabled,
+            collectPhone: configuration.rsvp.collectPhone,
+            collectEmail: configuration.rsvp.collectEmail,
+            maxGuests: configuration.rsvp.maxGuestsPerResponse,
+            confirmationMessage: configuration.rsvp.confirmationMessage,
+          }}
+        />
       </main>
     );
   }

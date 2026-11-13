@@ -243,7 +243,14 @@ public class WebsiteDocumentGenerator {
                 }
             }
 
-            ObjectNode directed = TypographyApplicator.apply(DesignApplicator.apply(attempt.document(), direction), planNode, direction.id());
+            ObjectNode directed = TypographyApplicator.apply(
+                    DesignApplicator.apply(
+                            ReplyButtonEnricher.apply(CountdownEnricher.apply(attempt.document(), answers)),
+                            direction
+                    ),
+                    planNode,
+                    direction.id()
+            );
             directed.set("designTokens", DesignSystemTokens.sanitize(mapper, designSystem));
             ObjectNode creativeMeta = directed.putObject("creative");
             creativeMeta.put("archetypeId", archetypeId);
@@ -330,7 +337,14 @@ public class WebsiteDocumentGenerator {
                     repairs++;
                 }
             }
-            ObjectNode directed = TypographyApplicator.apply(DesignApplicator.apply(attempt.document(), direction), planNode, direction.id());
+            ObjectNode directed = TypographyApplicator.apply(
+                    DesignApplicator.apply(
+                            ReplyButtonEnricher.apply(CountdownEnricher.apply(attempt.document(), answers)),
+                            direction
+                    ),
+                    planNode,
+                    direction.id()
+            );
             directed = ResponsiveDefaults.apply(directed);
             quality = DesignQuality.assess(directed, direction);
             ObjectNode report = usage(budget, stages, null);

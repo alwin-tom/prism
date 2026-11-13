@@ -60,7 +60,7 @@ const LIBRARY: Record<string, { name: string; category: string; props: Record<st
   SPACER: { name: "Spacer", category: "Layout", props: { size: 24 }, styles: {} },
   DIVIDER: { name: "Divider", category: "Layout", props: {}, styles: { height: "1px", background: "#d5d8dc" } },
   QUOTE: { name: "Quote", category: "Text", props: { text: "A short statement", attribution: "" }, styles: { fontSize: "28px", fontFamily: "Fraunces", textAlign: "center", padding: "24px" } },
-  COUNTDOWN: { name: "Countdown", category: "Content", props: { target: "", label: "Until the day" }, styles: { display: "flex", flexDirection: "column", gap: "8px", padding: "16px", textAlign: "center" } },
+  COUNTDOWN: { name: "Countdown", category: "Media", props: { target: "", label: "Until the day" }, styles: { display: "flex", flexDirection: "column", gap: "8px", padding: "16px", textAlign: "center" } },
   FAQ_ACCORDION: { name: "FAQ", category: "Content", props: { title: "Questions" }, styles: { display: "flex", flexDirection: "column", gap: "12px", padding: "16px" } },
   FAQ_ITEM: { name: "FAQ item", category: "Content", props: { title: "Question", text: "Answer" }, styles: { display: "flex", flexDirection: "column", gap: "6px", padding: "12px 0" } },
   TIMELINE: { name: "Timeline", category: "Content", props: { title: "Schedule" }, styles: { display: "flex", flexDirection: "column", gap: "16px", padding: "16px" } },
@@ -186,6 +186,7 @@ export function insertBlock(document: EditorDocument, parentId: string, block: s
     paragraph.props.text = "Let people know how to reply.";
     const button = createNode("BUTTON");
     button.props.text = "Send a reply";
+    button.props.href = "#rsvp";
     group.children = [paragraph, button];
   } else {
     const heading = createNode("HEADING");

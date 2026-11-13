@@ -87,6 +87,21 @@ public final class DesignApplicator {
             styles.put("background", direction.accent());
             styles.put("height", "1px");
             styles.put("opacity", "0.7");
+        } else if ("COUNTDOWN".equals(type)) {
+            styles.put("fontFamily", direction.displayFont());
+            styles.put("color", dark ? direction.lightText() : direction.text());
+            styles.put("textAlign", split ? "left" : "center");
+            styles.put("display", "flex");
+            styles.put("flexDirection", "column");
+            styles.put("gap", "12px");
+            styles.put("padding", "16px 0");
+            if (styles.path("fontSize").asText("").isBlank()) {
+                styles.put("fontSize", "18px");
+            }
+        } else if ("QUOTE".equals(type)) {
+            styles.put("fontFamily", direction.displayFont());
+            styles.put("color", dark ? direction.lightText() : direction.heading());
+            styles.put("textAlign", split ? "left" : "center");
         }
         centerFixedBox(styles);
         boolean childDark = "GROUP".equals(type) ? direction.pageDark() : dark;

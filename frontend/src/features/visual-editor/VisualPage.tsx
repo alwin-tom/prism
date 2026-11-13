@@ -1,15 +1,29 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type DragEvent, type MouseEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { errorMessage } from "../../services/api";
+import { useMutation } from "@tanstack/react-query";
+import { X } from "lucide-react";
+import { api, errorMessage } from "../../services/api";
 import { collectFonts, presentedStyles, resolvedTokens, stack, useFonts, type TypographySettings } from "../typography/fonts";
 import type { Breakpoint, EditorDocument, EditorNode } from "./document";
 import { findNode, propsFor, stylesFor, viewportDevice } from "./document";
 import { alignMove, centeredOn, contentBoxWidth, contentFrame, edgeDrift, moveStyles, pageFrame, percentOf, readRotate, resizeStyles, rotateTransform, shiftFrame, usedOffset, type Frame, type GuideLine, type Handle } from "./geometry";
 
-export function VisualPage({ document, breakpoint = "desktop", followViewport = false, mediaEventId, selectedId, selectedIds, zoom = 1, onSelect, onDropType, onResize, onUploadPicture, onAddPictures }: {
+export type VisualRsvp = {
+  slug: string;
+  preview?: boolean;
+  enabled?: boolean;
+  collectPhone?: boolean;
+  collectEmail?: boolean;
+  maxGuests?: number;
+  confirmationMessage?: string;
+};
+
+export function VisualPage({ document, breakpoint = "desktop", followViewport = false, mediaEventId, countdownFallback, rsvp, selectedId, selectedIds, zoom = 1, onSelect, onDropType, onResize, onUploadPicture, onAddPictures }: {
   document: EditorDocument;
   breakpoint?: Breakpoint;
   followViewport?: boolean;
   mediaEventId?: string;
+  countdownFallback?: string;
+  rsvp?: VisualRsvp;
   selectedId?: string;
   selectedIds?: string[];
   zoom?: number;
@@ -21,6 +35,7 @@ export function VisualPage({ document, breakpoint = "desktop", followViewport = 
 }) {
   const ids = selectedIds?.length ? selectedIds : selectedId ? [selectedId] : [];
   const [guides, setGuides] = useState<GuideLine[]>([]);
+  const [rsvpOpen, setRsvpOpen] = useState(false);
   const tokens = resolvedTokens(document);
   useFonts("page", collectFonts(document));
   const [viewport, setViewport] = useState<Breakpoint>(followViewport ? viewportDevice() : breakpoint);
@@ -40,11 +55,22 @@ export function VisualPage({ document, breakpoint = "desktop", followViewport = 
       tablet.removeEventListener("change", apply);
     };
   }, [followViewport, breakpoint]);
+  useEffect(() => {
+    if (!rsvp || onSelect) return;
+    const openFromHash = () => {
+      const hash = window.location.hash.replace(/^#/, "").toLowerCase();
+      if (hash === "rsvp" || hash === "reply") setRsvpOpen(true);
+    };
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+    return () => window.removeEventListener("hashchange", openFromHash);
+  }, [rsvp, onSelect]);
   const active = followViewport ? viewport : breakpoint;
   const tokenStyle = designTokenStyle(document);
+  const openRsvp = rsvp && !onSelect ? () => setRsvpOpen(true) : undefined;
   return (
     <div className={onSelect ? "visual-page is-editing" : "visual-page"} style={tokenStyle} onClick={() => onSelect?.("", false)}>
-      <VisualNode node={document.root} root={document.root} tokens={tokens} breakpoint={active} mediaEventId={mediaEventId} selectedId={selectedId} selectedIds={ids} zoom={zoom} onSelect={onSelect} onDropType={onDropType} onResize={onResize} onUploadPicture={onUploadPicture} onAddPictures={onAddPictures} onGuides={onResize ? setGuides : undefined} />
+      <VisualNode node={document.root} root={document.root} tokens={tokens} breakpoint={active} mediaEventId={mediaEventId} countdownFallback={countdownFallback} selectedId={selectedId} selectedIds={ids} zoom={zoom} onSelect={onSelect} onDropType={onDropType} onResize={onResize} onUploadPicture={onUploadPicture} onAddPictures={onAddPictures} onGuides={onResize ? setGuides : undefined} onOpenRsvp={openRsvp} />
       {onResize ? ids.map((id) => (
         <SelectionChrome key={id} selectedId={id} selectedIds={ids} document={document} breakpoint={active} zoom={zoom} onResize={onResize} onGuides={setGuides} />
       )) : null}
@@ -57,17 +83,19 @@ export function VisualPage({ document, breakpoint = "desktop", followViewport = 
             : { top: guide.at, left: guide.start, width: Math.max(1, guide.end - guide.start) }}
         />
       ))}
+      {rsvpOpen && rsvp ? <VisualRsvpDialog rsvp={rsvp} onClose={() => setRsvpOpen(false)} /> : null}
       <p className="prism-credit">Made with WebAux</p>
     </div>
   );
 }
 
-function VisualNode({ node, root, tokens, breakpoint, mediaEventId, selectedId, selectedIds, zoom = 1, onSelect, onDropType, onResize, onUploadPicture, onAddPictures, onGuides }: {
+function VisualNode({ node, root, tokens, breakpoint, mediaEventId, countdownFallback, selectedId, selectedIds, zoom = 1, onSelect, onDropType, onResize, onUploadPicture, onAddPictures, onGuides, onOpenRsvp }: {
   node: EditorNode;
   root: EditorNode;
   tokens: TypographySettings;
   breakpoint: Breakpoint;
   mediaEventId?: string;
+  countdownFallback?: string;
   selectedId?: string;
   selectedIds?: string[];
   zoom?: number;
@@ -77,6 +105,7 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, selectedId, 
   onUploadPicture?: (nodeId: string, file: File) => Promise<void>;
   onAddPictures?: (parentId: string, files: File[]) => Promise<void>;
   onGuides?: (guides: GuideLine[]) => void;
+  onOpenRsvp?: () => void;
 }) {
   const style = css(presentedStyles(node, breakpoint, tokens));
   const local = propsFor(node, breakpoint);
@@ -157,7 +186,7 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, selectedId, 
     onDrop: drop,
   } : { className };
   const body = node.children.map((child) => (
-    <VisualNode key={child.id} node={child} root={root} tokens={tokens} breakpoint={breakpoint} mediaEventId={mediaEventId} selectedId={selectedId} selectedIds={selectedIds} zoom={zoom} onSelect={onSelect} onDropType={onDropType} onResize={onResize} onUploadPicture={onUploadPicture} onAddPictures={onAddPictures} onGuides={onGuides} />
+    <VisualNode key={child.id} node={child} root={root} tokens={tokens} breakpoint={breakpoint} mediaEventId={mediaEventId} countdownFallback={countdownFallback} selectedId={selectedId} selectedIds={selectedIds} zoom={zoom} onSelect={onSelect} onDropType={onDropType} onResize={onResize} onUploadPicture={onUploadPicture} onAddPictures={onAddPictures} onGuides={onGuides} onOpenRsvp={onOpenRsvp} />
   ));
   if (node.type === "HEADING") {
     const level = Math.min(6, Math.max(1, Number(node.props.level ?? 2)));
@@ -175,11 +204,29 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, selectedId, 
   }
   if (node.type === "BUTTON") {
     const href = String(node.props.href ?? "");
+    const label = String(node.props.text ?? "");
+    const reply = isReplyButton(href, label);
     const safe = /^(https?:|mailto:|tel:|#|\/)/i.test(href);
-    const button = { ...edit, className: [className, "visual-button"].filter(Boolean).join(" ") };
+    const button = { ...edit, className: [className, "visual-button", reply && onOpenRsvp ? "is-reply" : ""].filter(Boolean).join(" ") };
+    if (!editing && reply && onOpenRsvp) {
+      return (
+        <button
+          type="button"
+          className={button.className}
+          style={style}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onOpenRsvp();
+          }}
+        >
+          {label}
+        </button>
+      );
+    }
     return safe
-      ? <a {...button} style={style} href={href}>{String(node.props.text ?? "")}</a>
-      : <span {...button} style={style}>{String(node.props.text ?? "")}</span>;
+      ? <a {...button} style={style} href={href}>{label}</a>
+      : <span {...button} style={style}>{label}</span>;
   }
   if (node.type === "CAROUSEL") {
     return <CarouselFrame node={node} edit={edit} style={style} mediaEventId={mediaEventId} breakpoint={breakpoint} paused={editing} onUploadPicture={onUploadPicture} onAddPictures={onAddPictures} />;
@@ -191,10 +238,11 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, selectedId, 
       : <EmptyPicture edit={edit} style={style} onFile={onUploadPicture ? (file) => onUploadPicture(node.id, file) : undefined} />;
   }
   if (node.type === "COUNTDOWN") {
+    const target = String(local.target ?? "").trim() || String(countdownFallback ?? "").trim();
     return (
       <div {...edit} style={style} data-kind="COUNTDOWN">
         {String(local.label ?? "") ? <p className="visual-countdown-label">{String(local.label)}</p> : null}
-        <CountdownFace target={String(local.target ?? "")} />
+        <CountdownFace target={target} />
       </div>
     );
   }
@@ -234,24 +282,125 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, selectedId, 
 }
 
 function CountdownFace({ target }: { target: string }) {
-  const [label, setLabel] = useState(() => countdownLabel(target));
+  const end = Date.parse(target);
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const tick = () => setLabel(countdownLabel(target));
-    tick();
-    const id = window.setInterval(tick, 60_000);
+    if (Number.isNaN(end)) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
-  }, [target]);
-  return <p className="visual-countdown-value" aria-live="polite">{label}</p>;
+  }, [end]);
+  if (!target) {
+    return <p className="visual-countdown-empty">Date to be announced</p>;
+  }
+  if (Number.isNaN(end)) {
+    return <p className="visual-countdown-empty">{target}</p>;
+  }
+  const diff = Math.max(0, end - now);
+  const days = Math.floor(diff / 86_400_000);
+  const hours = Math.floor((diff % 86_400_000) / 3_600_000);
+  const minutes = Math.floor((diff % 3_600_000) / 60_000);
+  const seconds = Math.floor((diff % 60_000) / 1000);
+  const dayDigits = Math.max(3, String(days).length);
+  return (
+    <div className="visual-countdown" aria-live="polite">
+      <div><strong className="num" style={{ ["--countdown-digits" as string]: dayDigits }}>{String(days).padStart(dayDigits, "0")}</strong><span>days</span></div>
+      <div><strong className="num">{String(hours).padStart(2, "0")}</strong><span>hours</span></div>
+      <div><strong className="num">{String(minutes).padStart(2, "0")}</strong><span>minutes</span></div>
+      <div><strong className="num">{String(seconds).padStart(2, "0")}</strong><span>seconds</span></div>
+    </div>
+  );
 }
 
-function countdownLabel(target: string) {
-  if (!target) return "Date to be announced";
-  const end = Date.parse(target);
-  if (Number.isNaN(end)) return target;
-  const days = Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
-  if (days === 0) return "Today";
-  if (days === 1) return "1 day to go";
-  return `${days} days to go`;
+function isReplyButton(href: string, text: string) {
+  const link = href.trim().toLowerCase();
+  if (link === "#rsvp" || link === "#reply") return true;
+  if (link) return false;
+  return /\b(rsvp|reply|respond|let us know|send your reply|send a reply)\b/i.test(text);
+}
+
+function VisualRsvpDialog({ rsvp, onClose }: { rsvp: VisualRsvp; onClose: () => void }) {
+  const [done, setDone] = useState("");
+  const enabled = rsvp.enabled !== false;
+  const mutation = useMutation({
+    mutationFn: async (form: FormData) => {
+      const response = await api.post(`/public/events/${rsvp.slug}/rsvp`, {
+        guestName: String(form.get("guestName") ?? ""),
+        guestPhone: String(form.get("guestPhone") ?? ""),
+        guestEmail: String(form.get("guestEmail") ?? ""),
+        attendanceStatus: String(form.get("attendanceStatus") ?? ""),
+        numberOfGuests: Number(form.get("numberOfGuests") ?? 1),
+        message: String(form.get("message") ?? ""),
+        website: String(form.get("website") ?? ""),
+      });
+      return response.data.data.confirmationMessage as string;
+    },
+    onSuccess: (message) => setDone(message),
+  });
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="visual-rsvp-layer" role="presentation" onClick={onClose}>
+      <div
+        className="visual-rsvp-panel"
+        id="rsvp"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="visual-rsvp-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="visual-rsvp-head">
+          <h2 id="visual-rsvp-title">Send your reply</h2>
+          <button type="button" className="visual-rsvp-close" aria-label="Close" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </div>
+        {!enabled ? <p>Replies are turned off for this invitation.</p> : null}
+        {enabled && done ? <p>{done}</p> : null}
+        {enabled && !done ? (
+          <form
+            className="event-form visual-rsvp-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (rsvp.preview) {
+                setDone(rsvp.confirmationMessage || "Preview only. Replies are saved on the published site.");
+                return;
+              }
+              mutation.mutate(new FormData(event.currentTarget));
+            }}
+          >
+            <input name="guestName" required placeholder="Your name" aria-label="Your name" />
+            {rsvp.collectPhone
+              ? <input name="guestPhone" required placeholder="Phone" aria-label="Phone" />
+              : <input name="guestPhone" placeholder="Phone, if you want" aria-label="Phone" />}
+            {rsvp.collectEmail
+              ? <input name="guestEmail" type="email" required placeholder="Email" aria-label="Email" />
+              : null}
+            <select name="attendanceStatus" aria-label="Attendance" defaultValue="ACCEPTED">
+              <option value="ACCEPTED">I will be there</option>
+              <option value="DECLINED">I cannot come</option>
+            </select>
+            <input
+              name="numberOfGuests"
+              type="number"
+              min={1}
+              max={Math.max(1, rsvp.maxGuests ?? 4)}
+              defaultValue={1}
+              aria-label="Number of guests"
+            />
+            <textarea name="message" placeholder="A note" aria-label="A note" />
+            <input name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: "absolute", left: "-9999px" }} />
+            <button type="submit">{mutation.isPending ? "Sending" : "Send reply"}</button>
+            {mutation.isError ? <p>{errorMessage(mutation.error, "The reply was not saved.")}</p> : null}
+          </form>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 function designTokenStyle(document: EditorDocument): CSSProperties | undefined {
