@@ -46,7 +46,7 @@ The site is served at `http://localhost:8088`. PostgreSQL data and uploaded medi
 
 ### Production (`https://webaux.app`)
 
-Coolify (or any reverse proxy) can deploy the same Compose file. Point DNS and TLS at the **frontend** service and set:
+Coolify (or any reverse proxy) can deploy the same Compose file. Point DNS and TLS at the **frontend** service (container port **8080**) and set:
 
 ```bash
 SPRING_PROFILES_ACTIVE=prod

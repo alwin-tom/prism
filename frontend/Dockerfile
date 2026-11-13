@@ -8,5 +8,5 @@ RUN npm run build
 FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /src/dist /usr/share/nginx/html
-EXPOSE 80
-HEALTHCHECK --interval=15s --timeout=5s --retries=8 CMD wget -qO- http://localhost/ >/dev/null || exit 1
+EXPOSE 8080
+HEALTHCHECK --interval=15s --timeout=5s --retries=8 CMD wget -qO- http://127.0.0.1:8080/ >/dev/null || exit 1
