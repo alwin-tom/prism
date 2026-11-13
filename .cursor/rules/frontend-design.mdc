@@ -1,0 +1,30 @@
+
+---
+description: Frontend UI and UX design standards
+alwaysApply: true
+---
+
+# Frontend Design Standards
+
+- Build production-quality, modern SaaS interfaces.
+- Avoid generic AI-generated dashboard designs.
+- Use Tailwind CSS and shadcn/ui.
+- Prefer clean layouts, consistent spacing and visual hierarchy.
+- Use Lucide icons instead of emojis.
+- Use subtle borders, shadows and hover transitions.
+- Use consistent typography and a professional colour palette.
+- Support desktop, tablet and mobile screens.
+- Ensure proper loading, empty, error and success states.
+- Use accessible components and keyboard navigation.
+- Avoid unnecessary gradients and excessive rounded cards.
+- Use charts and meaningful visualisations where appropriate.
+- Reuse existing components instead of duplicating UI.
+- Keep components modular and maintainable.
+
+Before implementation:
+1. Review the existing design system.
+2. Identify reusable components.
+3. Plan the page layout.
+4. Implement the UI.
+5. Run the application and inspect the actual browser rendering.
+6. Refine spacing, alignment, responsiveness and visual consistency.

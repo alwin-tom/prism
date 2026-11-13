@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebAuxVisualQA",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "checksRun",
+    "findings",
+    "overallStatus"
+  ],
+  "properties": {
+    "checksRun": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "overallStatus": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "improve",
+        "unavailable"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "dimension",
+          "observation",
+          "suggestedAction"
+        ],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "major",
+              "minor",
+              "info"
+            ]
+          },
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "hierarchy",
+              "composition",
+              "typography",
+              "colour",
+              "imagery",
+              "spacing",
+              "alignment",
+              "responsive",
+              "accessibility",
+              "content",
+              "motion"
+            ]
+          },
+          "observation": {
+            "type": "string",
+            "maxLength": 400
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "suggestedAction": {
+            "type": "string",
+            "maxLength": 400
+          },
+          "targetPath": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
+      }
+    }
+  }
+}

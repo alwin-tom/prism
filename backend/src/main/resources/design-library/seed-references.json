@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "policy": "ORIGINAL structured WebAux concepts are seeded in DesignLibrarySeedCatalog. Screenshots are optional. INSPIRATION_LINK rows store URLs only.",
+  "originalCount": 40,
+  "inspirationSources": [
+    "https://www.awwwards.com/",
+    "https://land-book.com/",
+    "https://godly.website/",
+    "https://mobbin.com/",
+    "https://stitch.withgoogle.com/"
+  ]
+}

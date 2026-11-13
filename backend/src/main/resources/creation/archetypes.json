@@ -1,0 +1,432 @@
+{
+  "catalogueVersion": "1.0",
+  "archetypes": [
+    {
+      "id": "luxury-editorial",
+      "name": "Luxury Editorial",
+      "categories": [
+        "WEDDING",
+        "ANNIVERSARY",
+        "PORTFOLIO",
+        "CORPORATE"
+      ],
+      "mood": [
+        "refined",
+        "timeless",
+        "cinematic"
+      ],
+      "composition": [
+        "asymmetric-editorial",
+        "oversized-type",
+        "image-led"
+      ],
+      "heroPatterns": [
+        "full-bleed-editorial",
+        "split-editorial",
+        "typographic"
+      ],
+      "imageTreatment": [
+        "large-crops",
+        "overlap",
+        "subtle-overlay"
+      ],
+      "sectionRhythm": [
+        "wide-narrow-alternation",
+        "editorial-breaks",
+        "quiet-intervals"
+      ],
+      "decorativeLanguage": [
+        "restrained-lines",
+        "subtle-texture",
+        "minimal-ornament"
+      ],
+      "motion": "subtle-cinematic",
+      "avoid": [
+        "repeated-card-grids",
+        "generic-centred-sections",
+        "excessive-gradients"
+      ]
+    },
+    {
+      "id": "botanical-romance",
+      "name": "Botanical Romance",
+      "categories": [
+        "WEDDING",
+        "ANNIVERSARY",
+        "BABY"
+      ],
+      "mood": [
+        "warm",
+        "organic",
+        "intimate"
+      ],
+      "composition": [
+        "organic-asymmetry",
+        "layered-media",
+        "soft-framing"
+      ],
+      "heroPatterns": [
+        "framed-editorial",
+        "split-organic"
+      ],
+      "imageTreatment": [
+        "soft-frames",
+        "organic-masks",
+        "natural-crops"
+      ],
+      "sectionRhythm": [
+        "alternating-image-text",
+        "organic-breaks"
+      ],
+      "decorativeLanguage": [
+        "botanical-motifs",
+        "fine-lines",
+        "soft-patterns"
+      ],
+      "motion": "gentle",
+      "avoid": [
+        "overcrowded-florals",
+        "low-contrast-pastels",
+        "ornament-on-every-section"
+      ]
+    },
+    {
+      "id": "modern-minimal",
+      "name": "Modern Minimal",
+      "categories": [
+        "WEDDING",
+        "ANNIVERSARY",
+        "CORPORATE",
+        "CONFERENCE",
+        "BUSINESS",
+        "PORTFOLIO"
+      ],
+      "mood": [
+        "clear",
+        "confident",
+        "contemporary"
+      ],
+      "composition": [
+        "strict-grid",
+        "strong-whitespace",
+        "typographic-hierarchy"
+      ],
+      "heroPatterns": [
+        "typographic",
+        "split-grid"
+      ],
+      "imageTreatment": [
+        "clean-frames",
+        "precise-crops"
+      ],
+      "sectionRhythm": [
+        "grid-variation",
+        "large-whitespace-intervals"
+      ],
+      "decorativeLanguage": [
+        "geometry",
+        "hairline-rules"
+      ],
+      "motion": "minimal",
+      "avoid": [
+        "unnecessary-decoration",
+        "tiny-type",
+        "same-grid-everywhere"
+      ]
+    },
+    {
+      "id": "royal-heritage",
+      "name": "Royal Heritage",
+      "categories": [
+        "WEDDING",
+        "ANNIVERSARY",
+        "BABY"
+      ],
+      "mood": [
+        "ceremonial",
+        "rich",
+        "heritage-inspired"
+      ],
+      "composition": [
+        "framed-symmetry",
+        "ornamental-hierarchy",
+        "layered-panels"
+      ],
+      "heroPatterns": [
+        "ornamental-title",
+        "framed-image"
+      ],
+      "imageTreatment": [
+        "formal-frame",
+        "rich-overlay"
+      ],
+      "sectionRhythm": [
+        "ceremonial-chapters",
+        "decorative-transitions"
+      ],
+      "decorativeLanguage": [
+        "ornamental-borders",
+        "motifs",
+        "pattern"
+      ],
+      "motion": "slow-reveal",
+      "avoid": [
+        "stereotyped-cultural-symbols",
+        "excessive-gold",
+        "illegible-script-fonts"
+      ]
+    },
+    {
+      "id": "playful-contemporary",
+      "name": "Playful Contemporary",
+      "categories": [
+        "BIRTHDAY",
+        "BABY",
+        "ANNIVERSARY",
+        "CUSTOM"
+      ],
+      "mood": [
+        "joyful",
+        "energetic",
+        "friendly"
+      ],
+      "composition": [
+        "collage",
+        "bold-type",
+        "asymmetric-blocks"
+      ],
+      "heroPatterns": [
+        "collage",
+        "bold-typographic"
+      ],
+      "imageTreatment": [
+        "polaroid",
+        "sticker-frame",
+        "mixed-ratio"
+      ],
+      "sectionRhythm": [
+        "dynamic-size-variation",
+        "colour-blocks"
+      ],
+      "decorativeLanguage": [
+        "shapes",
+        "illustrative-marks",
+        "patterns"
+      ],
+      "motion": "playful",
+      "avoid": [
+        "visual-chaos",
+        "poor-contrast",
+        "excessive-animation"
+      ]
+    },
+    {
+      "id": "cinematic-luxury",
+      "name": "Cinematic Luxury",
+      "categories": [
+        "WEDDING",
+        "ANNIVERSARY",
+        "CORPORATE",
+        "CONFERENCE"
+      ],
+      "mood": [
+        "dramatic",
+        "immersive",
+        "premium"
+      ],
+      "composition": [
+        "full-viewport",
+        "layered-depth",
+        "high-contrast"
+      ],
+      "heroPatterns": [
+        "cinematic-full-bleed",
+        "dark-overlay"
+      ],
+      "imageTreatment": [
+        "dramatic-crop",
+        "gradient-overlay"
+      ],
+      "sectionRhythm": [
+        "immersive-chapters",
+        "contrast-transitions"
+      ],
+      "decorativeLanguage": [
+        "subtle-glow",
+        "fine-lines",
+        "dark-surfaces"
+      ],
+      "motion": "cinematic",
+      "avoid": [
+        "low-readability",
+        "dark-everything",
+        "heavy-motion"
+      ]
+    },
+    {
+      "id": "contemporary-art",
+      "name": "Contemporary Art / Gallery",
+      "categories": [
+        "PORTFOLIO",
+        "CUSTOM",
+        "CORPORATE"
+      ],
+      "mood": [
+        "expressive",
+        "curated",
+        "experimental"
+      ],
+      "composition": [
+        "gallery-grid",
+        "asymmetric-canvas",
+        "oversized-type"
+      ],
+      "heroPatterns": [
+        "gallery-intro",
+        "image-led"
+      ],
+      "imageTreatment": [
+        "art-directed-crops",
+        "mixed-ratios"
+      ],
+      "sectionRhythm": [
+        "curated-gallery-sequences",
+        "editorial-pauses"
+      ],
+      "decorativeLanguage": [
+        "geometric-accents",
+        "minimal-captions"
+      ],
+      "motion": "restrained-expressive",
+      "avoid": [
+        "unstructured-masonry",
+        "decorative-noise"
+      ]
+    },
+    {
+      "id": "warm-storybook",
+      "name": "Warm Storybook",
+      "categories": [
+        "BABY",
+        "BIRTHDAY",
+        "ANNIVERSARY"
+      ],
+      "mood": [
+        "tender",
+        "nostalgic",
+        "welcoming"
+      ],
+      "composition": [
+        "illustrative-chapters",
+        "soft-panels",
+        "story-flow"
+      ],
+      "heroPatterns": [
+        "illustrative-title",
+        "framed-portrait"
+      ],
+      "imageTreatment": [
+        "soft-frames",
+        "gentle-crops"
+      ],
+      "sectionRhythm": [
+        "narrative-chapters",
+        "alternating-panels"
+      ],
+      "decorativeLanguage": [
+        "hand-drawn-motifs",
+        "soft-patterns"
+      ],
+      "motion": "gentle",
+      "avoid": [
+        "overly-childish-for-adult-events",
+        "busy-illustrations"
+      ]
+    },
+    {
+      "id": "bold-typographic",
+      "name": "Bold Typographic",
+      "categories": [
+        "BIRTHDAY",
+        "CONFERENCE",
+        "CORPORATE",
+        "PORTFOLIO",
+        "CUSTOM"
+      ],
+      "mood": [
+        "confident",
+        "energetic",
+        "direct"
+      ],
+      "composition": [
+        "oversized-type",
+        "typographic-grid",
+        "high-contrast"
+      ],
+      "heroPatterns": [
+        "oversized-title",
+        "typographic-poster"
+      ],
+      "imageTreatment": [
+        "supporting-image-blocks",
+        "graphic-crops"
+      ],
+      "sectionRhythm": [
+        "large-type-breaks",
+        "modular-sections"
+      ],
+      "decorativeLanguage": [
+        "rules",
+        "numbers",
+        "geometric-marks"
+      ],
+      "motion": "snappy",
+      "avoid": [
+        "illegible-overlap",
+        "all-caps-body-copy"
+      ]
+    },
+    {
+      "id": "classic-formal",
+      "name": "Classic Formal",
+      "categories": [
+        "WEDDING",
+        "ANNIVERSARY",
+        "CORPORATE",
+        "CONFERENCE"
+      ],
+      "mood": [
+        "graceful",
+        "formal",
+        "trustworthy"
+      ],
+      "composition": [
+        "balanced-symmetry",
+        "clear-hierarchy",
+        "refined-columns"
+      ],
+      "heroPatterns": [
+        "centred-formal",
+        "framed-split"
+      ],
+      "imageTreatment": [
+        "classic-frame",
+        "balanced-crop"
+      ],
+      "sectionRhythm": [
+        "clear-chapters",
+        "measured-spacing"
+      ],
+      "decorativeLanguage": [
+        "fine-borders",
+        "subtle-ornament"
+      ],
+      "motion": "subtle",
+      "avoid": [
+        "dated-layouts",
+        "excessive-script-fonts",
+        "monotonous-centering"
+      ]
+    }
+  ]
+}

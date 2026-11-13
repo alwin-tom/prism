@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebAuxVisualBlueprint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "archetypeId",
+    "pageIntent",
+    "hero",
+    "sections"
+  ],
+  "properties": {
+    "archetypeId": {
+      "type": "string"
+    },
+    "pageIntent": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "hero": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pattern",
+        "hierarchy",
+        "mediaStrategy"
+      ],
+      "properties": {
+        "pattern": {
+          "type": "string"
+        },
+        "hierarchy": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 6
+        },
+        "mediaStrategy": {
+          "type": "string"
+        },
+        "mobileAdaptation": {
+          "type": "string"
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "purpose",
+          "composition",
+          "density",
+          "backgroundTreatment",
+          "mobileAdaptation"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "composition": {
+            "type": "string"
+          },
+          "density": {
+            "type": "string",
+            "enum": [
+              "sparse",
+              "balanced",
+              "dense"
+            ]
+          },
+          "backgroundTreatment": {
+            "type": "string"
+          },
+          "mediaStrategy": {
+            "type": "string"
+          },
+          "mobileAdaptation": {
+            "type": "string"
+          },
+          "componentTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8
+          },
+          "motionIntent": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "rhythmRationale": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "ctaPriority": {
+      "type": "string"
+    },
+    "missingContentStrategy": {
+      "type": "string"
+    }
+  }
+}

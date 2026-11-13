@@ -1,0 +1,12 @@
+{
+  "status": "available-mcp-no-new-v2-screens",
+  "notes": "Stitch MCP list_projects succeeded. New archetype concept screens were not generated in this pass because generate_screen_from_text previously timed out (-32001). Existing projects listed for reference only; Stitch HTML was not copied into WebAux.",
+  "lastChecked": "2026-11-13",
+  "projects": [
+    { "name": "projects/2211925558984088753", "title": "Prism Customer Dashboard" },
+    { "name": "projects/13973362714734430022", "title": "Prism Platform UI Redesign" },
+    { "name": "projects/2346239348372311793", "title": "Birthday Celebration Website" },
+    { "name": "projects/3516441445140327081", "title": "Event Page Builder Platform" }
+  ],
+  "screens": []
+}

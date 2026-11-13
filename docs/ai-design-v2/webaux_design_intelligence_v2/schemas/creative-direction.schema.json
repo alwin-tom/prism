@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebAuxCreativeDirection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "archetypeId",
+    "rationale",
+    "mood",
+    "compositionStrategy",
+    "imageStrategy",
+    "motionStrategy"
+  ],
+  "properties": {
+    "archetypeId": {
+      "type": "string"
+    },
+    "rationale": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "mood": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 5
+    },
+    "compositionStrategy": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "imageStrategy": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "motionStrategy": {
+      "type": "string",
+      "enum": [
+        "none",
+        "subtle",
+        "gentle",
+        "cinematic",
+        "playful",
+        "snappy"
+      ]
+    },
+    "visualComplexity": {
+      "type": "string",
+      "enum": [
+        "minimal",
+        "balanced",
+        "expressive"
+      ]
+    },
+    "userPreferenceApplied": {
+      "type": "boolean"
+    }
+  }
+}

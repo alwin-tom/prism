@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["archetypeId", "rationale", "selectedReferenceIds", "pageIntent", "hero", "sections", "designSystemHints"],
+  "properties": {
+    "archetypeId": { "type": "string", "maxLength": 64 },
+    "rationale": { "type": "string", "maxLength": 500 },
+    "selectedReferenceIds": {
+      "type": "array",
+      "maxItems": 5,
+      "items": { "type": "string" }
+    },
+    "pageIntent": { "type": "string", "maxLength": 500 },
+    "hero": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pattern", "hierarchy", "mediaStrategy"],
+      "properties": {
+        "pattern": { "type": "string", "maxLength": 80 },
+        "hierarchy": {
+          "type": "array",
+          "maxItems": 6,
+          "items": { "type": "string", "maxLength": 80 }
+        },
+        "mediaStrategy": { "type": "string", "maxLength": 120 }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "purpose", "composition", "components"],
+        "properties": {
+          "id": { "type": "string", "maxLength": 40 },
+          "purpose": { "type": "string", "maxLength": 200 },
+          "composition": { "type": "string", "maxLength": 80 },
+          "components": {
+            "type": "array",
+            "maxItems": 8,
+            "items": { "type": "string", "maxLength": 40 }
+          },
+          "referenceId": { "type": "string", "maxLength": 64 }
+        }
+      }
+    },
+    "designSystemHints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["background", "text", "accent", "displayFont", "bodyFont", "density"],
+      "properties": {
+        "background": { "type": "string", "maxLength": 40 },
+        "text": { "type": "string", "maxLength": 40 },
+        "accent": { "type": "string", "maxLength": 40 },
+        "displayFont": { "type": "string", "maxLength": 80 },
+        "bodyFont": { "type": "string", "maxLength": 80 },
+        "density": { "type": "string", "enum": ["minimal", "balanced", "expressive"] }
+      }
+    },
+    "motionStrategy": { "type": "string", "maxLength": 32 },
+    "visualComplexity": { "type": "string", "maxLength": 32 }
+  }
+}

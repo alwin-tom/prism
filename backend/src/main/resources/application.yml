@@ -1,0 +1,110 @@
+spring:
+  application:
+    name: prism
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/prism}
+    username: ${DATABASE_USERNAME:prism}
+    password: ${DATABASE_PASSWORD:change_me}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 105MB
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: true
+
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+prism:
+  advanced-editor-enabled: ${PRISM_ADVANCED_EDITOR_ENABLED:false}
+  creation:
+    enabled: ${PRISM_AI_WEBSITE_GENERATION_ENABLED:false}
+    creative-v2-enabled: ${PRISM_AI_CREATIVE_V2_ENABLED:false}
+    design-library-enabled: ${PRISM_AI_DESIGN_LIBRARY_ENABLED:false}
+    design-embeddings-enabled: ${PRISM_AI_DESIGN_EMBEDDINGS_ENABLED:false}
+    design-embedding-provider: ${PRISM_AI_DESIGN_EMBEDDING_PROVIDER:}
+    design-embedding-model: ${PRISM_AI_DESIGN_EMBEDDING_MODEL:}
+    design-embedding-dimensions: ${PRISM_AI_DESIGN_EMBEDDING_DIMENSIONS:1536}
+    max-generations-per-user: ${PRISM_AI_MAX_GENERATIONS_PER_USER:20}
+  openrouter:
+    api-key: ${OPENROUTER_API_KEY:}
+    base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}
+    planning-model: ${OPENROUTER_PLANNING_MODEL:}
+    generation-model: ${OPENROUTER_GENERATION_MODEL:}
+    repair-model: ${OPENROUTER_REPAIR_MODEL:}
+    planning-fallbacks: ${OPENROUTER_PLANNING_FALLBACKS:}
+    generation-fallbacks: ${OPENROUTER_GENERATION_FALLBACKS:}
+    repair-fallbacks: ${OPENROUTER_REPAIR_FALLBACKS:}
+    allow-paid-fallback: ${OPENROUTER_ALLOW_PAID_FALLBACK:false}
+    timeout-seconds: ${OPENROUTER_TIMEOUT_SECONDS:120}
+    max-retries: ${OPENROUTER_MAX_RETRIES:2}
+    max-repair-attempts: ${OPENROUTER_MAX_REPAIR_ATTEMPTS:1}
+    max-fallbacks: ${OPENROUTER_MAX_FALLBACKS:2}
+    max-requests-per-generation: ${OPENROUTER_MAX_REQUESTS_PER_GENERATION:8}
+    max-output-tokens: ${OPENROUTER_MAX_OUTPUT_TOKENS:8000}
+    max-cost-per-generation-usd: ${OPENROUTER_MAX_COST_PER_GENERATION_USD:0}
+    daily-budget-usd: ${OPENROUTER_DAILY_BUDGET_USD:0}
+  otp-bypass-enabled: ${PRISM_OTP_BYPASS_ENABLED:false}
+  payment-bypass-enabled: ${PRISM_PAYMENT_BYPASS_ENABLED:false}
+  daily-hosting-price-paise: ${PRISM_DAILY_HOSTING_PRICE_PAISE:50000}
+  default-currency: ${PRISM_DEFAULT_CURRENCY:INR}
+  public-base-url: ${PRISM_PUBLIC_BASE_URL:http://localhost:5173}
+  api-base-url: ${PRISM_API_BASE_URL:http://localhost:8080}
+  scheduling:
+    enabled: true
+  security:
+    cookie-secure: ${PRISM_COOKIE_SECURE:false}
+  jwt:
+    secret: ${JWT_SECRET:local-only-prism-jwt-secret-change-me}
+    access-token-expiry: ${JWT_ACCESS_TOKEN_EXPIRY:900}
+    refresh-token-expiry: ${JWT_REFRESH_TOKEN_EXPIRY:604800}
+  media:
+    storage-path: ${PRISM_MEDIA_STORAGE_PATH:./data/media}
+    max-image-size-mb: ${PRISM_MAX_IMAGE_SIZE_MB:10}
+    max-video-size-mb: ${PRISM_MAX_VIDEO_SIZE_MB:100}
+    retention-days-after-expiry: ${PRISM_MEDIA_RETENTION_DAYS:90}
+  whatsapp:
+    enabled: ${WHATSAPP_ENABLED:false}
+    base-url: ${WHATSAPP_BASE_URL:https://graph.facebook.com}
+    api-version: ${WHATSAPP_API_VERSION:}
+    phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+    business-account-id: ${WHATSAPP_BUSINESS_ACCOUNT_ID:}
+    access-token: ${WHATSAPP_ACCESS_TOKEN:}
+    otp-template-name: ${WHATSAPP_OTP_TEMPLATE_NAME:prism_otp}
+  razorpay:
+    enabled: ${RAZORPAY_ENABLED:false}
+    key-id: ${RAZORPAY_KEY_ID:}
+    key-secret: ${RAZORPAY_KEY_SECRET:}
+    webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
+  admin:
+    initial-name: ${PRISM_ADMIN_INITIAL_NAME:WebAux Admin}
+    initial-phone: ${PRISM_ADMIN_INITIAL_PHONE:}
+    initial-password: ${PRISM_ADMIN_INITIAL_PASSWORD:}
