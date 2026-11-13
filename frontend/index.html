@@ -3,19 +3,99 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WebAux</title>
-    <meta name="description" content="WebAux hosts an event website for ₹500 a day." />
+    <title>WebAux · Event websites for ₹500 a day</title>
+    <meta
+      name="description"
+      content="WebAux hosts an event website at its own address for ₹500 a day. Build the invitation, collect RSVPs, and keep it live only while you host it."
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="author" content="WebAux" />
+    <meta name="application-name" content="WebAux" />
     <meta name="theme-color" content="#087f80" />
+    <meta name="color-scheme" content="light" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="WebAux" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+    <link rel="canonical" href="https://webaux.app/" />
+    <link rel="alternate" hreflang="en-IN" href="https://webaux.app/" />
+    <link rel="alternate" hreflang="x-default" href="https://webaux.app/" />
+
+    <meta property="og:site_name" content="WebAux" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_IN" />
+    <meta property="og:title" content="WebAux · Event websites for ₹500 a day" />
+    <meta
+      property="og:description"
+      content="WebAux hosts an event website at its own address for ₹500 a day. Build the invitation, collect RSVPs, and keep it live only while you host it."
+    />
+    <meta property="og:url" content="https://webaux.app/" />
+    <meta property="og:image" content="https://webaux.app/web-app-manifest-512x512.png" />
+    <meta property="og:image:alt" content="WebAux" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="WebAux · Event websites for ₹500 a day" />
+    <meta
+      name="twitter:description"
+      content="WebAux hosts an event website at its own address for ₹500 a day. Build the invitation, collect RSVPs, and keep it live only while you host it."
+    />
+    <meta name="twitter:image" content="https://webaux.app/web-app-manifest-512x512.png" />
+
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/event-site.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://webaux.app/#organization",
+            "name": "WebAux",
+            "url": "https://webaux.app/",
+            "logo": "https://webaux.app/web-app-manifest-512x512.png",
+            "description": "WebAux hosts event websites at their own address for ₹500 a day."
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://webaux.app/#website",
+            "url": "https://webaux.app/",
+            "name": "WebAux",
+            "description": "Event websites for ₹500 a day — invitations, RSVPs, and metered hosting.",
+            "publisher": { "@id": "https://webaux.app/#organization" },
+            "inLanguage": "en-IN"
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://webaux.app/#app",
+            "name": "WebAux",
+            "url": "https://webaux.app/",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "offers": {
+              "@type": "Offer",
+              "price": "500",
+              "priceCurrency": "INR",
+              "description": "₹500 per day while a site is live"
+            },
+            "publisher": { "@id": "https://webaux.app/#organization" }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

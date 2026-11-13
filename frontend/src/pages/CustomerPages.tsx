@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Heading1, Image as ImageIcon, Link2, MessageSquare, Redo2, Square, SquareMousePointer, Type, Undo2 } from "lucide-react";
+import { ArrowLeft, CreditCard, Download, Globe, Grid2X2, Heading1, Heart, Image as ImageIcon, LayoutList, Link2, MessageSquare, Pencil, Plus, QrCode, Redo2, Search, Sparkles, Square, SquareMousePointer, Type, Undo2 } from "lucide-react";
 import { DeleteWebsiteButton } from "../components/DeleteWebsiteButton";
+import { GradientLink, HostingBattery, KpiCard, OperationalPill, SegmentedTabs, SoftButton } from "../components/dash/DashPrimitives";
 import { Button, Empty, Field, Pill } from "../components/ui";
 import { InviteCard } from "../components/invite/InviteCard";
 import { HostingRunway } from "../components/hosting/HostingRunway";
@@ -20,6 +21,7 @@ export function DashboardPage() {
   });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "live" | "draft">("all");
+  const [view, setView] = useState<"list" | "grid">("list");
   const [selected, setSelected] = useState<string[]>([]);
   const rows = events.data ?? [];
   const visible = rows.filter((event) => {
@@ -31,81 +33,282 @@ export function DashboardPage() {
     return event.eventName.toLowerCase().includes(needle) || event.slug.toLowerCase().includes(needle);
   });
   const live = rows.filter((event) => event.status === "PUBLISHED").length;
+  const drafts = rows.filter((event) => event.status !== "PUBLISHED").length;
   const review = rows.filter((event) => event.status === "SUBMITTED" || event.status === "IN_REVIEW" || event.status === "CHANGES_REQUESTED").length;
   const payable = rows.filter((event) => event.status === "APPROVED").length;
+  const pool = rows.reduce((sum, event) => sum + Math.max(0, event.hosting.daysRemaining || 0), 0);
   const features = useQuery({
     queryKey: ["features"],
     queryFn: async () => (await api.get<Envelope<{ aiWebsiteGenerationEnabled: boolean }>>("/config/features")).data.data,
   });
+  const createTo = features.data?.aiWebsiteGenerationEnabled ? "/app/create" : "/app/new";
   const finding = rows.find((event) => event.status === "CHANGES_REQUESTED")
     ?? rows.find((event) => event.status === "APPROVED")
     ?? rows.find((event) => event.hosting.daysRemaining > 0 && event.hosting.daysRemaining <= 3);
+  const selectedVisible = visible.filter((event) => selected.includes(event.id));
+  const allVisibleSelected = visible.length > 0 && visible.every((event) => selected.includes(event.id));
+
   return (
-    <>
-      <div className="sheet-title">
+    <div className="dash">
+      <div className="dash-glow" aria-hidden />
+      <div className="sheet-title dash-title">
         <div>
-          <h1>Event sites</h1>
-          <p>{finding ? nextStep(finding) : rows.length === 0 ? "No site is waiting on you." : "Nothing needs a decision today."}</p>
+          <div className="dash-title-row">
+            <h1>Event Sites</h1>
+            <OperationalPill />
+            <span className="dash-quiet">• {finding ? nextStep(finding) : rows.length === 0 ? "No site is waiting on you." : "Nothing needs a decision today"}</span>
+          </div>
+          <p>Manage your event portals, publish when ready, and keep an eye on hosting days and guest replies.</p>
         </div>
-        {features.data?.aiWebsiteGenerationEnabled ? <Button asChild><Link to="/app/create">Create a website</Link></Button> : <Button asChild><Link to="/app/new">New event site</Link></Button>}
+        <div className="dash-actions">
+          <SoftButton to="/app/new"><Sparkles size={16} aria-hidden /> Templates</SoftButton>
+          <GradientLink to={createTo}><Plus size={16} aria-hidden /> Create a Website</GradientLink>
+        </div>
       </div>
+
       <div className="work">
-        {events.isLoading ? <div className="skeleton" style={{ height: 72 }} /> : (
-          <div className="kpis">
-            <div className="kpi"><span>Live</span><strong className="num">{live}</strong><em>Published and inside hosting</em></div>
-            <div className="kpi"><span>With a reviewer</span><strong className="num">{review}</strong><em>Submitted or sent back</em></div>
-            <div className="kpi"><span>Awaiting payment</span><strong className="num">{payable}</strong><em>Approved, not yet hosted</em></div>
+        {events.isLoading ? <div className="skeleton" style={{ height: 120 }} /> : (
+          <div className="kpi-grid">
+            <KpiCard
+              label="Live Websites"
+              value={live}
+              hint={live > 0 ? "Active" : "None live"}
+              accent="teal"
+              icon={<Globe size={18} aria-hidden />}
+              meta="Published and inside hosting"
+            >
+              <svg className="kpi-spark" viewBox="0 0 120 20" fill="none" aria-hidden>
+                <path d="M0 16 L20 14 L40 17 L60 8 L80 11 L100 4 L120 7" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+                <path d="M0 16 L20 14 L40 17 L60 8 L80 11 L100 4 L120 7 V20 H0 Z" fill="currentColor" fillOpacity="0.08" />
+              </svg>
+            </KpiCard>
+            <KpiCard
+              label="With a Reviewer"
+              value={review}
+              hint={review === 0 ? "Clean queue" : "Needs attention"}
+              icon={<MessageSquare size={18} aria-hidden />}
+              meta="Submitted or in collaborative feedback"
+            >
+              <p className="kpi-footnote"><span className="ops-pill-dot is-muted" aria-hidden />{review} pending approvals</p>
+            </KpiCard>
+            <KpiCard
+              label="Awaiting Payment"
+              value={payable}
+              hint={payable === 0 ? "₹0 due" : "Ready to host"}
+              icon={<CreditCard size={18} aria-hidden />}
+              meta="Approved, awaiting hosting activation"
+            >
+              <p className="kpi-footnote"><span className="ops-pill-dot is-muted" aria-hidden />{payable === 0 ? "All invoices reconciled" : `${payable} ready to pay`}</p>
+            </KpiCard>
+            <KpiCard
+              label="Hosting Pool"
+              value={pool}
+              hint="Days left"
+              accent="amber"
+              icon={<Heart size={18} aria-hidden />}
+              meta={
+                <span className="kpi-pool-meta">
+                  <span>₹500 / day billing</span>
+                  <strong>{live > 0 ? "Live sites active" : "No live burn"}</strong>
+                </span>
+              }
+            >
+              <div className="kpi-progress" aria-hidden>
+                <i style={{ width: `${pool > 0 ? Math.min(100, Math.round((pool / Math.max(pool, 14)) * 100)) : 0}%` }} />
+              </div>
+            </KpiCard>
           </div>
         )}
+
         {events.isError ? <p className="error-line">{errorMessage(events.error, "The sites could not be loaded.")}</p> : null}
-        {rows.length > 0 ? (
-          <div className="site-tools">
-            <input type="search" value={query} placeholder="Search name or address" aria-label="Search event sites" onChange={(item) => setQuery(item.target.value)} />
-            {(["all", "live", "draft"] as const).map((item) => (
-              <button key={item} type="button" className="filter-chip" aria-pressed={filter === item} onClick={() => setFilter(item)}>{item === "all" ? "All" : item === "live" ? "Live" : "Drafts"}</button>
-            ))}
-            <label className="site-select-all">
+
+        <section className="sites-board">
+          <div className="sites-toolbar">
+            <label className="sites-search">
+              <Search size={16} aria-hidden />
               <input
-                type="checkbox"
-                aria-label="Select the sites in this list"
-                checked={visible.length > 0 && visible.every((event) => selected.includes(event.id))}
-                onChange={(item) => setSelected(item.target.checked ? visible.map((event) => event.id) : [])}
+                type="search"
+                value={query}
+                placeholder="Search by event name, slug (/mann, /bday)..."
+                aria-label="Search event sites"
+                onChange={(item) => setQuery(item.target.value)}
               />
-              Select list
             </label>
-            <Button type="button" tone="secondary" disabled={visible.length === 0} onClick={() => exportSites(visible.filter((event) => selected.includes(event.id)).length > 0 ? visible.filter((event) => selected.includes(event.id)) : visible)}>Export CSV</Button>
+            <div className="sites-toolbar-right">
+              <SegmentedTabs
+                value={filter}
+                onChange={setFilter}
+                options={[
+                  { id: "all", label: `All (${rows.length})` },
+                  { id: "live", label: `Live (${live})` },
+                  { id: "draft", label: `Drafts (${drafts})` },
+                ]}
+              />
+              <div className="view-toggle" role="group" aria-label="View mode">
+                <button type="button" aria-pressed={view === "list"} title="List view" onClick={() => setView("list")}>
+                  <LayoutList size={16} />
+                </button>
+                <button type="button" aria-pressed={view === "grid"} title="Grid view" onClick={() => setView("grid")}>
+                  <Grid2X2 size={16} />
+                </button>
+              </div>
+              <button
+                type="button"
+                className="icon-soft"
+                title="Export CSV"
+                disabled={visible.length === 0}
+                onClick={() => exportSites(selectedVisible.length > 0 ? selectedVisible : visible)}
+              >
+                <Download size={16} />
+              </button>
+            </div>
           </div>
-        ) : null}
-        <section className="list">
-          {events.isLoading ? null : rows.length === 0 ? (
-            <Empty>When you start a site it will sit here, with its hosting days beside the name. <Link to="/app/new">New event site</Link></Empty>
-          ) : visible.length === 0 ? (
-            <Empty>No site matches this search.</Empty>
-          ) : visible.map((event) => (
-            <div key={event.id} className="site-row-line">
-              <label className="site-check">
+
+          {rows.length > 0 ? (
+            <div className="sites-microbar">
+              <label className="site-select-all">
                 <input
                   type="checkbox"
-                  aria-label={`Select ${event.eventName}`}
-                  checked={selected.includes(event.id)}
-                  onChange={(item) => setSelected((current) => item.target.checked ? [...current, event.id] : current.filter((id) => id !== event.id))}
+                  aria-label="Select the sites in this list"
+                  checked={allVisibleSelected}
+                  onChange={(item) => setSelected(item.target.checked ? visible.map((event) => event.id) : [])}
                 />
+                Select {visible.length} website{visible.length === 1 ? "" : "s"}
               </label>
-              <Link to={`/app/events/${event.id}`} className="site-row">
-                <div>
-                  <strong>{event.eventName}</strong>
-                  <div className="id">/{event.slug}</div>
-                </div>
-                <Pill status={event.status} />
-                <HostingRunway days={event.requestedDays} filled={event.hosting.daysRemaining || event.requestedDays} label={`${event.hosting.daysRemaining} hosting days left`} />
-                <span className="num">{event.hosting.daysRemaining} days left</span>
-              </Link>
-              <DeleteWebsiteButton id={event.id} name={event.eventName} />
+              <span className="dash-quiet">Sorted by recent activity</span>
+              <span className="sites-microbar-note">
+                <span className="ops-pill-dot" aria-hidden />
+                Daily tier: ₹500/day while a site is live
+              </span>
             </div>
-          ))}
+          ) : null}
+
+          {events.isLoading ? null : rows.length === 0 ? (
+            <Empty>When you start a site it will sit here, with its hosting days beside the name. <Link to={createTo}>Create a Website</Link></Empty>
+          ) : visible.length === 0 ? (
+            <Empty>No site matches this search.</Empty>
+          ) : view === "grid" ? (
+            <div className="sites-grid">
+              {visible.map((event) => (
+                <article key={event.id} className="site-card">
+                  <div className="site-card-head">
+                    <Pill status={event.status} />
+                    <span className="num">{event.hosting.daysRemaining} days left</span>
+                  </div>
+                  <Link to={`/app/events/${event.id}`} className="site-card-body">
+                    <strong>{event.eventName}</strong>
+                    <span className="id">/{event.slug}</span>
+                  </Link>
+                  <div className="site-card-foot">
+                    <HostingBattery
+                      remaining={event.hosting.daysRemaining}
+                      requested={event.requestedDays}
+                      label={`${event.hosting.daysRemaining} hosting days left`}
+                    />
+                    <div className="site-card-actions">
+                      {event.status === "PUBLISHED" ? <Link className="btn-chip" to={`/app/events/${event.id}/extend`}>Extend</Link> : null}
+                      <Link className="icon-soft" to={event.editorDocument?.root ? `/app/events/${event.id}/studio` : `/app/events/${event.id}/edit`} aria-label={`Edit ${event.eventName}`}>
+                        <Pencil size={16} />
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="sites-table-wrap">
+              <table className="sites-table">
+                <thead>
+                  <tr>
+                    <th className="sites-check-col" />
+                    <th>Event Name &amp; URL Slug</th>
+                    <th>Status</th>
+                    <th>Hosting Battery</th>
+                    <th>Time Remaining</th>
+                    <th className="sites-actions-col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visible.map((event) => (
+                    <tr key={event.id} className="site-row-tr">
+                      <td>
+                        <label className="site-check">
+                          <input
+                            type="checkbox"
+                            aria-label={`Select ${event.eventName}`}
+                            checked={selected.includes(event.id)}
+                            onChange={(item) => setSelected((current) => item.target.checked ? [...current, event.id] : current.filter((id) => id !== event.id))}
+                          />
+                        </label>
+                      </td>
+                      <td>
+                        <Link to={`/app/events/${event.id}`} className="site-identity">
+                          <span className="site-thumb" aria-hidden>
+                            {event.status === "PUBLISHED" ? <Globe size={16} /> : <LayoutList size={16} />}
+                          </span>
+                          <span>
+                            <strong>{event.eventName}</strong>
+                            <span className="id">/{event.slug}</span>
+                          </span>
+                        </Link>
+                      </td>
+                      <td><Pill status={event.status} /></td>
+                      <td>
+                        <HostingBattery
+                          remaining={event.hosting.daysRemaining}
+                          requested={event.requestedDays}
+                          label={`${event.hosting.daysRemaining} hosting days left`}
+                        />
+                      </td>
+                      <td className="num">{event.hosting.daysRemaining} days left</td>
+                      <td>
+                        <div className="site-row-actions">
+                          {event.status === "PUBLISHED" ? <Link className="btn-chip" to={`/app/events/${event.id}/extend`}>Extend</Link> : null}
+                          <Link className="icon-soft" to={event.editorDocument?.root ? `/app/events/${event.id}/studio` : `/app/events/${event.id}/edit`} aria-label={`Edit ${event.eventName}`}>
+                            <Pencil size={16} />
+                          </Link>
+                          <DeleteWebsiteButton id={event.id} name={event.eventName} compact />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {rows.length > 0 ? (
+            <div className="sites-foot">
+              <span>
+                Showing <strong className="num">{visible.length}</strong> of <strong className="num">{rows.length}</strong> registered sites
+              </span>
+              <button
+                type="button"
+                className="linkish"
+                disabled={visible.length === 0}
+                onClick={() => exportSites(selectedVisible.length > 0 ? selectedVisible : visible)}
+              >
+                Download site inventory CSV
+              </button>
+            </div>
+          ) : null}
         </section>
+
+        <aside className="dash-banner">
+          <div className="dash-banner-copy">
+            <span className="dash-banner-icon" aria-hidden><QrCode size={22} /></span>
+            <div>
+              <h2>Guest replies &amp; hosting top-ups</h2>
+              <p>Open any live site to check replies, or add hosting days when the runway runs short. Metered at ₹500 a day while published.</p>
+            </div>
+          </div>
+          <div className="dash-banner-actions">
+            <SoftButton to="/app/help">Help &amp; Support</SoftButton>
+            <GradientLink to="/app/billing">Hosting Top-up (₹500/day)</GradientLink>
+          </div>
+        </aside>
       </div>
-    </>
+    </div>
   );
 }
 

@@ -15,5 +15,5 @@ COPY --from=build /src/target/prism-backend.jar app.jar
 USER prism
 ENV PRISM_MEDIA_STORAGE_PATH=/data/media
 EXPOSE 8080
-HEALTHCHECK --interval=15s --timeout=5s --retries=8 CMD curl -fsS http://localhost:8080/actuator/health || exit 1
+HEALTHCHECK --interval=10s --timeout=5s --start-period=90s --retries=18 CMD curl -fsS http://localhost:8080/actuator/health || exit 1
 ENTRYPOINT ["java", "-jar", "app.jar"]

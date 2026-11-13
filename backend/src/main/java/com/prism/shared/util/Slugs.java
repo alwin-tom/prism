@@ -13,9 +13,10 @@ public final class Slugs {
     private static final Set<String> RESERVED = Set.of(
             "admin", "api", "app", "login", "register", "auth", "assets", "media", "public",
             "static", "health", "render", "account", "events", "templates", "categories",
-            "payments", "swagger-ui", "favicon", "robots", "placeholders", "fonts", "customer",
+            "payments", "swagger-ui", "favicon", "robots", "sitemap", "placeholders", "fonts", "customer",
             "dashboard", "review", "reviews", "webhook", "webhooks", "actuator", "v3", "docs",
-            "checkout", "settings", "rsvp", "hosting", "about", "privacy", "terms"
+            "checkout", "settings", "rsvp", "hosting", "about", "privacy", "terms", "manifest",
+            "site.webmanifest", "apple-touch-icon"
     );
 
     private Slugs() {

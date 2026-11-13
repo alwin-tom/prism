@@ -1,11 +1,17 @@
 {
   "name": "WebAux",
   "short_name": "WebAux",
-  "description": "WebAux hosts an event website for ₹500 a day.",
+  "description": "WebAux hosts an event website at its own address for ₹500 a day.",
   "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "lang": "en-IN",
+  "dir": "ltr",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#f4faff",
   "theme_color": "#087f80",
+  "categories": ["business", "productivity"],
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",

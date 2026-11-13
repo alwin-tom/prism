@@ -226,12 +226,29 @@ public class PublicHtmlRenderer {
     }
 
     private String meta(String title, String description, String url, String image, String accent) {
+        String site = properties.getPublicBaseUrl() == null ? "https://webaux.app" : properties.getPublicBaseUrl().replaceAll("/$", "");
         return "<link rel=\"canonical\" href=\"" + esc(url) + "\">"
+                + "<meta name=\"robots\" content=\"index, follow\">"
+                + "<meta name=\"author\" content=\"WebAux\">"
+                + "<meta property=\"og:site_name\" content=\"WebAux\">"
+                + "<meta property=\"og:type\" content=\"website\">"
+                + "<meta property=\"og:locale\" content=\"en_IN\">"
                 + "<meta property=\"og:title\" content=\"" + esc(title) + "\">"
                 + "<meta property=\"og:description\" content=\"" + esc(description) + "\">"
                 + "<meta property=\"og:url\" content=\"" + esc(url) + "\">"
                 + "<meta property=\"og:image\" content=\"" + esc(image) + "\">"
-                + "<meta name=\"theme-color\" content=\"" + esc(accent) + "\">";
+                + "<meta name=\"twitter:card\" content=\"summary_large_image\">"
+                + "<meta name=\"twitter:title\" content=\"" + esc(title) + "\">"
+                + "<meta name=\"twitter:description\" content=\"" + esc(description) + "\">"
+                + "<meta name=\"twitter:image\" content=\"" + esc(image) + "\">"
+                + "<meta name=\"theme-color\" content=\"" + esc(accent) + "\">"
+                + "<link rel=\"icon\" href=\"" + esc(site) + "/favicon.ico\">"
+                + "<script type=\"application/ld+json\">"
+                + "{\"@context\":\"https://schema.org\",\"@type\":\"WebPage\",\"name\":\"" + esc(title) + "\","
+                + "\"description\":\"" + esc(description) + "\",\"url\":\"" + esc(url) + "\","
+                + "\"isPartOf\":{\"@type\":\"WebSite\",\"name\":\"WebAux\",\"url\":\"" + esc(site) + "/\"},"
+                + "\"primaryImageOfPage\":\"" + esc(image) + "\"}"
+                + "</script>";
     }
 
     private String document(String title, String description, String body, String background, String ink, String extraHead) {

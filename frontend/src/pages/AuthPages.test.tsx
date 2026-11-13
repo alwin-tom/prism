@@ -15,7 +15,8 @@ describe("LoginPage", () => {
         </MemoryRouter>
       </QueryClientProvider>,
     );
-    await user.type(screen.getByLabelText("Six-digit code"), "12345");
+    await user.click(screen.getByLabelText("Digit 1"));
+    await user.paste("12345");
     await user.click(screen.getByRole("button", { name: "Sign in" }));
     expect(await screen.findByText("Enter the six-digit code.")).toBeInTheDocument();
   });

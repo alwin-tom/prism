@@ -1,15 +1,22 @@
 package com.prism.shared.config;
 
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Locale;
 
+/**
+ * Refuses to stay up in prod with unsafe auth/payment settings.
+ * Runs as {@link ApplicationRunner} so a bad config exits the process (Docker/Coolify mark unhealthy).
+ */
 @Component
-public class StartupGuard {
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class StartupGuard implements ApplicationRunner {
 
     static final String LOCAL_JWT_DEFAULT = "local-only-prism-jwt-secret-change-me";
 
@@ -21,8 +28,8 @@ public class StartupGuard {
         this.properties = properties;
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void onReady() {
+    @Override
+    public void run(ApplicationArguments args) {
         assertSafe(environment, properties);
     }
 
@@ -39,9 +46,14 @@ public class StartupGuard {
         if (properties.isPaymentBypassEnabled()) {
             throw new IllegalStateException("PRISM_PAYMENT_BYPASS_ENABLED must be false when the prod profile is active.");
         }
-        String secret = properties.getJwt().getSecret() == null ? "" : properties.getJwt().getSecret();
-        if (secret.length() < 32 || LOCAL_JWT_DEFAULT.equals(secret) || secret.startsWith("replace_with")) {
-            throw new IllegalStateException("Set a unique JWT_SECRET of at least 32 characters for production.");
+        String secret = properties.getJwt().getSecret() == null ? "" : properties.getJwt().getSecret().trim();
+        if (secret.length() < 32
+                || LOCAL_JWT_DEFAULT.equals(secret)
+                || secret.startsWith("replace_with")
+                || secret.contains("<")
+                || secret.contains("≥")) {
+            throw new IllegalStateException(
+                    "Set JWT_SECRET to a unique secret of at least 32 characters for production (not a placeholder).");
         }
         if (!properties.getSecurity().isCookieSecure()) {
             throw new IllegalStateException("Set PRISM_COOKIE_SECURE=true for production.");

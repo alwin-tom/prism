@@ -7,6 +7,7 @@ import { AccountPage, DashboardPage, DraftPreviewPage, EditorPage, EventPage, Ex
 import { BillingPage, DomainsPage, HelpPage, MediaLibraryPage } from "../pages/LibraryPages";
 import { StudioPage } from "../features/visual-editor/StudioPage";
 import { CreationPage } from "../features/website-creation/CreationPage";
+import { usePageSeo } from "../seo/usePageSeo";
 import { api } from "../services/api";
 import type { Account, Envelope } from "../types";
 
@@ -70,6 +71,14 @@ export function AppRouter() {
 }
 
 function Gate({ mode }: { mode: "customer" | "admin" }) {
+  usePageSeo({
+    title: mode === "admin" ? "Staff" : "Event Sites",
+    description: mode === "admin"
+      ? "WebAux staff workspace."
+      : "Manage your WebAux event websites, hosting, and guest replies.",
+    path: mode === "admin" ? "/admin" : "/app",
+    noIndex: true,
+  });
   const session = useQuery({
     queryKey: ["me"],
     queryFn: async () => (await api.get<Envelope<Account>>("/auth/me")).data.data,

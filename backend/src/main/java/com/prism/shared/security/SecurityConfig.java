@@ -122,7 +122,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/otp/request", "/api/v1/auth/otp/verify", "/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/config/features", "/api/v1/fonts").permitAll()
-                        .requestMatchers("/api/v1/public/**", "/render/**").permitAll()
+                        .requestMatchers("/api/v1/public/**", "/render/**", "/robots.txt", "/sitemap.xml").permitAll()
                         .requestMatchers("/api/v1/payments/webhooks/**").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "REVIEWER")
                         .anyRequest().authenticated())

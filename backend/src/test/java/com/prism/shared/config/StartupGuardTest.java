@@ -29,6 +29,14 @@ class StartupGuardTest {
         assertDoesNotThrow(() -> StartupGuard.assertSafe(environment("local"), properties));
     }
 
+    @Test
+    void productionRefusesPlaceholderJwt() {
+        Environment environment = environment("prod");
+        PrismProperties properties = safeProduction();
+        properties.getJwt().setSecret("<unique ≥32 chars>");
+        assertThrows(IllegalStateException.class, () -> StartupGuard.assertSafe(environment, properties));
+    }
+
     private static PrismProperties safeProduction() {
         PrismProperties properties = new PrismProperties();
         properties.getJwt().setSecret("a-real-production-secret-value-32b");

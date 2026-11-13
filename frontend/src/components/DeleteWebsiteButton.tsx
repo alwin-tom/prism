@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { api, errorMessage } from "../services/api";
 
-export function DeleteWebsiteButton({ id, name, path, onDeleted }: { id: string; name: string; path?: string; onDeleted?: () => void }) {
+export function DeleteWebsiteButton({ id, name, path, onDeleted, compact = false }: { id: string; name: string; path?: string; onDeleted?: () => void; compact?: boolean }) {
   const queryClient = useQueryClient();
   const [failed, setFailed] = useState("");
   const remove = useMutation({
@@ -21,9 +21,9 @@ export function DeleteWebsiteButton({ id, name, path, onDeleted }: { id: string;
     onError: (error) => setFailed(errorMessage(error, "The website was not deleted.")),
   });
   return (
-    <div className="site-delete">
+    <div className={compact ? "site-delete is-compact" : "site-delete"}>
       <button
-        className="btn-text"
+        className={compact ? "icon-soft is-danger" : "btn-text"}
         type="button"
         aria-label={`Delete ${name}`}
         disabled={remove.isPending}
@@ -35,7 +35,7 @@ export function DeleteWebsiteButton({ id, name, path, onDeleted }: { id: string;
         }}
       >
         <Trash2 size={16} />
-        Delete
+        {compact ? null : "Delete"}
       </button>
       {failed ? <p className="error-line">{failed}</p> : null}
     </div>

@@ -83,9 +83,12 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
-      interval: 15s
+      interval: 10s
       timeout: 5s
-      retries: 12
+      retries: 18
+      # First boot runs Flyway (incl. pgvector); give the JVM time before counting failures.
+      start_period: 90s
+
 
   frontend:
     build: ./frontend
