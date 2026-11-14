@@ -19,12 +19,14 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/prism
       DATABASE_USERNAME: ${DATABASE_USERNAME:-prism}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-change_me}
+      # Coolify/prod: set JWT_SECRET (≥32 chars, unique). Do not leave the local default.
       JWT_SECRET: ${JWT_SECRET:-local-only-prism-jwt-secret-change-me}
       JWT_ACCESS_TOKEN_EXPIRY: ${JWT_ACCESS_TOKEN_EXPIRY:-900}
       JWT_REFRESH_TOKEN_EXPIRY: ${JWT_REFRESH_TOKEN_EXPIRY:-604800}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
-      PRISM_OTP_BYPASS_ENABLED: ${PRISM_OTP_BYPASS_ENABLED:-true}
-      PRISM_PAYMENT_BYPASS_ENABLED: ${PRISM_PAYMENT_BYPASS_ENABLED:-true}
+      # Local .env may set OTP bypass true. Payment bypass must be false when SPRING_PROFILES_ACTIVE=prod.
+      PRISM_OTP_BYPASS_ENABLED: ${PRISM_OTP_BYPASS_ENABLED:-false}
+      PRISM_PAYMENT_BYPASS_ENABLED: ${PRISM_PAYMENT_BYPASS_ENABLED:-false}
       PRISM_ADVANCED_EDITOR_ENABLED: ${PRISM_ADVANCED_EDITOR_ENABLED:-false}
       PRISM_AI_WEBSITE_GENERATION_ENABLED: ${PRISM_AI_WEBSITE_GENERATION_ENABLED:-false}
       PRISM_AI_CREATIVE_V2_ENABLED: ${PRISM_AI_CREATIVE_V2_ENABLED:-false}
@@ -61,6 +63,7 @@ services:
       # Public site + cookie/CORS origin. For production set both to https://webaux.app (no trailing slash).
       PRISM_PUBLIC_BASE_URL: ${PRISM_PUBLIC_BASE_URL:-http://localhost:8088}
       PRISM_API_BASE_URL: ${PRISM_API_BASE_URL:-http://localhost:8088}
+      # Must be true when SPRING_PROFILES_ACTIVE=prod (HTTPS).
       PRISM_COOKIE_SECURE: ${PRISM_COOKIE_SECURE:-false}
       WHATSAPP_ENABLED: ${WHATSAPP_ENABLED:-false}
       WHATSAPP_BASE_URL: ${WHATSAPP_BASE_URL:-https://graph.facebook.com}
@@ -85,9 +88,9 @@ services:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
       interval: 10s
       timeout: 5s
-      retries: 18
-      # First boot runs Flyway (incl. pgvector); give the JVM time before counting failures.
-      start_period: 90s
+      retries: 30
+      # First boot runs Flyway (incl. pgvector) + seed; small hosts need a long grace window.
+      start_period: 180s
 
 
   frontend:

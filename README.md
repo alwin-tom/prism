@@ -60,6 +60,15 @@ PRISM_PAYMENT_BYPASS_ENABLED=false
 
 Use a strong `DATABASE_PASSWORD`. Redirect `www` to the apex (or the reverse) so CORS matches the single public origin. Razorpay webhooks go to `https://webaux.app/api/v1/payments/webhooks/razorpay`. In a production profile the process refuses to start if payment bypass is enabled, cookie secure is off, or `JWT_SECRET` is missing/weak/default. OTP bypass may stay on until WhatsApp is configured (`111111`).
 
+If Coolify reports `dependency backend failed to start` / `backend is unhealthy`, open **backend → Logs**. A production misconfig exits immediately with one of:
+
+- `PRISM_PAYMENT_BYPASS_ENABLED must be false…`
+- `Set JWT_SECRET to a unique secret…`
+- `Set PRISM_COOKIE_SECURE=true…`
+- `PRISM_ADMIN_INITIAL_PASSWORD must be at least 10 characters.` (only when that password env is set)
+
+Fix those Coolify env vars and redeploy. Do not leave payment bypass on or cookie secure off when `SPRING_PROFILES_ACTIVE=prod`.
+
 ## Tests
 
 ```bash
