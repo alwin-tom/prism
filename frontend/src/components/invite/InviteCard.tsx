@@ -1,13 +1,31 @@
 import { useEffect, useState } from "react";
+import { Printer } from "lucide-react";
 import QRCode from "qrcode";
 import { Button } from "../ui";
 
-export function InviteCard({ name, slug, when, venue }: { name: string; slug: string; when?: string; venue?: string }) {
+export function InviteCard({
+  name,
+  slug,
+  when,
+  venue,
+  compact = false,
+}: {
+  name: string;
+  slug: string;
+  when?: string;
+  venue?: string;
+  compact?: boolean;
+}) {
   const url = `${window.location.origin}/${slug}`;
   const [svg, setSvg] = useState("");
   useEffect(() => {
     let live = true;
-    void QRCode.toString(url, { type: "svg", margin: 1, width: 168, color: { dark: "#172B35", light: "#ffffff" } }).then((markup) => {
+    void QRCode.toString(url, {
+      type: "svg",
+      margin: 1,
+      width: compact ? 96 : 168,
+      color: { dark: "#172B35", light: "#ffffff" },
+    }).then((markup) => {
       if (live) setSvg(markup);
     }).catch(() => {
       if (live) setSvg("");
@@ -15,7 +33,7 @@ export function InviteCard({ name, slug, when, venue }: { name: string; slug: st
     return () => {
       live = false;
     };
-  }, [url]);
+  }, [compact, url]);
 
   function printCard() {
     const popup = window.open("", "_blank", "noopener,width=480,height=720");
@@ -24,6 +42,29 @@ export function InviteCard({ name, slug, when, venue }: { name: string; slug: st
     const venueLine = venue ? `<p>${escapeHtml(venue)}</p>` : "";
     popup.document.write(`<!doctype html><title>${escapeHtml(name)}</title><body style="margin:0;font-family:Inter,sans-serif;color:#172b35"><article style="max-width:360px;margin:32px auto;padding:28px;border:1px solid #e5ecec;border-radius:16px;text-align:center"><p style="letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:#087f80">You are invited</p><h1 style="font-size:28px;margin:8px 0">${escapeHtml(name)}</h1>${whenLine}${venueLine}<div style="margin:16px auto;width:168px">${svg}</div><p style="word-break:break-all">${escapeHtml(url)}</p></article><script>window.onload=()=>window.print()<\/script></body>`);
     popup.document.close();
+  }
+
+  if (compact) {
+    return (
+      <article className="invite-card invite-card-compact">
+        <div className="invite-compact-top">
+          <div className="invite-compact-copy">
+            <p className="invite-kicker">Invite</p>
+            <p className="invite-compact-name">{name}</p>
+            {readable(when) ? <p>{readable(when)}</p> : null}
+            {venue ? <p className="invite-compact-venue">{venue}</p> : null}
+          </div>
+          {svg ? <div className="invite-qr" dangerouslySetInnerHTML={{ __html: svg }} /> : null}
+        </div>
+        <div className="invite-compact-foot">
+          <span className="invite-compact-url" title={url}>{url}</span>
+          <button type="button" className="invite-print" onClick={printCard}>
+            <Printer size={13} aria-hidden />
+            Print badge
+          </button>
+        </div>
+      </article>
+    );
   }
 
   return (

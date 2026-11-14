@@ -7,12 +7,28 @@ import { isEmpty } from "./conditions";
 import { fillFromInvite } from "./inviteFill";
 import type { Question } from "./types";
 
+/** 60% background · 30% ink · 10% accent */
 export const PALETTES = [
   { name: "Ivory", background: "#f7f4ee", ink: "#172b35", accent: "#087f80" },
   { name: "Ink", background: "#172b35", ink: "#f4faff", accent: "#ff925b" },
   { name: "Blush", background: "#fff5f2", ink: "#3b2428", accent: "#e95760" },
   { name: "Leaf", background: "#f3f7f2", ink: "#1d3328", accent: "#2f6b4f" },
   { name: "Sand", background: "#fbf6ee", ink: "#3a2e22", accent: "#c47b3a" },
+  { name: "Pearl", background: "#f8fafc", ink: "#0f172a", accent: "#0ea5a0" },
+  { name: "Champagne", background: "#faf6f0", ink: "#3f2a1d", accent: "#b8860b" },
+  { name: "Sky", background: "#f0f7fb", ink: "#163247", accent: "#2b6cb0" },
+  { name: "Slate", background: "#eef2f4", ink: "#1e293b", accent: "#475569" },
+  { name: "Rosewood", background: "#faf3f4", ink: "#4a1d28", accent: "#a82735" },
+  { name: "Olive", background: "#f4f5ef", ink: "#2c3320", accent: "#6b7c3a" },
+  { name: "Coast", background: "#eef8f7", ink: "#134e4a", accent: "#0f766e" },
+  { name: "Midnight", background: "#0b1220", ink: "#e8eef7", accent: "#38bdf8" },
+  { name: "Ember", background: "#1a1210", ink: "#f8efe8", accent: "#e07a3a" },
+  { name: "Orchid", background: "#fbf5fa", ink: "#3b1f36", accent: "#9d4edd" },
+  { name: "Citrus", background: "#fffbeb", ink: "#292524", accent: "#ca8a04" },
+  { name: "Clay", background: "#f6f0ea", ink: "#3b2f2a", accent: "#9a5b42" },
+  { name: "Navy", background: "#eef2f7", ink: "#0b1c33", accent: "#1d4e89" },
+  { name: "Forest", background: "#0f1a14", ink: "#e7f0ea", accent: "#34d399" },
+  { name: "Snow", background: "#ffffff", ink: "#111827", accent: "#dc2626" },
 ] as const;
 
 export type Palette = (typeof PALETTES)[number];
@@ -68,15 +84,26 @@ export function DraftSide({ questions, answers, palette, onPalette, event, apply
       </section>
       <section className="panel wizard-card">
         <h2>Palette</h2>
-        <div className="palette-row">
+        <p className="studio-hint palette-ratio-hint">60% surface · 30% text · 10% accent</p>
+        <div className="palette-row" role="list">
           {PALETTES.map((item) => (
-            <button key={item.name} type="button" className="palette-swatch" aria-label={item.name} aria-pressed={palette.name === item.name} title={item.name} onClick={() => onPalette(item)}>
-              <span style={{ background: item.background }} />
-              <span style={{ background: item.accent }} />
-              <span style={{ background: item.ink }} />
+            <button
+              key={item.name}
+              type="button"
+              className="palette-swatch"
+              role="listitem"
+              aria-label={`${item.name}: 60% ${item.background}, 30% ${item.ink}, 10% ${item.accent}`}
+              aria-pressed={palette.name === item.name}
+              title={`${item.name} · 60/30/10`}
+              onClick={() => onPalette(item)}
+            >
+              <span className="swatch-60" style={{ background: item.background }} title="60% surface" />
+              <span className="swatch-30" style={{ background: item.ink }} title="30% text" />
+              <span className="swatch-10" style={{ background: item.accent }} title="10% accent" />
             </button>
           ))}
         </div>
+        <p className="palette-selected"><span>{palette.name}</span> · surface {palette.background} · text {palette.ink} · accent {palette.accent}</p>
         <Button type="button" tone="secondary" disabled={!event || applying} onClick={onApply}>{applying ? "Saving" : "Use this palette"}</Button>
         <p className="studio-hint">The palette is saved on the site. The generated page can still choose its own type.</p>
       </section>

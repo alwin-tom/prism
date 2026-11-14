@@ -86,23 +86,31 @@ function ImageAnswers({ eventId, value, onChange }: { eventId: string | null; va
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState("");
 
-  async function upload(file: File) {
+  async function upload(files: File[]) {
     if (!eventId) {
       setError("Start the website before uploading.");
       return;
     }
+    if (files.length === 0) return;
     setError("");
     setProgress(0);
-    const body = new FormData();
-    body.append("file", file);
+    const ids: string[] = [];
     try {
-      const uploaded = await api.post<Envelope<{ id: string }>>(`/events/${eventId}/media`, body, {
-        onUploadProgress: (event) => {
-          if (event.total) setProgress(Math.round((event.loaded / event.total) * 100));
-        },
-      });
-      onChange([...value, uploaded.data.data.id]);
+      for (let index = 0; index < files.length; index += 1) {
+        const body = new FormData();
+        body.append("file", files[index]);
+        const uploaded = await api.post<Envelope<{ id: string }>>(`/events/${eventId}/media`, body, {
+          onUploadProgress: (event) => {
+            if (!event.total) return;
+            const fileProgress = event.loaded / event.total;
+            setProgress(Math.round(((index + fileProgress) / files.length) * 100));
+          },
+        });
+        ids.push(uploaded.data.data.id);
+      }
+      onChange([...value, ...ids]);
     } catch (uploadError) {
+      if (ids.length > 0) onChange([...value, ...ids]);
       setError(errorMessage(uploadError, "That file could not be uploaded."));
     } finally {
       setProgress(null);
@@ -121,11 +129,17 @@ function ImageAnswers({ eventId, value, onChange }: { eventId: string | null; va
       </div>
       <label className="btn btn-secondary">
         Upload
-        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm" hidden onChange={(event) => {
-          const file = event.target.files?.[0];
-          event.target.value = "";
-          if (file) void upload(file);
-        }} />
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm"
+          multiple
+          hidden
+          onChange={(event) => {
+            const files = [...(event.target.files ?? [])];
+            event.target.value = "";
+            void upload(files);
+          }}
+        />
       </label>
       {progress != null ? <p className="studio-hint">Uploading {progress}%</p> : null}
       {error ? <p className="error-line">{error}</p> : null}

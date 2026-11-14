@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary-fixed-dim": "#79d5d6", "tertiary-container": "#ca404b", "surface-container": "#dcf1ff", "on-background": "#091e27", "surface-container-highest": "#d0e6f3", "secondary-container": "#fe915a", "on-primary-fixed-variant": "#004f50", "error-container": "#ffdad6", "on-secondary-fixed-variant": "#7a3000", "secondary": "#9b4513", "surface-variant": "#d0e6f3", "on-tertiary": "#ffffff", "surface": "#f4faff", "primary": "#006465", "error": "#ba1a1a", "on-tertiary-fixed": "#400009", "inverse-surface": "#1f333d", "on-tertiary-fixed-variant": "#8e1124", "surface-bright": "#f4faff", "secondary-fixed-dim": "#ffb693", "on-surface": "#091e27", "on-tertiary-container": "#fff6f5", "tertiary-fixed": "#ffdad9", "surface-container-high": "#d6ebf9", "on-secondary-fixed": "#351000", "on-primary": "#ffffff", "primary-fixed": "#95f2f2", "on-secondary-container": "#722c00", "surface-tint": "#00696a", "secondary-fixed": "#ffdbcc", "tertiary-fixed-dim": "#ffb3b3", "on-error-container": "#93000a", "surface-container-lowest": "#ffffff", "on-primary-container": "#ddffff", "primary-container": "#087f80", "on-secondary": "#ffffff", "on-primary-fixed": "#002020", "inverse-on-surface": "#e2f3ff", "on-error": "#ffffff", "inverse-primary": "#79d5d6", "outline": "#6e7979", "outline-variant": "#bdc9c8", "surface-dim": "#c8ddea", "tertiary": "#a82735", "surface-container-low": "#e8f6ff", "background": "#f4faff", "on-surface-variant": "#3e4949" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xs": "0.25rem", "space-xl": "2.5rem", "space-sm": "0.5rem", "margin": "2rem", "gutter": "1.25rem", "margin-mobile": "1rem", "space-md": "1rem", "gutter-sm": "0.75rem", "space-lg": "1.5rem" }, "fontFamily": { "body-sm": ["Inter"], "headline-sm": ["Plus Jakarta Sans"], "label-sm": ["Inter"], "headline-lg": ["Plus Jakarta Sans"], "code-sm": ["Inter"], "headline-md": ["Plus Jakarta Sans"], "display-hero": ["Plus Jakarta Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "body-lg": ["Inter"], "body-md": ["Inter"], "label-md": ["Inter"], "display-hero-mobile": ["Plus Jakarta Sans"] }, "fontSize": { "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.005em", "fontWeight": "400" }], "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }], "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "code-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" }], "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.03em", "fontWeight": "700" }], "headline-lg-mobile": ["26px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700" }], "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.005em", "fontWeight": "400" }], "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }], "label-md": ["13px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }], "display-hero-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.025em", "fontWeight": "700" }] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-screen w-72 bg-surface-container-low/90 backdrop-blur-xl z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col flex-1 overflow-y-auto px-space-md pt-space-lg"><div class="flex items-center justify-between mb-space-lg px-space-xs"><div class="flex items-center gap-space-sm"><img alt="prism-logo-02-p-transparent.png" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WPS80buyb0ri15ctjSKQY_7CLWS-w6sIFBax28T1rDWrq5Rc2IgxbZYFx56YnPuH45oz27QcKBTMmqhlPBmkqQCyPNo5X3_RzR465Aun3K0sNsA_Y4LdPpM-ZKgEEmEi5H8Ejj1qJGvnQjcIH-7_CBtWOhFbslPdpsPoJe07spiGIResYGtM00BcCeLkUAAxkxSgt49zMlQgjhm4hbP4QWvHyQ0If48aA2svBXdzkhFcnC23t5NsjbX7ro"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface leading-none tracking-tight">Prism</span><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Cloud Platform</span></div></div><span class="font-label-sm text-label-sm bg-surface-container px-space-sm py-0.5 rounded-full text-primary font-semibold">Tenant</span></div><div class="mb-space-lg px-space-xs"><button class="w-full flex items-center justify-center gap-space-sm py-space-sm px-space-md rounded-lg bg-gradient-to-r from-primary-container via-primary to-secondary text-on-primary font-label-md text-label-md shadow-[0_2px_8px_rgba(0,100,101,0.25)] hover:opacity-95 transition-opacity" type="button"><span class="material-symbols-outlined text-[18px]">add_circle</span><span>Create Website</span></button></div><div class="px-space-xs mb-space-sm"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Workspace</span></div><nav class="space-y-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-semibold"><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg transition-colors bg-primary-container text-on-primary-container font-semibold" data-path="overview" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span>Event Sites</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="create-a-website" href="#"><span class="material-symbols-outlined text-[20px]">draw</span><span>Create a Website</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="templates" href="#"><span class="material-symbols-outlined text-[20px]">style</span><span>Templates</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="media-library" href="#"><span class="material-symbols-outlined text-[20px]">perm_media</span><span>Media Library</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="domains-and-hosting" href="#"><span class="material-symbols-outlined text-[20px]">dns</span><span>Domains &amp; Hosting</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="billing-and-invoices" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span>Billing &amp; Invoices</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="settings" href="#"><span class="material-symbols-outlined text-[20px]">tune</span><span>Settings</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-md text-body-md" data-path="help-and-support" href="#"><span class="material-symbols-outlined text-[20px]">help_center</span><span>Help &amp; Support</span></a></nav></div><div class="p-space-md bg-surface-container-lowest/80 mx-space-sm mb-space-md rounded-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center justify-between mb-space-sm"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary-fixed-dim text-on-primary-fixed-variant flex items-center justify-center font-label-md text-label-md font-bold">TU</div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Test User</span><span class="font-label-sm text-label-sm text-outline font-normal">+91 97478 20848</span></div></div><div class="w-2 h-2 rounded-full bg-primary-container ring-2 ring-surface-container-lowest"></div></div><div class="pt-space-xs mt-space-xs flex justify-end"><a class="inline-flex items-center gap-space-xs text-error font-label-sm text-label-sm hover:underline" data-path="sign-out" href="#"><span class="material-symbols-outlined text-[16px]">logout</span><span>Sign Out</span></a></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40"><div class="w-full h-16 px-space-xl flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-xs text-outline font-body-sm text-body-sm"><span class="hover:text-on-surface cursor-pointer">Prism Cloud</span><span class="material-symbols-outlined text-[14px]">chevron_right</span><span class="text-on-surface font-medium">Live Sites</span></div><div class="hidden md:flex items-center gap-space-sm bg-surface-container-low px-space-md py-1.5 rounded-lg"><span class="material-symbols-outlined text-[16px] text-primary">domain</span><span class="font-label-md text-label-md text-on-surface font-medium">Main Production Org</span><span class="material-symbols-outlined text-[16px] text-outline">unfold_more</span></div></div><div class="flex items-center gap-space-md"><div class="hidden sm:flex items-center gap-space-xs bg-surface-container-high px-space-md py-1 rounded-full"><span class="material-symbols-outlined text-[14px] text-secondary">payments</span><span class="font-label-sm text-label-sm text-on-surface font-semibold">₹500/day tier</span></div><div class="hidden lg:flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-full"><div class="w-2 h-2 rounded-full bg-primary"></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Operational</span></div><button class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">notifications</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface min-h-screen"><div class="flex flex-col w-full px-space-md sm:px-space-xl py-space-lg space-y-space-xl">
+<!-- Top Ambient Glow (Subtle Atmospheric Diffusion) -->
+<div class="relative w-full">
+<div class="absolute -top-12 -left-10 w-96 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="absolute -top-8 right-12 w-80 h-40 bg-secondary/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<!-- Header & Action Ribbon -->
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-space-md">
+<div class="space-y-space-xs">
+<div class="flex items-center gap-space-sm flex-wrap">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Event Sites</h1>
+<span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm font-semibold shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+            All systems operational
+          </span>
+<span class="inline-flex items-center text-outline font-body-sm text-body-sm">
+            • Nothing needs a decision today
+          </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+          Manage orchestration, publish live event portals, monitor daily hosting allocations, and track guest engagement.
+        </p>
+</div>
+<!-- Action Cluster -->
+<div class="flex items-center gap-space-sm self-start lg:self-center">
+<button class="inline-flex items-center gap-space-xs px-space-md py-2.5 rounded-lg bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-sm hover:bg-surface-container transition-all" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary">auto_awesome</span>
+<span>Templates</span>
+</button>
+<button class="inline-flex items-center gap-space-xs px-space-md py-2.5 rounded-lg bg-gradient-to-r from-primary-container via-primary to-secondary text-on-primary font-label-md text-label-md shadow-md hover:shadow-lg hover:opacity-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Create a Website</span>
+</button>
+</div>
+</div>
+</div>
+<!-- KPI Metric Panels (Grid with Prism accents) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Card 1: Live Sites -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-primary-fixed-dim"></div>
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Live Websites</span>
+<div class="flex items-baseline gap-space-sm mt-1">
+<span class="font-display-hero-mobile text-display-hero-mobile text-on-surface font-bold">2</span>
+<span class="inline-flex items-center text-primary font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> Active
+            </span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary group-hover:bg-primary-fixed group-hover:text-on-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-[20px]">public</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-3">Published &amp; serving live CDN traffic</p>
+<!-- Sparkline preview SVG -->
+<div class="mt-3 pt-2">
+<svg class="w-full h-5 text-primary" fill="none" viewbox="0 0 120 20">
+<path d="M0 16 L20 14 L40 17 L60 8 L80 11 L100 4 L120 7" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+<path d="M0 16 L20 14 L40 17 L60 8 L80 11 L100 4 L120 7 V20 H0 Z" fill="currentColor" fill-opacity="0.08"></path>
+</svg>
+</div>
+</div>
+<!-- Card 2: With Reviewer -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">With a Reviewer</span>
+<div class="flex items-baseline gap-space-sm mt-1">
+<span class="font-display-hero-mobile text-display-hero-mobile text-on-surface font-bold">0</span>
+<span class="inline-flex items-center text-on-surface-variant font-label-sm text-label-sm">Clean queue</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-on-surface-variant group-hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">rate_review</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-3">Submitted or in collaborative feedback</p>
+<div class="mt-4 flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-surface-variant"></span>
+<span class="font-label-sm text-label-sm text-outline">0 pending approvals</span>
+</div>
+</div>
+<!-- Card 3: Awaiting Payment -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Awaiting Payment</span>
+<div class="flex items-baseline gap-space-sm mt-1">
+<span class="font-display-hero-mobile text-display-hero-mobile text-on-surface font-bold">0</span>
+<span class="inline-flex items-center text-on-surface-variant font-label-sm text-label-sm">₹0 due</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-on-surface-variant group-hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">credit_card</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-3">Approved, awaiting hosting activation</p>
+<div class="mt-4 flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-surface-variant"></span>
+<span class="font-label-sm text-label-sm text-outline">All invoices reconciled</span>
+</div>
+</div>
+<!-- Card 4: Aggregate Hosting Days -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-secondary-container to-secondary"></div>
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">Hosting Pool</span>
+<div class="flex items-baseline gap-space-sm mt-1">
+<span class="font-display-hero-mobile text-display-hero-mobile text-on-surface font-bold">11</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Days pool left</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary group-hover:bg-secondary-fixed group-hover:text-on-secondary-fixed transition-colors">
+<span class="material-symbols-outlined text-[20px]">hourglass_bottom</span>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">₹500 / day billing</span>
+<span class="text-primary font-semibold">Auto-renew active</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full mt-2 overflow-hidden">
+<div class="bg-gradient-to-r from-primary to-secondary h-full rounded-full" style="width: 68%;"></div>
+</div>
+</div>
+</div>
+<!-- Main Workstation Box -->
+<div class="rounded-xl bg-surface-container-lowest shadow-md overflow-hidden flex flex-col">
+<!-- Toolbar / Search / Filter Bar -->
+<div class="p-space-md bg-surface-container-lowest flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<!-- Search Input -->
+<div class="relative flex-1 max-w-md">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 rounded-lg bg-surface-container-low text-on-surface placeholder:text-outline font-body-sm text-body-sm focus:outline-none focus:bg-surface-container transition-all" id="searchInput" placeholder="Search by event name, slug (/mann, /bday)..." type="text"/>
+</div>
+<!-- Segmented Status Tabs & View Modes -->
+<div class="flex items-center gap-space-sm flex-wrap">
+<div class="flex items-center p-1 rounded-lg bg-surface-container-low">
+<button class="filter-tab px-space-md py-1.5 rounded-md font-label-md text-label-md text-on-surface font-semibold bg-surface-container-lowest shadow-sm transition-all" data-filter="all" type="button">All (11)</button>
+<button class="filter-tab px-space-md py-1.5 rounded-md font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all" data-filter="live" type="button">Live (2)</button>
+<button class="filter-tab px-space-md py-1.5 rounded-md font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all" data-filter="draft" type="button">Drafts (9)</button>
+</div>
+<div class="hidden sm:flex items-center gap-1 p-1 rounded-lg bg-surface-container-low">
+<button class="p-1.5 rounded text-primary bg-surface-container-lowest shadow-sm" id="listViewBtn" title="List View" type="button">
+<span class="material-symbols-outlined text-[18px]">view_agenda</span>
+</button>
+<button class="p-1.5 rounded text-outline hover:text-on-surface" id="gridViewBtn" title="Grid View" type="button">
+<span class="material-symbols-outlined text-[18px]">grid_view</span>
+</button>
+</div>
+<button class="p-2 rounded-lg bg-surface-container-low text-on-surface-variant hover:text-on-surface" title="Export metadata" type="button">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+</button>
+</div>
+</div>
+<!-- Batch Selection / Context Micro-Bar -->
+<div class="px-space-lg py-2 bg-surface-container-low flex items-center justify-between text-outline font-label-sm text-label-sm">
+<div class="flex items-center gap-space-md">
+<label class="flex items-center gap-space-xs cursor-pointer select-none">
+<input class="rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" id="selectAllCheckbox" type="checkbox"/>
+<span>Select all 11 websites</span>
+</label>
+<span class="hidden md:inline">• Sorted by recent activity</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="inline-block w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-on-surface-variant font-medium">Daily Tier: ₹500/day active per domain</span>
+</div>
+</div>
+<!-- Sites Table (Desktop List View) -->
+<div class="w-full overflow-x-auto" id="sitesListView">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-2.5 px-space-lg w-10"></th>
+<th class="py-2.5 px-space-md font-semibold">Event Name &amp; URL Slug</th>
+<th class="py-2.5 px-space-md font-semibold">Status</th>
+<th class="py-2.5 px-space-md font-semibold">Hosting Battery</th>
+<th class="py-2.5 px-space-md font-semibold">Time Remaining</th>
+<th class="py-2.5 px-space-lg text-right font-semibold">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container text-body-md font-body-md">
+<!-- Item 1: Untitled website -->
+<tr class="site-row hover:bg-surface-container-low transition-colors group" data-slug="/draft-e754afee" data-status="draft" data-title="Untitled website">
+<td class="py-3 px-space-lg">
+<input class="site-checkbox rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-outline group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">web</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors truncate">Untitled website</span>
+<span class="font-code-sm text-code-sm text-outline truncate font-mono">/draft-e754afee</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">
+                Draft
+              </span>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-1" title="0 of 6 bars">
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+</div>
+</td>
+<td class="py-3 px-space-md font-label-md text-label-md text-outline">
+              0 days left
+            </td>
+<td class="py-3 px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-md hover:bg-surface-container text-outline hover:text-primary transition-colors" title="Edit Site" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors" title="Delete" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 2: Vineesh and Jaya -->
+<tr class="site-row hover:bg-surface-container-low transition-colors group" data-slug="/vineesh-and-jaya-24-november-2026-aluva" data-status="draft" data-title="Vineesh and Jaya — 24 November 2026, Aluva">
+<td class="py-3 px-space-lg">
+<input class="site-checkbox rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-outline group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors truncate">Vineesh and Jaya — 24 November 2026, Aluva</span>
+<span class="font-code-sm text-code-sm text-outline truncate font-mono">/vineesh-and-jaya-24-november-2026-aluva</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">
+                Draft
+              </span>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+</div>
+</td>
+<td class="py-3 px-space-md font-label-md text-label-md text-outline">
+              0 days left
+            </td>
+<td class="py-3 px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-md hover:bg-surface-container text-outline hover:text-primary transition-colors" title="Edit Site" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors" title="Delete" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 3: Alwin Tom -->
+<tr class="site-row hover:bg-surface-container-low transition-colors group" data-slug="/alwin-tom" data-status="draft" data-title="Alwin Tom">
+<td class="py-3 px-space-lg">
+<input class="site-checkbox rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-outline group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">badge</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors truncate">Alwin Tom</span>
+<span class="font-code-sm text-code-sm text-outline truncate font-mono">/alwin-tom</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">
+                Draft
+              </span>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+</div>
+</td>
+<td class="py-3 px-space-md font-label-md text-label-md text-outline">
+              0 days left
+            </td>
+<td class="py-3 px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-md hover:bg-surface-container text-outline hover:text-primary transition-colors" title="Edit Site" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors" title="Delete" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 4: Ellyn's Baby Shower Celebration -->
+<tr class="site-row hover:bg-surface-container-low transition-colors group" data-slug="/ellyn-s-baby-shower-celebration" data-status="draft" data-title="Ellyn's Baby Shower Celebration">
+<td class="py-3 px-space-lg">
+<input class="site-checkbox rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-outline group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">child_friendly</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors truncate">Ellyn's Baby Shower Celebration</span>
+<span class="font-code-sm text-code-sm text-outline truncate font-mono">/ellyn-s-baby-shower-celebration</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">
+                Draft
+              </span>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+</div>
+</td>
+<td class="py-3 px-space-md font-label-md text-label-md text-outline">
+              0 days left
+            </td>
+<td class="py-3 px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-md hover:bg-surface-container text-outline hover:text-primary transition-colors" title="Edit Site" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors" title="Delete" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 5: nDash Private Limited - 3rd Annual Meeting -->
+<tr class="site-row hover:bg-surface-container-low transition-colors group" data-slug="/ndash-private-limited-3rd-annual-meeting" data-status="draft" data-title="nDash Private Limited - 3rd Annual Meeting">
+<td class="py-3 px-space-lg">
+<input class="site-checkbox rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-outline group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">corporate_fare</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors truncate">nDash Private Limited - 3rd Annual Meeting</span>
+<span class="font-code-sm text-code-sm text-outline truncate font-mono">/ndash-private-limited-3rd-annual-meeting</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">
+                Draft
+              </span>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+</div>
+</td>
+<td class="py-3 px-space-md font-label-md text-label-md text-outline">
+              0 days left
+            </td>
+<td class="py-3 px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-md hover:bg-surface-container text-outline hover:text-primary transition-colors" title="Edit Site" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors" title="Delete" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 6: my annis -->
+<tr class="site-row hover:bg-surface-container-low transition-colors group" data-slug="/mann" data-status="draft" data-title="my annis">
+<td class="py-3 px-space-lg">
+<input class="site-checkbox rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-outline group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">celebration</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors truncate">my annis</span>
+<span class="font-code-sm text-code-sm text-outline truncate font-mono">/mann</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">
+                Draft
+              </span>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+</div>
+</td>
+<td class="py-3 px-space-md font-label-md text-label-md text-outline">
+              0 days left
+            </td>
+<td class="py-3 px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-md hover:bg-surface-container text-outline hover:text-primary transition-colors" title="Edit Site" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors" title="Delete" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 7: me5 (PUBLISHED) -->
+<tr class="site-row bg-surface-container-low/40 hover:bg-surface-container-low transition-colors group" data-slug="/tttt" data-status="live" data-title="me5">
+<td class="py-3 px-space-lg">
+<input class="site-checkbox rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-primary-fixed-dim text-on-primary-fixed-variant flex items-center justify-center font-bold">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors truncate">me5</span>
+<a class="text-primary hover:text-primary-container inline-flex" href="#" title="Open live URL">
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+<span class="font-code-sm text-code-sm text-primary font-mono truncate">/tttt</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold shadow-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                Published
+              </span>
+</td>
+<td class="py-3 px-space-md">
+<!-- Segmented battery showing 6 filled bars -->
+<div class="flex items-center gap-1" title="6 of 6 days active">
+<span class="w-1.5 h-4 rounded-sm bg-primary"></span>
+<span class="w-1.5 h-4 rounded-sm bg-primary"></span>
+<span class="w-1.5 h-4 rounded-sm bg-primary"></span>
+<span class="w-1.5 h-4 rounded-sm bg-primary"></span>
+<span class="w-1.5 h-4 rounded-sm bg-primary"></span>
+<span class="w-1.5 h-4 rounded-sm bg-primary"></span>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="font-label-md text-label-md text-primary font-semibold">6 days left</span>
+</td>
+<td class="py-3 px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-md bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold hover:bg-primary hover:text-on-primary transition-colors" type="button">
+                  Extend
+                </button>
+<button class="p-1.5 rounded-md hover:bg-surface-container text-outline hover:text-primary transition-colors" title="Edit Site" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors" title="Delete" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 8: wedding -->
+<tr class="site-row hover:bg-surface-container-low transition-colors group" data-slug="/wedding" data-status="draft" data-title="wedding">
+<td class="py-3 px-space-lg">
+<input class="site-checkbox rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-outline group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">event</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors truncate">wedding</span>
+<span class="font-code-sm text-code-sm text-outline truncate font-mono">/wedding</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">
+                Draft
+              </span>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+</div>
+</td>
+<td class="py-3 px-space-md font-label-md text-label-md text-outline">
+              0 days left
+            </td>
+<td class="py-3 px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-md hover:bg-surface-container text-outline hover:text-primary transition-colors" title="Edit Site" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors" title="Delete" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 9: test funeral -->
+<tr class="site-row hover:bg-surface-container-low transition-colors group" data-slug="/funral" data-status="draft" data-title="test funeral">
+<td class="py-3 px-space-lg">
+<input class="site-checkbox rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-outline group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">spa</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors truncate">test funeral</span>
+<span class="font-code-sm text-code-sm text-outline truncate font-mono">/funral</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">
+                Draft
+              </span>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+</div>
+</td>
+<td class="py-3 px-space-md font-label-md text-label-md text-outline">
+              0 days left
+            </td>
+<td class="py-3 px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-md hover:bg-surface-container text-outline hover:text-primary transition-colors" title="Edit Site" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors" title="Delete" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 10: Isha, 1 month -->
+<tr class="site-row hover:bg-surface-container-low transition-colors group" data-slug="/bday" data-status="draft" data-title="Isha, 1 month">
+<td class="py-3 px-space-lg">
+<input class="site-checkbox rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-outline group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">cake</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors truncate">Isha, 1 month</span>
+<span class="font-code-sm text-code-sm text-outline truncate font-mono">/bday</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">
+                Draft
+              </span>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+</div>
+</td>
+<td class="py-3 px-space-md font-label-md text-label-md text-outline">
+              0 days left
+            </td>
+<td class="py-3 px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="p-1.5 rounded-md hover:bg-surface-container text-outline hover:text-primary transition-colors" title="Edit Site" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors" title="Delete" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Item 11: My Anniversary (PUBLISHED) -->
+<tr class="site-row bg-surface-container-low/40 hover:bg-surface-container-low transition-colors group" data-slug="/alwintom" data-status="live" data-title="My Anniversary">
+<td class="py-3 px-space-lg">
+<input class="site-checkbox rounded text-primary focus:ring-0 cursor-pointer w-3.5 h-3.5" type="checkbox"/>
+</td>
+<td class="py-3 px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-primary-fixed-dim text-on-primary-fixed-variant flex items-center justify-center font-bold">
+<span class="material-symbols-outlined text-[18px]">celebration</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors truncate">My Anniversary</span>
+<a class="text-primary hover:text-primary-container inline-flex" href="#" title="Open live URL">
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</div>
+<span class="font-code-sm text-code-sm text-primary font-mono truncate">/alwintom</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold shadow-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                Published
+              </span>
+</td>
+<td class="py-3 px-space-md">
+<!-- Segmented battery showing 5 filled bars -->
+<div class="flex items-center gap-1" title="5 of 6 days active">
+<span class="w-1.5 h-4 rounded-sm bg-primary"></span>
+<span class="w-1.5 h-4 rounded-sm bg-primary"></span>
+<span class="w-1.5 h-4 rounded-sm bg-primary"></span>
+<span class="w-1.5 h-4 rounded-sm bg-primary"></span>
+<span class="w-1.5 h-4 rounded-sm bg-primary"></span>
+<span class="w-1.5 h-4 rounded-sm bg-surface-container-high"></span>
+</div>
+</td>
+<td class="py-3 px-space-md">
+<span class="font-label-md text-label-md text-primary font-semibold">5 days left</span>
+</td>
+<td class="py-3 px-space-lg text-right">
+<div class="inline-flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-md bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold hover:bg-primary hover:text-on-primary transition-colors" type="button">
+                  Extend
+                </button>
+<button class="p-1.5 rounded-md hover:bg-surface-container text-outline hover:text-primary transition-colors" title="Edit Site" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-error-container text-outline hover:text-error transition-colors" title="Delete" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Alternative Grid View (Hidden by default, toggleable via JavaScript) -->
+<div class="hidden p-space-md grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md" id="sitesGridView">
+<!-- Published 1 Card -->
+<div class="rounded-xl p-space-md bg-surface-container-low/50 hover:bg-surface-container-low transition-all shadow-sm flex flex-col justify-between space-y-space-md">
+<div>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Published
+            </span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">6 days remaining</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-space-sm font-semibold">me5</h3>
+<span class="font-code-sm text-code-sm text-outline font-mono">/tttt</span>
+</div>
+<div class="pt-space-sm flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-3 rounded bg-primary"></span>
+<span class="w-1.5 h-3 rounded bg-primary"></span>
+<span class="w-1.5 h-3 rounded bg-primary"></span>
+<span class="w-1.5 h-3 rounded bg-primary"></span>
+<span class="w-1.5 h-3 rounded bg-primary"></span>
+<span class="w-1.5 h-3 rounded bg-primary"></span>
+</div>
+<div class="flex gap-1">
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface font-label-sm text-label-sm font-medium" type="button">Extend</button>
+<button class="p-1 rounded text-outline hover:text-primary" type="button"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+</div>
+</div>
+</div>
+<!-- Published 2 Card -->
+<div class="rounded-xl p-space-md bg-surface-container-low/50 hover:bg-surface-container-low transition-all shadow-sm flex flex-col justify-between space-y-space-md">
+<div>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Published
+            </span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">5 days remaining</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-space-sm font-semibold">My Anniversary</h3>
+<span class="font-code-sm text-code-sm text-outline font-mono">/alwintom</span>
+</div>
+<div class="pt-space-sm flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-3 rounded bg-primary"></span>
+<span class="w-1.5 h-3 rounded bg-primary"></span>
+<span class="w-1.5 h-3 rounded bg-primary"></span>
+<span class="w-1.5 h-3 rounded bg-primary"></span>
+<span class="w-1.5 h-3 rounded bg-primary"></span>
+<span class="w-1.5 h-3 rounded bg-surface-container-high"></span>
+</div>
+<div class="flex gap-1">
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface font-label-sm text-label-sm font-medium" type="button">Extend</button>
+<button class="p-1 rounded text-outline hover:text-primary" type="button"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+</div>
+</div>
+</div>
+<!-- Draft Representative Card -->
+<div class="rounded-xl p-space-md bg-surface-container-low/20 hover:bg-surface-container-low transition-all shadow-sm flex flex-col justify-between space-y-space-md">
+<div>
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">Draft</span>
+<span class="font-label-sm text-label-sm text-outline">0 days left</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-space-sm font-semibold">Vineesh and Jaya</h3>
+<span class="font-code-sm text-code-sm text-outline font-mono">/vineesh-and-jaya-24-november-2026-aluva</span>
+</div>
+<div class="pt-space-sm flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-3 rounded bg-surface-container-high"></span>
+<span class="w-1.5 h-3 rounded bg-surface-container-high"></span>
+<span class="w-1.5 h-3 rounded bg-surface-container-high"></span>
+<span class="w-1.5 h-3 rounded bg-surface-container-high"></span>
+<span class="w-1.5 h-3 rounded bg-surface-container-high"></span>
+<span class="w-1.5 h-3 rounded bg-surface-container-high"></span>
+</div>
+<div class="flex gap-1">
+<button class="p-1 rounded text-outline hover:text-primary" type="button"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+<button class="p-1 rounded text-outline hover:text-error" type="button"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination & Bulk Utility Bar -->
+<div class="p-space-md bg-surface-container-low/50 flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm text-body-sm font-body-sm text-on-surface-variant">
+<div class="flex items-center gap-space-sm">
+<span>Showing <strong class="text-on-surface font-semibold">11</strong> of <strong class="text-on-surface font-semibold">11</strong> registered sites</span>
+<span class="text-outline">|</span>
+<button class="text-primary hover:underline font-label-sm text-label-sm" type="button">Download site inventory CSV</button>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1 rounded bg-surface-container text-outline cursor-not-allowed text-label-sm font-label-sm" disabled="" type="button">Previous</button>
+<span class="px-2 py-1 rounded bg-primary text-on-primary font-label-sm text-label-sm font-bold">1</span>
+<button class="px-space-sm py-1 rounded bg-surface-container text-outline cursor-not-allowed text-label-sm font-label-sm" disabled="" type="button">Next</button>
+</div>
+</div>
+</div>
+<!-- Bottom Utility Featurette: Instant QR & Daily Hosting Info Banner -->
+<div class="p-space-lg rounded-xl bg-gradient-to-r from-surface-container via-surface-container-low to-surface-container-lowest shadow-sm flex flex-col md:flex-row items-center justify-between gap-space-lg">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-md">
+<span class="material-symbols-outlined text-[24px]">qr_code_2</span>
+</div>
+<div class="space-y-0.5">
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Dynamic Smart Invites &amp; Event Badges</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-xl">
+          Generate live high-resolution vector QR cards for any published portal. Instant check-ins and RSVP sync are active across all 2 live deployments.
+        </p>
+</div>
+</div>
+<div class="flex items-center gap-space-sm shrink-0">
+<button class="px-space-md py-2 rounded-lg bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-xs hover:bg-surface-container transition-colors" type="button">
+        Manage QR Presets
+      </button>
+<button class="px-space-md py-2 rounded-lg bg-primary-container text-on-primary-container font-label-md text-label-md shadow-sm hover:opacity-95 transition-opacity" type="button">
+        Hosting Top-up (₹500/day)
+      </button>
+</div>
+</div>
+</div>
+<script>
+  // Filter Tabs Micro-interaction
+  const filterTabs = document.querySelectorAll('.filter-tab');
+  const siteRows = document.querySelectorAll('.site-row');
+  const searchInput = document.getElementById('searchInput');
+
+  function applyFilters() {
+    const activeTab = document.querySelector('.filter-tab.bg-surface-container-lowest');
+    const filterType = activeTab ? activeTab.getAttribute('data-filter') : 'all';
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+    siteRows.forEach(row => {
+      const status = row.getAttribute('data-status');
+      const title = (row.getAttribute('data-title') || '').toLowerCase();
+      const slug = (row.getAttribute('data-slug') || '').toLowerCase();
+
+      const matchesStatus = filterType === 'all' || status === filterType;
+      const matchesSearch = !query || title.includes(query) || slug.includes(query);
+
+      if (matchesStatus && matchesSearch) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  filterTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      filterTabs.forEach(t => {
+        t.classList.remove('bg-surface-container-lowest', 'text-on-surface', 'shadow-sm', 'font-semibold');
+        t.classList.add('text-on-surface-variant');
+      });
+      tab.classList.add('bg-surface-container-lowest', 'text-on-surface', 'shadow-sm', 'font-semibold');
+      tab.classList.remove('text-on-surface-variant');
+      applyFilters();
+    });
+  });
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+
+  // View Mode Switcher
+  const listViewBtn = document.getElementById('listViewBtn');
+  const gridViewBtn = document.getElementById('gridViewBtn');
+  const sitesListView = document.getElementById('sitesListView');
+  const sitesGridView = document.getElementById('sitesGridView');
+
+  if (listViewBtn && gridViewBtn && sitesListView && sitesGridView) {
+    listViewBtn.addEventListener('click', () => {
+      sitesListView.classList.remove('hidden');
+      sitesGridView.classList.add('hidden');
+      listViewBtn.classList.add('text-primary', 'bg-surface-container-lowest', 'shadow-sm');
+      listViewBtn.classList.remove('text-outline');
+      gridViewBtn.classList.remove('text-primary', 'bg-surface-container-lowest', 'shadow-sm');
+      gridViewBtn.classList.add('text-outline');
+    });
+
+    gridViewBtn.addEventListener('click', () => {
+      sitesListView.classList.add('hidden');
+      sitesGridView.classList.remove('hidden');
+      gridViewBtn.classList.add('text-primary', 'bg-surface-container-lowest', 'shadow-sm');
+      gridViewBtn.classList.remove('text-outline');
+      listViewBtn.classList.remove('text-primary', 'bg-surface-container-lowest', 'shadow-sm');
+      listViewBtn.classList.add('text-outline');
+    });
+  }
+
+  // Master Select All Checkbox
+  const selectAll = document.getElementById('selectAllCheckbox');
+  const siteCheckboxes = document.querySelectorAll('.site-checkbox');
+
+  if (selectAll) {
+    selectAll.addEventListener('change', (e) => {
+      siteCheckboxes.forEach(cb => {
+        cb.checked = e.target.checked;
+      });
+    });
+  }
+</script></main></div></body></html>

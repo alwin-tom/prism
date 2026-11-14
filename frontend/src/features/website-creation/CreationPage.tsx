@@ -12,6 +12,7 @@ import { api, errorMessage } from "../../services/api";
 import type { Envelope, EventSite } from "../../types";
 import { isEmpty, visible } from "./conditions";
 import { DraftSide, PALETTES, type Palette } from "./DraftSide";
+import { GenerationProgress } from "./GenerationProgress";
 import { QuestionField } from "./QuestionField";
 import { GROUPS, type CreationSession, type GenerationJob, type Question, type WebsiteCategory } from "./types";
 
@@ -26,14 +27,6 @@ const ICONS = {
   portfolio: UserRound,
   custom: Sparkles,
 } as const;
-
-const STAGES = [
-  ["QUEUED", "Understanding your requirements"],
-  ["PLANNING", "Choosing the creative direction"],
-  ["GENERATING", "Composing the page"],
-  ["REPAIRING", "Refining layout and visual QA"],
-  ["VALIDATING", "Validating your website"],
-] as const;
 
 export function CreationPage() {
   const features = useQuery({
@@ -242,13 +235,15 @@ function Wizard({ sessionId, editorEnabled }: { sessionId: string; editorEnabled
 
   return (
     <>
-      <div className="sheet-title">
-        <div>
-          <h1>{session.data.categoryName ?? "Website"}</h1>
-          <p>{screenCopy(screen)}</p>
+      {screen === "generating" ? null : (
+        <div className="sheet-title">
+          <div>
+            <h1>{session.data.categoryName ?? "Website"}</h1>
+            <p>{screenCopy(screen)}</p>
+          </div>
         </div>
-      </div>
-      <div className={screen === "generating" ? undefined : "wizard-stage"}>
+      )}
+      <div className={screen === "generating" ? "gen-shell" : "wizard-stage"}>
       <div>
       {screen === "questions" && current ? (
         <section className="wizard-question">
@@ -290,9 +285,13 @@ function Wizard({ sessionId, editorEnabled }: { sessionId: string; editorEnabled
         />
       ) : null}
       {screen === "generating" ? (
-        <Generation
+        <GenerationProgress
           status={job.data?.status ?? session.data.latestJobStatus ?? "QUEUED"}
           error={job.data?.errorMessage}
+          title={event.data?.eventName && event.data.eventName !== "Untitled website" ? event.data.eventName : (session.data.categoryName ?? "Website")}
+          categoryName={session.data.categoryName}
+          answers={answers}
+          event={event.data}
           onCancel={() => { if (jobId) void api.post(`/website-generation-jobs/${jobId}/cancel`).then(() => setStep("review")); }}
           onRetry={() => { if (jobId) void api.post<Envelope<GenerationJob>>(`/website-generation-jobs/${jobId}/retry`).then((response) => { setJobId(response.data.data.id); }); }}
         />
@@ -390,23 +389,6 @@ function Review({ site, answers, questions, onEdit, onDetails, onGenerate }: {
       })}
       {missing.length > 0 ? <p className="studio-hint">Still open, and not required: {missing.map((question) => question.label).join(", ")}.</p> : null}
       {!site ? <Button type="button" disabled>Generate website</Button> : named ? <Button type="button" onClick={onGenerate}>Generate website</Button> : <Button type="button" onClick={onDetails}>Add the event name</Button>}
-    </section>
-  );
-}
-
-function Generation({ status, error, onCancel, onRetry }: { status: string; error?: string | null; onCancel: () => void; onRetry: () => void }) {
-  const current = STAGES.findIndex(([code]) => code === status);
-  return (
-    <section className="wizard-question">
-      <ol className="stage-list">
-        {STAGES.map(([code, label], index) => (
-          <li key={code} aria-current={code === status ? "step" : undefined} className={index < current || status === "COMPLETED" ? "done" : ""}>{label}</li>
-        ))}
-      </ol>
-      {status === "FAILED" ? <p className="error-line">{error || "The website could not be generated. Your answers are still saved."}</p> : null}
-      <div className="wizard-actions">
-        {status === "FAILED" || status === "CANCELLED" ? <Button type="button" onClick={onRetry}>Try again</Button> : <Button type="button" tone="secondary" onClick={onCancel}>Cancel</Button>}
-      </div>
     </section>
   );
 }

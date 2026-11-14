@@ -1,0 +1,534 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Prism Studio - Generating Wedding Website</title>
+<!-- Tailwind CSS v3 with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              teal: '#0ea5a0',
+              tealDark: '#086e6b',
+              tealDeep: '#054e4c',
+              coral: '#f87171',
+              gold: '#fbbf24',
+              sand: '#fdfbf7',
+              navy: '#0f172a'
+            }
+          },
+          animation: {
+            'shimmer': 'shimmer 2.5s infinite linear',
+            'pulse-soft': 'pulseSoft 3s ease-in-out infinite',
+            'spin-slow': 'spin 8s linear infinite',
+            'fade-slide': 'fadeSlide 0.6s ease-out forwards',
+            'float': 'float 6s ease-in-out infinite'
+          },
+          keyframes: {
+            shimmer: {
+              '0%': { backgroundPosition: '-200% 0' },
+              '100%': { backgroundPosition: '200% 0' }
+            },
+            pulseSoft: {
+              '0%, 100%': { opacity: '0.9', transform: 'scale(1)' },
+              '50%': { opacity: '1', transform: 'scale(1.02)' }
+            },
+            fadeSlide: {
+              '0%': { opacity: '0', transform: 'translateY(8px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-6px)' }
+            }
+          }
+        }
+      }
+    };
+  </script>
+<!-- BEGIN: Custom Styles -->
+<style data-purpose="custom-animations">
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .animated-gradient-border {
+      background: linear-gradient(90deg, #0ea5a0, #f87171, #fbbf24, #0ea5a0);
+      background-size: 300% 300%;
+      animation: gradientShift 6s ease infinite;
+    }
+    .skeleton-glow {
+      background: linear-gradient(90deg, rgba(243,244,246,0.6) 25%, rgba(229,231,235,0.9) 50%, rgba(243,244,246,0.6) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+    }
+  </style>
+<style data-purpose="custom-scrollbars">
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+<!-- END: Custom Styles -->
+</head>
+<body class="bg-[#f3f5f8] text-slate-800 antialiased font-sans min-h-screen flex selection:bg-teal-100 selection:text-teal-900">
+<!-- BEGIN: Sidebar Navigation -->
+<aside class="w-72 bg-white border-r border-slate-200/80 flex-shrink-0 flex flex-col justify-between h-screen sticky top-0 z-30 shadow-[1px_0_10px_rgba(0,0,0,0.02)]" data-purpose="app-sidebar">
+<!-- Top Branding & Navigation Links -->
+<div class="p-5 flex flex-col h-[calc(100vh-120px)] overflow-y-auto">
+<!-- Brand Logo Header -->
+<div class="flex items-center justify-between pb-6 mb-4 border-b border-slate-100">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-50 to-orange-50 p-1 flex items-center justify-center border border-slate-100 shadow-sm">
+<img alt="Prism Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvRG6R3WyhU3llDEcaCe3o_KLswdjY7oEgbyrxuF-CMrtSP9Mx6bKH122YyLZb1r0bwkcQX1JXTIZB1BbG0Wyk40_JPk9ZE9xOVTytZ7945JTHoIwGb51KgcELeqfrw6BZ15iWgsY0-vUpdYqmBy-9kCLLvRIX-plzkaX2sJT5ayLANDJkjcmtz9G0ip1z8G_7g8eqZ1V9qFkwy1NqDiw8R7CysH2w8WTvUJmnyydBijHCfBWUURHSRQ">
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-bold text-lg tracking-tight text-slate-900">WebAux</span>
+<span class="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-teal-50 text-brand-teal border border-teal-200/60">Studio</span>
+</div>
+<p class="text-xs text-slate-400 font-medium">Customer Portal</p>
+</div>
+</div>
+<!-- Collapse Sidebar Icon -->
+<button aria-label="Collapse Sidebar" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+<!-- Main Navigation Groups -->
+<nav class="space-y-6">
+<!-- Section: Sites -->
+<div>
+<span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3">Sites</span>
+<div class="mt-2 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition text-sm font-medium" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>Event sites</span>
+</a>
+<!-- Active Navigation Button: Create a Website -->
+<a class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-teal-800 text-white font-medium text-sm shadow-sm transition hover:bg-teal-900" href="#">
+<div class="flex items-center gap-3">
+<svg class="w-4 h-4 text-teal-200 animate-spin-slow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Create a website</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition text-sm font-medium" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>New event site</span>
+</a>
+</div>
+</div>
+<!-- Section: Library -->
+<div>
+<span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3">Library</span>
+<div class="mt-2 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition text-sm font-medium" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>Media library</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition text-sm font-medium" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-3-9-3m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>Domains and hosting</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition text-sm font-medium" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>Billing</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition text-sm font-medium" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>Help &amp; Tutorials</span>
+</a>
+</div>
+</div>
+<!-- Section: Account -->
+<div>
+<span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3">Account</span>
+<div class="mt-2 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition text-sm font-medium" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3"></circle></svg>
+<span>Settings</span>
+</a>
+</div>
+</div>
+</nav>
+</div>
+<!-- User Profile Footer Card -->
+<div class="p-4 border-t border-slate-100 bg-slate-50/60" data-purpose="user-profile-footer">
+<div class="flex items-center gap-3 bg-white p-2.5 rounded-2xl border border-slate-200/80 shadow-sm">
+<div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-800 font-bold flex items-center justify-center text-xs tracking-wider border border-teal-100">
+          TU
+        </div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold text-slate-800 truncate">Test User</p>
+<p class="text-xs text-slate-400 font-mono truncate">+91 97478 20848</p>
+</div>
+</div>
+<button class="w-full mt-2 flex items-center justify-center gap-2 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50/80 rounded-lg transition">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        Sign out
+      </button>
+</div>
+</aside>
+<!-- END: Sidebar Navigation -->
+<!-- BEGIN: Main Workspace Area -->
+<main class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+<!-- Top Sticky Bar with Live Status Pill -->
+<header class="h-16 px-8 bg-white/90 backdrop-blur-md border-b border-slate-200/70 sticky top-0 z-20 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-200/60">
+<span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+          AI Builder Engine Active
+        </span>
+<span class="text-slate-300">|</span>
+<span class="text-xs text-slate-500 font-medium">Model: Prism-Ceremony-v4.2</span>
+</div>
+<div class="flex items-center gap-3">
+<!-- Background execution modal trigger -->
+<button class="inline-flex items-center gap-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200/80 px-3 py-1.5 rounded-lg transition" type="button">
+<svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          Send WhatsApp updates
+        </button>
+<button class="text-xs font-medium text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white transition" type="button">
+          Cancel process
+        </button>
+</div>
+</header>
+<!-- Main Generation Container (2-Column Grid) -->
+<div class="p-8 max-w-7xl w-full mx-auto space-y-6">
+<!-- BEGIN: Header & Progress Hero Card -->
+<section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_4px_25px_-5px_rgba(0,0,0,0.03)] relative overflow-hidden" data-purpose="generation-header-card">
+<!-- Subtle prism decorative blur in corner -->
+<div class="absolute -right-16 -top-16 w-64 h-64 bg-gradient-to-br from-teal-200/40 via-orange-200/30 to-amber-100/40 rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div class="space-y-1.5 max-w-2xl">
+<div class="flex items-center gap-3">
+<h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Wedding website</h1>
+<span class="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800">
+                AI Generation
+              </span>
+</div>
+<p class="text-sm text-slate-500 leading-relaxed">
+              Crafting your personalized event website. We're compiling your details, curating floral &amp; typographic accents, and optimizing media for mobile guests.
+            </p>
+</div>
+<!-- Progress Ring & ETA Metric -->
+<div class="flex items-center gap-4 bg-slate-50/80 border border-slate-200/70 p-3.5 px-5 rounded-2xl flex-shrink-0">
+<div class="relative w-12 h-12 flex items-center justify-center">
+<svg class="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+<!-- Background Circle -->
+<path class="text-slate-200" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<!-- Foreground Progress (68%) -->
+<path class="text-teal-600 stroke-current transition-all duration-700 ease-out" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="68, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<span class="absolute text-xs font-extrabold text-slate-800 font-mono">68%</span>
+</div>
+<div>
+<p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Estimated remaining</p>
+<p class="text-base font-bold text-slate-800 flex items-center gap-1.5">
+<span>~25 seconds</span>
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-teal-500 animate-ping"></span>
+</p>
+</div>
+</div>
+</div>
+<!-- Dynamic Overall Progress Bar -->
+<div class="mt-6 pt-5 border-t border-slate-100">
+<div class="flex justify-between items-center text-xs font-semibold mb-2">
+<span class="text-teal-800 flex items-center gap-1.5">
+<svg class="w-3.5 h-3.5 text-teal-600 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" d="M4 12a8 8 0 018-8v8H4z" fill="currentColor"></path></svg>
+              Stage 3 of 5 in progress
+            </span>
+<span class="text-slate-400 font-medium">3 steps completed / 2 remaining</span>
+</div>
+<div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/50">
+<div class="h-full bg-gradient-to-r from-teal-500 via-teal-600 to-amber-400 rounded-full transition-all duration-700 shadow-sm" style="width: 68%;"></div>
+</div>
+</div>
+</section>
+<!-- END: Header & Progress Hero Card -->
+<!-- Main Layout Grid: Steps Column (Left) + Interactive Live Canvas & Trivia (Right) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- BEGIN: Generation Steps Column (7 Cols) -->
+<section class="lg:col-span-7 space-y-4" data-purpose="generation-pipeline-steps">
+<div class="flex items-center justify-between px-1">
+<h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Execution Pipeline</h2>
+<span class="text-xs text-slate-400">Auto-proceed enabled</span>
+</div>
+<!-- Stage 1: Completed -->
+<article class="group bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 hover:border-teal-200 shadow-sm transition" data-purpose="stage-item-completed">
+<div class="flex items-start gap-4">
+<div class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center flex-shrink-0 mt-0.5 border border-teal-200/60 shadow-xs">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h3 class="font-semibold text-slate-800 text-sm">Understanding your requirements</h3>
+<span class="text-[11px] font-semibold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100">Completed</span>
+</div>
+<p class="text-xs text-slate-500 mt-1">Extracted bridal &amp; groom bio, date (<strong class="text-slate-700">24 Nov 2026</strong>), ceremony preferences, and guest capacity count.</p>
+<div class="mt-2.5 flex flex-wrap gap-2 text-[11px] text-slate-500">
+<span class="inline-flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+<svg class="w-3 h-3 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path></svg>
+                    Aluva Riverfront Venue
+                  </span>
+<span class="inline-flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+<svg class="w-3 h-3 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path></svg>
+                    Traditional + Contemporary Fusion
+                  </span>
+</div>
+</div>
+</div>
+</article>
+<!-- Stage 2: Completed -->
+<article class="group bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 hover:border-teal-200 shadow-sm transition" data-purpose="stage-item-completed">
+<div class="flex items-start gap-4">
+<div class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center flex-shrink-0 mt-0.5 border border-teal-200/60 shadow-xs">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h3 class="font-semibold text-slate-800 text-sm">Choosing the art direction</h3>
+<span class="text-[11px] font-semibold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100">Completed</span>
+</div>
+<p class="text-xs text-slate-500 mt-1">Palette: Warm ivory, champagne gold &amp; jade accents. Editorial serif headings with elegant glassmorphism cards.</p>
+<div class="mt-2.5 flex items-center gap-2">
+<div class="flex -space-x-1.5 items-center">
+<span class="w-4 h-4 rounded-full bg-[#faf7f2] border border-slate-300" title="Warm Ivory"></span>
+<span class="w-4 h-4 rounded-full bg-[#d4af37] border border-white" title="Champagne Gold"></span>
+<span class="w-4 h-4 rounded-full bg-[#0ea5a0] border border-white" title="Prism Teal"></span>
+<span class="w-4 h-4 rounded-full bg-[#f87171] border border-white" title="Coral Blush"></span>
+</div>
+<span class="text-[11px] text-slate-400 font-serif italic">Serif Display · Cormorant Garamond</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Stage 3: ACTIVE / IN-PROGRESS -->
+<article class="relative rounded-2xl p-0.5 shadow-md animated-gradient-border" data-purpose="stage-item-active">
+<div class="bg-white rounded-[15px] p-4 sm:p-5 relative">
+<div class="flex items-start gap-4">
+<!-- Glowing pulsing ring -->
+<div class="relative w-8 h-8 flex items-center justify-center flex-shrink-0 mt-0.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-xl bg-teal-400 opacity-30"></span>
+<div class="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center relative shadow-sm">
+<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+<path class="opacity-90" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"></path>
+</svg>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<h3 class="font-bold text-slate-900 text-sm">Composing the page</h3>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-800 uppercase tracking-wider">Active</span>
+</div>
+<span class="text-xs font-mono font-medium text-teal-600">Generating sections...</span>
+</div>
+<p class="text-xs text-slate-500 mt-1">Synthesizing layouts, injecting RSVP web components, interactive countdown, and venue Google Map integration.</p>
+<!-- Micro-Checklist / Live Activity Ticker -->
+<div class="mt-3.5 space-y-2 bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+<div class="flex items-center text-xs text-slate-700">
+<svg class="w-3.5 h-3.5 text-teal-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>Hero Header with Couple Monogram &amp; Save-the-Date ticker</span>
+</div>
+<div class="flex items-center text-xs text-slate-700 font-medium">
+<span class="w-3.5 h-3.5 mr-2 flex items-center justify-center flex-shrink-0">
+<span class="w-2 h-2 rounded-full bg-teal-600 animate-ping"></span>
+</span>
+<span class="text-teal-900">Constructing Interactive Timeline: 'How We Met in Kochi' → 'The Proposal'</span>
+</div>
+<div class="flex items-center text-xs text-slate-400">
+<div class="w-3.5 h-3.5 rounded-full border border-slate-300 mr-2 flex-shrink-0"></div>
+<span>Injecting RSVP Form &amp; Dietary Preferences validation</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Stage 4: Queued -->
+<article class="bg-white/70 rounded-2xl p-4 sm:p-5 border border-slate-200/70 opacity-80 hover:opacity-100 transition" data-purpose="stage-item-queued">
+<div class="flex items-start gap-4">
+<div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center flex-shrink-0 mt-0.5 border border-slate-200">
+<span class="text-xs font-bold font-mono">4</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h3 class="font-medium text-slate-600 text-sm">Preparing your responsive layout</h3>
+<span class="text-[11px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Queued</span>
+</div>
+<p class="text-xs text-slate-400 mt-1">Calibrating typography scales for iPhone, Android, and 4K displays with touch-friendly navigation tabs.</p>
+</div>
+</div>
+</article>
+<!-- Stage 5: Queued -->
+<article class="bg-white/70 rounded-2xl p-4 sm:p-5 border border-slate-200/70 opacity-80 hover:opacity-100 transition" data-purpose="stage-item-queued">
+<div class="flex items-start gap-4">
+<div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center flex-shrink-0 mt-0.5 border border-slate-200">
+<span class="text-xs font-bold font-mono">5</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h3 class="font-medium text-slate-600 text-sm">Validating your website</h3>
+<span class="text-[11px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Queued</span>
+</div>
+<p class="text-xs text-slate-400 mt-1">Automated Lighthouse speed test, SSL security handshake, and WhatsApp social preview OpenGraph cards.</p>
+</div>
+</div>
+</article>
+<!-- Bottom Action Buttons -->
+<div class="pt-2 flex items-center justify-between">
+<button class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs transition" type="button">
+              Cancel generation
+            </button>
+<div class="text-xs text-slate-400 flex items-center gap-1.5">
+<svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path></svg>
+              Auto-saved to Cloud Vault
+            </div>
+</div>
+</section>
+<!-- END: Generation Steps Column -->
+<!-- BEGIN: Live Preview Peek & Entertainment Column (5 Cols) -->
+<section class="lg:col-span-5 space-y-6" data-purpose="live-canvas-and-trivia">
+<!-- Live Generative Canvas Mockup -->
+<div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm relative overflow-hidden">
+<div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold uppercase tracking-wider text-slate-500">Website Overview</span>
+</div>
+<span class="text-[11px] font-mono text-teal-600 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-100 font-semibold">Readying Assets</span>
+</div>
+<div class="space-y-4">
+<div>
+<span class="text-[10px] tracking-wider uppercase text-slate-400 font-bold block mb-1">Event Title &amp; Couple</span>
+<h4 class="text-lg font-bold text-slate-900">Vineesh &amp; Jaya</h4>
+<p class="text-xs text-slate-500 mt-0.5">Aluva Palace Waterfront, Kochi · Nov 24, 2026</p>
+</div>
+<div class="grid grid-cols-2 gap-3 pt-2">
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+<span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Deployment</span>
+<span class="text-xs font-semibold text-slate-800 mt-0.5 block">Global Edge CDN</span>
+<span class="text-[10px] text-teal-600 font-medium flex items-center gap-1 mt-1"><span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> SSL Pre-assigned</span>
+</div>
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+<span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Guest Access</span>
+<span class="text-xs font-semibold text-slate-800 mt-0.5 block">WhatsApp RSVP</span>
+<span class="text-[10px] text-teal-600 font-medium flex items-center gap-1 mt-1"><span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> QR Code Ready</span>
+</div>
+</div>
+<div class="p-3 rounded-xl bg-slate-50/60 border border-slate-100 space-y-1.5 text-xs text-slate-600">
+<div class="flex justify-between items-center"><span class="text-slate-400">Art Direction</span><span class="font-medium text-slate-800">Ivory &amp; Champagne Gold</span></div>
+<div class="flex justify-between items-center"><span class="text-slate-400">Responsive Mode</span><span class="font-medium text-slate-800">Mobile First + Desktop 4K</span></div>
+<div class="flex justify-between items-center"><span class="text-slate-400">Domain</span><span class="font-medium font-mono text-[11px] text-teal-700">vineesh-jaya.webaux.site</span></div>
+</div>
+</div>
+</div>
+<!-- Wedding Planning Trivia & Pro-Tip Carousel Card -->
+<div class="bg-gradient-to-br from-teal-900 via-teal-950 to-slate-900 text-white rounded-3xl p-5 sm:p-6 shadow-md relative overflow-hidden" data-purpose="trivia-card">
+<!-- Background Glow -->
+<div class="absolute -right-8 -top-8 w-36 h-36 bg-teal-500/20 rounded-full blur-2xl"></div>
+<div class="flex items-center gap-2 mb-3">
+<span class="p-1 rounded-md bg-amber-400/20 text-amber-300">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</span>
+<span class="text-xs uppercase tracking-wider font-bold text-amber-300">Did you know?</span>
+</div>
+<!-- Rotating Card Content -->
+<div class="space-y-2" id="trivia-container">
+              <p class="text-sm font-medium text-slate-100 leading-snug animate-fade-slide">
+                "Adding a dietary requirement survey in the RSVP form reduces wedding catering waste by up to 22%."
+              </p>
+              <p class="text-xs text-slate-400 mt-1">
+                We have pre-filled vegetarian, vegan, and traditional feast (Sadya) selector toggles.
+              </p>
+            </div>
+<!-- Interactive Dots Indicator -->
+<div class="flex items-center justify-between mt-5 pt-3 border-t border-white/10 text-xs text-slate-400">
+<div class="flex gap-1.5">
+<span class="w-5 h-1.5 rounded-full bg-teal-400"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-white/30"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-white/30"></span>
+</div>
+<span class="text-[11px] text-slate-300">Tip 1 of 3</span>
+</div>
+</div>
+<!-- Notification Assistance Card -->
+<div class="bg-amber-50/80 rounded-2xl p-4 border border-amber-200/70 flex items-start gap-3">
+<div class="p-2 rounded-xl bg-amber-100 text-amber-800 flex-shrink-0">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</div>
+<div>
+<h5 class="text-xs font-bold text-amber-900">Need to step away?</h5>
+<p class="text-xs text-amber-800/90 mt-0.5">Feel free to close this tab. We will send you an instant SMS and WhatsApp message to <strong>+91 97478 20848</strong> the moment your wedding website is ready for review.</p>
+</div>
+</div>
+</section>
+<!-- END: Live Preview Peek Column -->
+</div>
+</div>
+</main>
+<!-- END: Main Workspace Area -->
+<!-- BEGIN: Interactive Simulated Progress Script -->
+<script data-purpose="simulated-progress-ticker">
+    // Simulates lively status text cycling for the active stage
+    document.addEventListener('DOMContentLoaded', () => {
+      const tips = [
+        {
+          quote: "Couples using WhatsApp interactive RSVPs receive confirmations 73% faster than email or paper cards.",
+          detail: "Bonus: Your generated site will include a single-tap WhatsApp share link configured for your contact list."
+        },
+        {
+          quote: "88% of wedding guests prefer direct Google Maps and Apple Maps navigation links over printed addresses.",
+          detail: "Your Aluva venue map widget has been linked with live coordinate pins for easy navigation."
+        },
+        {
+          quote: "Adding a dietary requirement survey in the RSVP form reduces wedding catering waste by up to 22%.",
+          detail: "We have pre-filled vegetarian, vegan, and traditional feast (Sadya) selector toggles."
+        }
+      ];
+
+      let tipIndex = 0;
+      const triviaContainer = document.getElementById('trivia-container');
+
+      if (triviaContainer) {
+        setInterval(() => {
+          tipIndex = (tipIndex + 1) % tips.length;
+          triviaContainer.classList.add('opacity-0');
+          setTimeout(() => {
+            triviaContainer.innerHTML = `
+              <p class="text-sm font-medium text-slate-100 leading-snug animate-fade-slide">
+                "${tips[tipIndex].quote}"
+              </p>
+              <p class="text-xs text-slate-400 mt-1">
+                ${tips[tipIndex].detail}
+              </p>
+            `;
+            triviaContainer.classList.remove('opacity-0');
+          }, 300);
+        }, 7000);
+      }
+    });
+  </script>
+<!-- END: Interactive Simulated Progress Script -->
+
+
+</body></html>

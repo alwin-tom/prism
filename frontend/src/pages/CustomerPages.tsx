@@ -11,6 +11,7 @@ import { PublicSite, type SiteEdit } from "../components/templates/PublicSite";
 import { createElement, ensureCanvas, growCanvas, orderCanvas, redoHistory, rememberHistory, sectionsToCanvas, undoHistory } from "../components/templates/canvasModel";
 import { settlePayment } from "../services/checkout";
 import { api, errorMessage } from "../services/api";
+import { filesFromInput, uploadEventMediaMany } from "../services/mediaUpload";
 import type { CanvasElement, Category, Envelope, EventSite, Quote, RsvpSummary, TemplateSummary } from "../types";
 import { quoteFromDays } from "../utils/money";
 
@@ -672,14 +673,13 @@ function PictureMenu({ eventId, onPlace }: { eventId: string; onPlace: (mediaId:
     retry: false,
   });
   const pictures = (media.data ?? []).filter((file) => file.mediaType === "IMAGE");
-  async function send(file: File | undefined) {
-    if (!file) return;
-    const body = new FormData();
-    body.append("file", file);
+  async function send(files: File[]) {
+    if (files.length === 0) return;
     try {
-      const response = await api.post<Envelope<{ id: string }>>(`/events/${eventId}/media`, body);
+      const uploaded = await uploadEventMediaMany(eventId, files);
       await queryClient.invalidateQueries({ queryKey: ["media", eventId] });
-      onPlace(response.data.data.id);
+      const last = uploaded[uploaded.length - 1];
+      if (last) onPlace(last.id);
     } catch (error) {
       setMessage(errorMessage(error, "The picture was not saved."));
     }
@@ -688,7 +688,17 @@ function PictureMenu({ eventId, onPlace }: { eventId: string; onPlace: (mediaId:
     <div className="picture-pop" role="dialog" aria-label="Pictures">
       <label className="picture-upload">
         Upload
-        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" aria-label="Upload a picture" onChange={(change) => void send(change.target.files?.[0])} />
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          multiple
+          aria-label="Upload pictures"
+          onChange={(change) => {
+            const files = [...(change.target.files ?? [])];
+            change.target.value = "";
+            void send(files);
+          }}
+        />
       </label>
       {pictures.length > 0 ? (
         <div className="picture-grid">
@@ -955,21 +965,25 @@ function MediaManager({ eventId, placed, onChoose, onRemove }: { eventId: string
     <form className="stack" onSubmit={async (formEvent) => {
       formEvent.preventDefault();
       const input = formEvent.currentTarget.elements.namedItem("file") as HTMLInputElement;
-      const file = input.files?.[0];
-      if (!file) return;
-      const body = new FormData();
-      body.append("file", file);
+      const selected = filesFromInput(input);
+      if (selected.length === 0) return;
       try {
-        const response = await api.post<Envelope<MediaFile>>(`/events/${eventId}/media`, body);
-        onChoose(response.data.data);
+        const uploaded = await uploadEventMediaMany(eventId, selected);
+        for (const file of uploaded) {
+          if (file.mediaType === "IMAGE") onChoose(file as MediaFile);
+        }
         await queryClient.invalidateQueries({ queryKey: ["media", eventId] });
-        setMessage("The picture is on the page. Click another to add more.");
+        setMessage(
+          uploaded.length === 1
+            ? "The picture is on the page. Click another to add more."
+            : `${uploaded.length} files uploaded. Click any picture to place it again.`,
+        );
         input.value = "";
       } catch (error) {
         setMessage(errorMessage(error, "The file was not saved."));
       }
     }}>
-      <p>Upload a picture and click it to put it on the page. Click another picture to add that one too. Drag each picture to the gap you want, and use the corner to resize it.</p>
+      <p>Upload one or more pictures, then click a thumbnail to put it on the page. Drag each picture to the gap you want, and use the corner to resize it.</p>
       {files.length > 0 ? (
         <div className="media-grid">
           {files.map((file) => (
@@ -988,8 +1002,8 @@ function MediaManager({ eventId, placed, onChoose, onRemove }: { eventId: string
           ))}
         </div>
       ) : null}
-      <Field label="Image or video" hint="JPEG, PNG, GIF, WebP, MP4 or WebM. The file type is checked on the server.">
-        <input name="file" type="file" accept="image/*,video/mp4,video/webm" />
+      <Field label="Images or video" hint="Select one or many. JPEG, PNG, GIF, WebP, MP4 or WebM.">
+        <input name="file" type="file" accept="image/*,video/mp4,video/webm" multiple />
       </Field>
       <Button type="submit" tone="secondary">Upload</Button>
       {message ? <p>{message}</p> : null}

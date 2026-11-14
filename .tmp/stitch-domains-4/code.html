@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-error":"#ffffff","surface":"#f4faff","surface-container-lowest":"#ffffff","secondary":"#9b4513","on-background":"#091e27","inverse-primary":"#79d5d6","secondary-fixed-dim":"#ffb693","on-secondary-container":"#722c00","on-primary-fixed":"#002020","surface-tint":"#00696a","on-secondary":"#ffffff","on-tertiary-fixed":"#400009","on-tertiary":"#ffffff","on-surface-variant":"#3e4949","surface-container-high":"#d6ebf9","on-primary":"#ffffff","surface-container":"#dcf1ff","surface-bright":"#f4faff","outline-variant":"#bdc9c8","on-tertiary-container":"#fff6f5","on-surface":"#091e27","surface-container-low":"#e8f6ff","secondary-fixed":"#ffdbcc","outline":"#6e7979","tertiary":"#a82735","on-error-container":"#93000a","primary-fixed-dim":"#79d5d6","secondary-container":"#fe915a","tertiary-container":"#ca404b","surface-variant":"#d0e6f3","error":"#ba1a1a","surface-container-highest":"#d0e6f3","tertiary-fixed":"#ffdad9","on-primary-container":"#ddffff","on-secondary-fixed":"#351000","inverse-on-surface":"#e2f3ff","background":"#f4faff","primary-container":"#087f80","primary-fixed":"#95f2f2","on-primary-fixed-variant":"#004f50","surface-dim":"#c8ddea","primary":"#006465","on-secondary-fixed-variant":"#7a3000","inverse-surface":"#1f333d","on-tertiary-fixed-variant":"#8e1124","error-container":"#ffdad6","tertiary-fixed-dim":"#ffb3b3"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"margin-mobile":"1rem","margin":"2rem","gutter-sm":"0.75rem","space-xs":"0.25rem","space-md":"1rem","gutter":"1.25rem","space-lg":"1.5rem","space-xl":"2.5rem","space-sm":"0.5rem"},"fontFamily":{"headline-sm":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"display-hero-mobile":["Plus Jakarta Sans"],"code-sm":["Inter"],"body-md":["Inter"],"body-lg":["Inter"],"display-hero":["Plus Jakarta Sans"],"body-sm":["Inter"],"headline-lg":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"label-md":["Inter"],"label-sm":["Inter"]},"fontSize":{"headline-sm":["18px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.015em","fontWeight":"600"}],"display-hero-mobile":["36px",{"lineHeight":"44px","letterSpacing":"-0.025em","fontWeight":"700"}],"code-sm":["12px",{"lineHeight":"16px","letterSpacing":"0em","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"20px","letterSpacing":"0em","fontWeight":"400"}],"body-lg":["16px",{"lineHeight":"24px","letterSpacing":"-0.005em","fontWeight":"400"}],"display-hero":["56px",{"lineHeight":"64px","letterSpacing":"-0.03em","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"16px","letterSpacing":"0.005em","fontWeight":"400"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-lg-mobile":["26px",{"lineHeight":"32px","letterSpacing":"-0.015em","fontWeight":"700"}],"label-md":["13px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"500"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between"><div class="flex flex-col flex-1 overflow-y-auto"><div class="h-16 px-space-lg flex items-center gap-space-sm"><img alt="prism-logo-02-p-transparent.png" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrDhbNAkj3CcKvE1FiIrEgukiKB7797i8oCLGp8VA_DAD9xe1csoMs_AI1Ty-X3s7X5kZRu2ScZqQh0O9GOXat20IroH6YJEPIfI6Mm1sv3EzB2g0_E1QampVPH3ccy_yQiXu19fOEUxAxw0aakYdg1RTcgtFm-Qz2VgLXsl1B6iOJ1Vhm7HWj50egcJSnUgqCiNfHgjyAfq4V6xPf6XGqMv_QMXzXg6pWptcS3JL3d9ZVGcI-zIPvO03hR-"/><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight font-bold">Prism Studio</span></div><nav class="flex-1 px-space-sm py-space-sm space-y-1" data-active-classes="bg-primary-container text-on-primary-container font-semibold shadow-sm"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="event-sites" href="#"><span class="material-symbols-outlined text-[20px]">festival</span><span>Event sites</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="create-a-website" href="#"><span class="material-symbols-outlined text-[20px]">add_circle</span><span>Create a website</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg transition-colors bg-primary-container text-on-primary-container font-semibold shadow-sm" data-path="domains-and-hosting" href="#"><span class="material-symbols-outlined text-[20px]">dns</span><span>Domains &amp; hosting</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="media-library" href="#"><span class="material-symbols-outlined text-[20px]">photo_library</span><span>Media library</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="billing" href="#"><span class="material-symbols-outlined text-[20px]">credit_card</span><span>Billing</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="help" href="#"><span class="material-symbols-outlined text-[20px]">help_outline</span><span>Help</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-md text-label-md" data-path="account" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span>Account</span></a></nav></div><div class="p-space-md bg-surface-container-low"><div class="flex items-center gap-space-sm mb-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col min-w-0 flex-1"><span class="font-label-md text-label-md text-on-surface font-semibold truncate">Test User</span><span class="font-code-sm text-code-sm text-on-surface-variant truncate">+91 97478 20848</span></div></div><a class="flex items-center gap-space-xs text-on-surface-variant hover:text-tertiary transition-colors font-label-sm text-label-sm w-full pt-space-xs" data-path="login" href="#"><span class="material-symbols-outlined text-[16px]">logout</span><span>Sign out</span></a></div></aside><div class="pl-64 flex flex-col min-h-screen"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-md"><img alt="prism-logo-02-p-transparent.png" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrDhbNAkj3CcKvE1FiIrEgukiKB7797i8oCLGp8VA_DAD9xe1csoMs_AI1Ty-X3s7X5kZRu2ScZqQh0O9GOXat20IroH6YJEPIfI6Mm1sv3EzB2g0_E1QampVPH3ccy_yQiXu19fOEUxAxw0aakYdg1RTcgtFm-Qz2VgLXsl1B6iOJ1Vhm7HWj50egcJSnUgqCiNfHgjyAfq4V6xPf6XGqMv_QMXzXg6pWptcS3JL3d9ZVGcI-zIPvO03hR-"/><span class="font-headline-sm text-headline-sm text-on-surface font-semibold hidden sm:inline-block">Prism Studio</span><nav class="hidden md:flex items-center gap-space-md" data-active-classes="text-primary font-semibold"><a aria-current="page" class="transition-colors text-primary font-semibold" data-path="domains-and-hosting" href="#">Hosting Overview</a><a class="text-on-surface-variant hover:text-on-surface transition-colors font-label-md text-label-md" data-path="event-sites" href="#">Live Sites</a><a class="text-on-surface-variant hover:text-on-surface transition-colors font-label-md text-label-md" data-path="billing" href="#">Invoices</a></nav></div><div class="flex items-center gap-space-md"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-16 flex-1 bg-surface px-space-lg py-space-lg"><div class="flex flex-col w-full">
+<div class="max-w-[1440px] w-full mx-auto space-y-space-md">
+<!-- Header Section with High Precision Layout -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-sm bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="space-y-space-xs max-w-3xl">
+<div class="flex items-center gap-space-xs text-primary font-label-sm text-label-sm uppercase tracking-wider">
+<span class="material-symbols-outlined text-[16px]">dns</span>
+<span>Prism Infrastructure</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Domains and hosting</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Each site has one public address and a hosting run of ₹500 a day. Payment opens after a reviewer approves the draft.</p>
+</div>
+<!-- Quick Context Stat / Audit Stamp -->
+<div class="flex items-center gap-space-sm self-start md:self-auto bg-surface-container-low px-space-md py-space-sm rounded-lg">
+<span class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span>
+<span class="font-code-sm text-code-sm text-on-surface-variant font-medium">12 Deployments tracked</span>
+</div>
+</div>
+<!-- Multi-Column High Density Card Grid (2-Column on large screens for maximum clarity & zero waste) -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-space-md">
+<!-- Site Card 1: ajay -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">ajay</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/ajayweds</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 7 requested</span>
+</div>
+</div>
+<!-- Compact Pass Ticket / QR badge -->
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">ajay</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">18 Apr 2027, 1:30 pm</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">The Courtyard, Byculla</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/ajayweds</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Site Card 2: farewell -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">farewell</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/farewell</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 5 requested</span>
+</div>
+</div>
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">farewell</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">19 Jan 2027, 4:30 am</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">Sable Atelier</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/farewell</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Site Card 3: alwin-birthday -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">alwin-birthday</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/alwin-birthday</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 3 requested</span>
+</div>
+</div>
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">alwin-birthday</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">28 Nov 2026, 4:30 pm</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">Studio B, Bandra</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/alwin-birthday</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Site Card 4: birth -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">birth</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/ajay</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 3 requested</span>
+</div>
+</div>
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">birth</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">28 Nov 2026, 4:30 pm</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">Studio B, Bandra</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/ajay</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Site Card 5: my-ann -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">my-ann</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/ajay-athira</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 7 requested</span>
+</div>
+</div>
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">my-ann</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">15 Nov 2025, 4:00 am</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">Rosewood Estate</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/ajay-athira</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Site Card 6: Untitled website (f15cdb94) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">Untitled website</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/draft-f15cdb94</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 7 requested</span>
+</div>
+</div>
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">Untitled website</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">18 Apr 2027, 1:30 pm</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">The Courtyard, Byculla</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/draft-f15cdb94</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Site Card 7: Untitled website (c70be871) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">Untitled website</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/draft-c70be871</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 7 requested</span>
+</div>
+</div>
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">Untitled website</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">18 Apr 2027, 1:30 pm</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">The Courtyard, Byculla</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/draft-c70be871</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Site Card 8: Untitled website (e754afee) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">Untitled website</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/draft-e754afee</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 7 requested</span>
+</div>
+</div>
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">Untitled website</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">18 Apr 2027, 1:30 pm</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">The Courtyard, Byculla</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/draft-e754afee</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Site Card 9: my annis -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">my annis</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/mann</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 4 requested</span>
+</div>
+</div>
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">my annis</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">15 Nov 2025, 4:00 am</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">Rosewood Estate</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/mann</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Site Card 10: wedding -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">wedding</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/wedding</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 1 requested</span>
+</div>
+</div>
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">wedding</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">18 Apr 2027, 1:30 pm</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">The Courtyard, Byculla</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/wedding</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Site Card 11: test funeral -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">test funeral</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/funral</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 7 requested</span>
+</div>
+</div>
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">test funeral</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">14 Mar 2025, 3:30 pm</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">St Jude's Chapel</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/funral</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Site Card 12: Isha, 1 month -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md">
+<div class="space-y-space-xs flex-1 min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold truncate">Isha, 1 month</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">draft</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed-dim/30 text-primary font-label-sm text-label-sm font-semibold">Open</span>
+</div>
+<div class="font-code-sm text-code-sm text-primary font-medium truncate">/bday</div>
+<div class="flex items-center gap-1.5 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="material-symbols-outlined text-[15px] text-outline">schedule</span>
+<span>0 hosting days left · 7 requested</span>
+</div>
+</div>
+<div class="sm:w-64 bg-surface-container-low rounded-lg p-space-sm flex flex-col justify-between shrink-0 space-y-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">INVITE</span>
+<p class="font-headline-sm text-[13px] leading-tight text-on-surface font-semibold truncate">Isha, 1 month</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant mt-0.5">28 Nov 2026, 4:30 pm</p>
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant truncate">Studio B, Bandra</p>
+</div>
+<div class="w-12 h-12 bg-surface-container-lowest p-1 rounded shrink-0 shadow-sm flex items-center justify-center">
+<svg class="w-full h-full text-on-surface" fill="none" stroke="currentColor" stroke-linecap="square" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm12 3h2v3h-2v-3zm4 0h2v3h-2v-3zm-4-3h6v2h-6v-2zm-3-3h2v2h-2v-2zm-4 0h2v2H8v-2zm-2 2h2v2H6v-2zm8 0h2v2h-2v-2zM5 5h2v2H5V5zm12 0h2v2h-2V5zM5 17h2v2H5v-2z"></path>
+</svg>
+</div>
+</div>
+<div class="pt-space-xs flex items-center justify-between gap-space-xs">
+<span class="font-code-sm text-[10px] text-outline truncate flex-1">http://localhost:8088/bday</span>
+<button class="px-space-sm py-1 bg-surface-container-highest hover:bg-primary hover:text-on-primary text-on-surface text-label-sm font-label-sm rounded transition-colors shrink-0 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[13px]">print</span>
+<span>Print badge</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

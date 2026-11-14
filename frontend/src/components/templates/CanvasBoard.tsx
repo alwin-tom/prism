@@ -2,6 +2,7 @@ import { useRef, useState, type ChangeEvent, type CSSProperties, type DragEvent,
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlignCenter, AlignLeft, AlignRight, Baseline, Blend, Bold, BringToFront, Eraser, GripVertical, Italic, Link2, Minus, PaintBucket, Plus, Radius, SendToBack, Square, SquareDashed, SquareX, Trash2, Underline, Upload, X } from "lucide-react";
 import { api, errorMessage } from "../../services/api";
+import { uploadEventMediaMany } from "../../services/mediaUpload";
 import type { CanvasElement, Envelope, PublicEvent, SiteConfiguration } from "../../types";
 import type { SiteEdit } from "./PublicSite";
 import { TEXT_FONTS, TEXT_FONT_NAMES } from "./fonts";
@@ -253,13 +254,12 @@ function PictureSlot({ eventId, onPick }: { eventId?: string; onPick: (mediaId: 
     queryFn: async () => (await api.get<Envelope<{ id: string; mediaType: string; url: string }[]>>(`/events/${eventId}/media`)).data.data,
   });
   const pictures = (media.data ?? []).filter((file) => file.mediaType === "IMAGE");
-  async function send(file: File | undefined) {
-    if (!file || !eventId) return;
-    const body = new FormData();
-    body.append("file", file);
+  async function send(files: File[]) {
+    if (files.length === 0 || !eventId) return;
     try {
-      const response = await api.post<Envelope<{ id: string }>>(`/events/${eventId}/media`, body);
-      onPick(response.data.data.id);
+      const uploaded = await uploadEventMediaMany(eventId, files);
+      const last = uploaded[uploaded.length - 1];
+      if (last) onPick(last.id);
       await queryClient.invalidateQueries({ queryKey: ["media", eventId] });
       setMessage("");
     } catch {
@@ -268,13 +268,23 @@ function PictureSlot({ eventId, onPick }: { eventId?: string; onPick: (mediaId: 
   }
   function drop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
-    void send(event.dataTransfer.files?.[0]);
+    void send([...(event.dataTransfer.files ?? [])].filter((file) => file.type.startsWith("image/")));
   }
   return (
     <div className="canvas-upload" onDragOver={(event) => event.preventDefault()} onDrop={drop}>
       <label>
         <Upload size={18} aria-hidden />
-        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" aria-label="Upload a picture" onChange={(change: ChangeEvent<HTMLInputElement>) => void send(change.target.files?.[0])} />
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          multiple
+          aria-label="Upload pictures"
+          onChange={(change: ChangeEvent<HTMLInputElement>) => {
+            const files = [...(change.target.files ?? [])];
+            change.target.value = "";
+            void send(files);
+          }}
+        />
       </label>
       {pictures.length > 0 ? (
         <div className="canvas-picks">
