@@ -40,9 +40,7 @@ public class StartupGuard implements ApplicationRunner {
         if (!production) {
             return;
         }
-        if (properties.isOtpBypassEnabled()) {
-            throw new IllegalStateException("PRISM_OTP_BYPASS_ENABLED must be false when the prod profile is active.");
-        }
+        // OTP bypass is allowed in prod for temporary staging-like access; turn it off when WhatsApp is live.
         if (properties.isPaymentBypassEnabled()) {
             throw new IllegalStateException("PRISM_PAYMENT_BYPASS_ENABLED must be false when the prod profile is active.");
         }

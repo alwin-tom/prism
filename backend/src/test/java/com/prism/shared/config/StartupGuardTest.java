@@ -11,11 +11,11 @@ import static org.mockito.Mockito.when;
 class StartupGuardTest {
 
     @Test
-    void productionRefusesEitherBypass() {
+    void productionAllowsOtpBypassButRefusesPaymentBypass() {
         Environment environment = environment("prod");
-        PrismProperties properties = safeProduction();
-        properties.setOtpBypassEnabled(true);
-        assertThrows(IllegalStateException.class, () -> StartupGuard.assertSafe(environment, properties));
+        PrismProperties otp = safeProduction();
+        otp.setOtpBypassEnabled(true);
+        assertDoesNotThrow(() -> StartupGuard.assertSafe(environment, otp));
         PrismProperties payment = safeProduction();
         payment.setPaymentBypassEnabled(true);
         assertThrows(IllegalStateException.class, () -> StartupGuard.assertSafe(environment, payment));

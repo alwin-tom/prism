@@ -54,11 +54,11 @@ PRISM_PUBLIC_BASE_URL=https://webaux.app
 PRISM_API_BASE_URL=https://webaux.app
 PRISM_COOKIE_SECURE=true
 JWT_SECRET=<unique secret, at least 32 characters>
-PRISM_OTP_BYPASS_ENABLED=false
+PRISM_OTP_BYPASS_ENABLED=true
 PRISM_PAYMENT_BYPASS_ENABLED=false
 ```
 
-Use a strong `DATABASE_PASSWORD`. Redirect `www` to the apex (or the reverse) so CORS matches the single public origin. Razorpay webhooks go to `https://webaux.app/api/v1/payments/webhooks/razorpay`. In a production profile the process refuses to start if a bypass is enabled, cookie secure is off, or `JWT_SECRET` is missing/weak/default.
+Use a strong `DATABASE_PASSWORD`. Redirect `www` to the apex (or the reverse) so CORS matches the single public origin. Razorpay webhooks go to `https://webaux.app/api/v1/payments/webhooks/razorpay`. In a production profile the process refuses to start if payment bypass is enabled, cookie secure is off, or `JWT_SECRET` is missing/weak/default. OTP bypass may stay on until WhatsApp is configured (`111111`).
 
 ## Tests
 

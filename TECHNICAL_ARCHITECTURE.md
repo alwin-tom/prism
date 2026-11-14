@@ -14,7 +14,7 @@ Access JWTs live in the HttpOnly cookie `prism_access` (15 minutes). Refresh tok
 
 Customers sign in with a six-digit OTP. Staff with a password hash sign in at `POST /api/v1/auth/login`. Roles are `CUSTOMER`, `ADMIN`, and `REVIEWER`. Review actions accept either staff role. Catalogue, user, payment-list, audit, suspend, unpublish, and restore actions require `ADMIN`. A customer cannot approve their own event, and no customer route sets a site to `PUBLISHED`.
 
-OTP codes are HMAC-SHA256 of `phone:code` using the JWT secret. They last five minutes, allow five attempts, and a resend waits 60 seconds. A phone is limited to five requests an hour and an IP to twenty. Requesting a new code expires older open codes. `PRISM_OTP_BYPASS_ENABLED` accepts `111111` and audits `OTP_BYPASS`. A real code still works. The bypass value is not included in responses. If the flag is true under the `prod` or `production` profile, startup fails.
+OTP codes are HMAC-SHA256 of `phone:code` using the JWT secret. They last five minutes, allow five attempts, and a resend waits 60 seconds. A phone is limited to five requests an hour and an IP to twenty. Requesting a new code expires older open codes. `PRISM_OTP_BYPASS_ENABLED` accepts `111111` and audits `OTP_BYPASS`. A real code still works. The bypass value is not included in responses. OTP bypass is allowed under `prod` for temporary access until WhatsApp is configured; turn it off when live OTP delivery is ready.
 
 ## Events
 
