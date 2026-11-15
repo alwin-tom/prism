@@ -102,7 +102,7 @@ class WebsiteDocumentGeneratorTest {
     }
 
     private String plan() {
-        return "{\"title\":\"Meera and Arun\",\"description\":\"Wedding\",\"style\":\"elegant\",\"voice\":\"Refined and unhurried.\",\"sections\":[\"Hero\"],\"direction\":\"luxury-romantic\",\"concept\":\"Candlelit editorial\",\"mood\":\"Intimate and warm.\",\"patterns\":[\"full-width-hero\",\"stacked-editorial\"]}";
+        return "{\"title\":\"Meera and Arun\",\"description\":\"Wedding\",\"style\":\"elegant\",\"voice\":\"Refined and unhurried.\",\"sections\":[\"Hero\"],\"direction\":\"luxury-romantic\",\"concept\":\"Candlelit editorial\",\"mood\":\"Intimate and warm.\",\"patterns\":[\"full-width-hero\",\"stacked-editorial\"],\"imagePlan\":[]}";
     }
 
     private String document(String extraType) {

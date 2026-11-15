@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { DeleteWebsiteButton } from "../components/DeleteWebsiteButton";
+import { ModerationPanel } from "../components/moderation/ModerationPanel";
 import { Button, Empty, Field, Pill } from "../components/ui";
 import { PublicSite } from "../components/templates/PublicSite";
 import { api, errorMessage } from "../services/api";
@@ -18,7 +19,10 @@ type Dashboard = {
   submissions: Array<{ day: string; count: number }>;
 };
 
+type ModerationFilter = "ALL" | "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "CLEAN" | "PROCESSING" | "FAILED";
+
 export function AdminHomePage() {
+  const [filter, setFilter] = useState<ModerationFilter>("ALL");
   const dashboard = useQuery({
     queryKey: ["admin-dashboard"],
     queryFn: async () => (await api.get<Envelope<Dashboard>>("/admin/dashboard")).data.data,
@@ -26,9 +30,18 @@ export function AdminHomePage() {
   const queue = useQuery({
     queryKey: ["admin-reviews"],
     queryFn: async () => (await api.get<Envelope<EventSite[]>>("/admin/reviews")).data.data,
+    refetchInterval: 5000,
+  });
+  const moderationSummary = useQuery({
+    queryKey: ["admin-moderation-summary"],
+    queryFn: async () => (await api.get<Envelope<Record<string, number>>>("/admin/moderation/summary")).data.data,
   });
   const data = dashboard.data;
   const max = Math.max(1, ...(data?.submissions.map((row) => row.count) ?? [1]));
+  const rows = useMemo(() => {
+    const list = queue.data ?? [];
+    return list.filter((event) => matchesModerationFilter(event, filter));
+  }, [queue.data, filter]);
   return (
     <>
       <div className="sheet-title">
@@ -46,15 +59,37 @@ export function AdminHomePage() {
                 <div className="kpi"><span>Published</span><strong className="num">{data.published}</strong><em>Live event sites</em></div>
                 <div className="kpi"><span>Paid this month</span><strong className="num">{formatPaise(data.paidThisMonthPaise)}</strong><em>{formatPaise(data.paidTodayPaise)} today</em></div>
               </div>
-              <section className="list">
-                {(queue.data ?? []).length === 0 ? <Empty>The queue is empty. New submissions appear here in the order they arrived.</Empty> : (queue.data ?? []).map((event) => (
-                  <Link key={event.id} to={`/admin/reviews/${event.id}`} className="site-row">
-                    <div><strong>{event.eventName}</strong><div className="id">/{event.slug}</div></div>
-                    <Pill status={event.submissionStatus ?? event.status} />
-                    <span>{event.categoryName}</span>
-                    <span className="num">{event.requestedDays} days</span>
-                  </Link>
+              {moderationSummary.data ? (
+                <div className="kpis" style={{ marginTop: 12 }}>
+                  <div className="kpi"><span>Critical</span><strong className="num">{moderationSummary.data.critical ?? 0}</strong><em>Completed reports</em></div>
+                  <div className="kpi"><span>High risk</span><strong className="num">{moderationSummary.data.high ?? 0}</strong><em>Need close review</em></div>
+                  <div className="kpi"><span>Processing</span><strong className="num">{(moderationSummary.data.processing ?? 0) + (moderationSummary.data.pending ?? 0)}</strong><em>AI moderation</em></div>
+                </div>
+              ) : null}
+              <div className="moderation-actions" style={{ margin: "12px 0" }}>
+                {(["ALL", "CRITICAL", "HIGH", "MEDIUM", "LOW", "CLEAN", "PROCESSING", "FAILED"] as ModerationFilter[]).map((item) => (
+                  <Button key={item} type="button" tone={filter === item ? "primary" : "secondary"} onClick={() => setFilter(item)}>
+                    {item === "ALL" ? "All" : item.toLowerCase()}
+                  </Button>
                 ))}
+              </div>
+              <section className="list">
+                {rows.length === 0 ? <Empty>The queue is empty. New submissions appear here in the order they arrived.</Empty> : rows.map((event) => {
+                  const risk = event.moderation?.overallRisk ?? "CLEAN";
+                  const moderationStatus = event.moderation?.status ?? "PENDING";
+                  return (
+                    <Link key={event.id} to={`/admin/reviews/${event.id}`} className={`site-row risk-${risk.toLowerCase()}`}>
+                      <div>
+                        <strong>{event.eventName}</strong>
+                        <div className="id">/{event.slug}</div>
+                      </div>
+                      <Pill status={event.submissionStatus ?? event.status} />
+                      <span className={`risk-chip risk-badge risk-${risk.toLowerCase()}`}>{risk}</span>
+                      <span className="id">{labelStatus(moderationStatus)} · C{event.moderation?.summary.critical ?? 0}/H{event.moderation?.summary.high ?? 0}/M{event.moderation?.summary.medium ?? 0}/L{event.moderation?.summary.low ?? 0}</span>
+                      <span className="num">{event.requestedDays} days</span>
+                    </Link>
+                  );
+                })}
               </section>
             </div>
             <aside>
@@ -81,6 +116,7 @@ export function ReviewPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [previewRoot, setPreviewRoot] = useState<HTMLDivElement | null>(null);
   const me = useQuery({
     queryKey: ["me"],
     queryFn: async () => (await api.get<Envelope<Account>>("/auth/me")).data.data,
@@ -89,6 +125,7 @@ export function ReviewPage() {
   const event = useQuery({
     queryKey: ["admin-event", id],
     queryFn: async () => (await api.get<Envelope<EventSite>>(`/admin/events/${id}`)).data.data,
+    refetchInterval: (query) => (query.state.data?.moderation?.blocksApproval ? 2500 : false),
   });
   const decide = useMutation({
     mutationFn: async (action: "approve" | "request-changes" | "reject") => api.post(`/admin/events/${id}/${action}`, { comments }),
@@ -97,36 +134,93 @@ export function ReviewPage() {
       void queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
       void queryClient.invalidateQueries({ queryKey: ["admin-events"] });
       void queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-moderation", id] });
     },
   });
   const site = event.data;
   if (!site) return <div className="skeleton" style={{ height: 28, width: 200 }} />;
+  const blocked = site.moderation?.blocksApproval === true;
+  const approveBlocked = blocked || site.moderation?.status !== "COMPLETED";
+  const riskTone = site.moderation?.status === "COMPLETED"
+    ? (site.moderation.overallRisk ?? "CLEAN").toLowerCase()
+    : (site.moderation?.status ?? "pending").toLowerCase();
   return (
-    <>
+    <div className="review-page">
       <div className="sheet-title">
         <div>
           <h1>{site.eventName}</h1>
-          <p>/{site.slug} · {site.requestedDays} hosting days · {site.templateName}</p>
+          <p>/{site.slug} · {site.requestedDays} hosting days{site.templateName ? ` · ${site.templateName}` : ""}</p>
         </div>
         <div className="title-actions">
           {me.data?.roles.includes("ADMIN") ? <DeleteWebsiteButton id={site.id} name={site.eventName} onDeleted={() => navigate("/admin/events")} /> : null}
           <Pill status={site.status} />
+          {site.moderation ? (
+            <span className={`risk-badge risk-${riskTone}`}>
+              {site.moderation.status === "COMPLETED" ? site.moderation.overallRisk : site.moderation.status.replaceAll("_", " ")}
+            </span>
+          ) : null}
         </div>
       </div>
-      <div className="editor" style={{ marginTop: 24 }}>
-        <div className="stack">
-          <Field label="Note to the customer"><textarea value={comments} onChange={(item) => setComments(item.target.value)} /></Field>
+
+      <ModerationPanel eventId={id} previewRoot={previewRoot} />
+
+      <div className="review-workspace">
+        <div className="review-preview-panel">
+          <div className="review-preview-label">
+            <span>Submitted preview</span>
+            <span className="id">Revision {site.revisionNumber ?? "—"}</span>
+          </div>
+          <div className="preview-frame review-preview-frame" ref={setPreviewRoot}>
+            <PublicSite
+              preview
+              mediaEventId={site.id}
+              event={{
+                slug: site.slug,
+                eventName: site.eventName,
+                availability: "PUBLISHED",
+                templateCode: site.templateCode,
+                configuration: site.configuration,
+                editorDocument: site.editorDocument,
+              }}
+            />
+          </div>
+        </div>
+
+        <aside className="review-decision-panel">
+          <h2>Review decision</h2>
+          <p className="review-decision-copy">Approve publishes into the existing payment flow. Ask for changes or reject with a note the customer can read.</p>
+          <Field label="Note to the customer">
+            <textarea
+              value={comments}
+              onChange={(item) => setComments(item.target.value)}
+              placeholder="You can reference moderation findings when asking for changes."
+            />
+          </Field>
           {decide.isError ? <p className="error-line">{errorMessage(decide.error, "The decision was not saved.")}</p> : null}
-          <Button type="button" disabled={decide.isPending} onClick={() => decide.mutate("approve")}>Approve</Button>
-          <Button type="button" tone="secondary" disabled={decide.isPending} onClick={() => decide.mutate("request-changes")}>Ask for changes</Button>
-          <Button type="button" tone="secondary" disabled={decide.isPending} onClick={() => decide.mutate("reject")}>Reject</Button>
-        </div>
-        <div className="preview-frame">
-          <PublicSite preview mediaEventId={site.id} event={{ slug: site.slug, eventName: site.eventName, availability: "PUBLISHED", templateCode: site.templateCode, configuration: site.configuration, editorDocument: site.editorDocument }} />
-        </div>
+          {blocked ? <p className="moderation-wait">Approve and reject stay locked until AI moderation finishes.</p> : null}
+          <div className="review-decision-actions">
+            <Button type="button" disabled={decide.isPending || approveBlocked} onClick={() => decide.mutate("approve")}>Approve</Button>
+            <Button type="button" tone="secondary" disabled={decide.isPending || blocked} onClick={() => decide.mutate("request-changes")}>Ask for changes</Button>
+            <Button type="button" tone="secondary" disabled={decide.isPending || blocked} onClick={() => decide.mutate("reject")}>Reject</Button>
+          </div>
+        </aside>
       </div>
-    </>
+    </div>
   );
+}
+
+function matchesModerationFilter(event: EventSite, filter: ModerationFilter) {
+  const moderation = event.moderation;
+  if (filter === "ALL") return true;
+  if (!moderation) return filter === "PROCESSING";
+  if (filter === "PROCESSING") return moderation.status === "PENDING" || moderation.status === "PROCESSING" || moderation.status === "RETRY_REQUIRED";
+  if (filter === "FAILED") return moderation.status === "FAILED";
+  if (filter === "CLEAN") return moderation.status === "COMPLETED" && moderation.overallRisk === "CLEAN";
+  return moderation.overallRisk === filter;
+}
+
+function labelStatus(value: string) {
+  return value.replaceAll("_", " ").toLowerCase();
 }
 
 export function AdminEventsPage() {
@@ -220,33 +314,6 @@ export function CategoriesPage() {
             <span className="id">{category.code}</span>
             <Pill status={category.active ? "PUBLISHED" : "SUSPENDED"} />
             <button className="btn-text" type="button" onClick={() => toggle.mutate(category)}>{category.active ? "Hide" : "Show"}</button>
-          </div>
-        ))}
-      </section>
-    </>
-  );
-}
-
-export function TemplatesPage() {
-  const templates = useQuery({
-    queryKey: ["admin-templates"],
-    queryFn: async () => (await api.get<Envelope<Array<{ id: string; name: string; code: string; description: string; active: boolean; categoryId: string }>>>("/admin/templates")).data.data,
-  });
-  const queryClient = useQueryClient();
-  const toggle = useMutation({
-    mutationFn: async (template: { id: string; name: string; description: string; active: boolean; categoryId: string }) => api.put(`/admin/templates/${template.id}`, { categoryId: template.categoryId, name: template.name, description: template.description, active: !template.active }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-templates"] }),
-  });
-  return (
-    <>
-      <div className="sheet-title"><div><h1>Templates</h1><p>Turning one off stops new sites from choosing it. Sites already using it keep their version.</p></div></div>
-      <section className="list">
-        {(templates.data ?? []).map((template) => (
-          <div key={template.id} className="site-row">
-            <div><strong>{template.name}</strong><div>{template.description}</div></div>
-            <span className="id">{template.code}</span>
-            <Pill status={template.active ? "PUBLISHED" : "SUSPENDED"} />
-            <button className="btn-text" type="button" onClick={() => toggle.mutate(template)}>{template.active ? "Deactivate" : "Activate"}</button>
           </div>
         ))}
       </section>

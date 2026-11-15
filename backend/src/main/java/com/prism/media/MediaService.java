@@ -58,11 +58,7 @@ public class MediaService {
         if (file == null || file.isEmpty()) {
             throw ApiException.badRequest("Choose a file to upload.");
         }
-        EventRevision revision = revisions.findFirstByEventIdOrderByRevisionNumberDesc(event.id)
-                .orElseThrow(() -> ApiException.badRequest("Save the site before uploading."));
-        if (!"DRAFT".equals(revision.submissionStatus)) {
-            throw ApiException.badRequest("Uploads go onto a draft. Save your changes to open a new draft first.");
-        }
+        EventRevision revision = requireDraftRevision(event);
         Detected detected = detect(file);
         long limit = ("VIDEO".equals(detected.type) ? properties.getMedia().getMaxVideoSizeMb() : properties.getMedia().getMaxImageSizeMb()) * 1024L * 1024L;
         if (file.getSize() > limit) {
@@ -70,19 +66,50 @@ public class MediaService {
                     ? "Videos must be " + properties.getMedia().getMaxVideoSizeMb() + " MB or smaller."
                     : "Images must be " + properties.getMedia().getMaxImageSizeMb() + " MB or smaller.");
         }
+        EventMedia row = writeFile(event, revision, detected, file.getBytes(), cleanName(file.getOriginalFilename()), false);
+        audit.record(principal.id(), "MEDIA_UPLOADED", "MEDIA", row.id, Map.of("type", row.mediaType), ip);
+        return view(row, false);
+    }
+
+    @Transactional
+    public EventMedia storeGenerated(EventSite event, byte[] bytes, String preferredName) throws IOException {
+        if (bytes == null || bytes.length == 0) {
+            throw ApiException.badRequest("The generated image was empty.");
+        }
+        EventRevision revision = requireDraftRevision(event);
+        Detected detected = detectBytes(bytes, preferredName);
+        if (!"IMAGE".equals(detected.type)) {
+            throw ApiException.badRequest("Only image files can be stored as generated assets.");
+        }
+        long limit = properties.getMedia().getMaxImageSizeMb() * 1024L * 1024L;
+        if (bytes.length > limit) {
+            throw ApiException.badRequest("Images must be " + properties.getMedia().getMaxImageSizeMb() + " MB or smaller.");
+        }
+        return writeFile(event, revision, detected, bytes, cleanName(preferredName == null ? "generated." + detected.extension : preferredName), true);
+    }
+
+    private EventRevision requireDraftRevision(EventSite event) {
+        EventRevision revision = revisions.findFirstByEventIdOrderByRevisionNumberDesc(event.id)
+                .orElseThrow(() -> ApiException.badRequest("Save the site before uploading."));
+        if (!"DRAFT".equals(revision.submissionStatus)) {
+            throw ApiException.badRequest("Uploads go onto a draft. Save your changes to open a new draft first.");
+        }
+        return revision;
+    }
+
+    private EventMedia writeFile(EventSite event, EventRevision revision, Detected detected, byte[] bytes, String originalName, boolean generated) throws IOException {
         UUID id = UUID.randomUUID();
         String storedName = id + "." + detected.extension;
         Path root = root();
         Path directory = root.resolve("events").resolve(event.id.toString()).resolve("revisions")
-                .resolve(revision.id.toString()).resolve("IMAGE".equals(detected.type) ? "images" : "videos");
+                .resolve(revision.id.toString())
+                .resolve("IMAGE".equals(detected.type) ? (generated ? "images/generated" : "images") : "videos");
         Files.createDirectories(directory);
         Path target = directory.resolve(storedName).normalize();
         if (!target.startsWith(root)) {
             throw ApiException.badRequest("The file could not be stored.");
         }
-        try (InputStream input = file.getInputStream()) {
-            Files.copy(input, target);
-        }
+        Files.write(target, bytes);
         String thumbnail = null;
         if ("IMAGE".equals(detected.type)) {
             Path thumb = directory.resolve(id + "-thumb.jpg");
@@ -97,16 +124,15 @@ public class MediaService {
         row.id = id;
         row.eventId = event.id;
         row.revisionId = revision.id;
-        row.originalFilename = cleanName(file.getOriginalFilename());
+        row.originalFilename = originalName;
         row.storedFilename = storedName;
         row.mediaType = detected.type;
         row.mimeType = detected.mime;
-        row.fileSize = file.getSize();
+        row.fileSize = bytes.length;
         row.storagePath = root.relativize(target).toString().replace('\\', '/');
         row.thumbnailPath = thumbnail;
         media.save(row);
-        audit.record(principal.id(), "MEDIA_UPLOADED", "MEDIA", row.id, Map.of("type", row.mediaType), ip);
-        return view(row, false);
+        return row;
     }
 
     public EventMedia requireOwned(EventSite event, UUID mediaId) {
@@ -206,6 +232,19 @@ public class MediaService {
         try (InputStream input = file.getInputStream()) {
             read = input.read(header);
         }
+        return detectHeader(header, read, file.getOriginalFilename());
+    }
+
+    public static Detected detectBytes(byte[] bytes, String filename) {
+        if (bytes == null || bytes.length < 12) {
+            throw ApiException.badRequest("That file type is not supported.");
+        }
+        byte[] header = new byte[Math.min(32, bytes.length)];
+        System.arraycopy(bytes, 0, header, 0, header.length);
+        return detectHeader(header, header.length, filename);
+    }
+
+    private static Detected detectHeader(byte[] header, int read, String filename) {
         if (read < 12) {
             throw ApiException.badRequest("That file type is not supported.");
         }
@@ -229,13 +268,13 @@ public class MediaService {
         if ("ftyp".equals(box)) {
             return new Detected("VIDEO", "video/mp4", "mp4");
         }
-        String lowered = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase(Locale.ROOT);
+        String lowered = filename == null ? "" : filename.toLowerCase(Locale.ROOT);
         if (lowered.endsWith(".exe") || lowered.endsWith(".js") || lowered.endsWith(".html") || lowered.endsWith(".svg")) {
             throw ApiException.badRequest("That file type is not allowed.");
         }
         throw ApiException.badRequest("Upload a JPEG, PNG, GIF, WebP, MP4 or WebM file.");
     }
 
-    private record Detected(String type, String mime, String extension) {
+    public record Detected(String type, String mime, String extension) {
     }
 }

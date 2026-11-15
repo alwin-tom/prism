@@ -9,6 +9,9 @@ prism:
     refresh-token-expiry: 604800
   media:
     storage-path: ${java.io.tmpdir}/prism-test-media
+  image:
+    enabled: false
+    paid-fallback-enabled: false
   admin:
     initial-name: WebAux Admin
     initial-phone: "919000000001"

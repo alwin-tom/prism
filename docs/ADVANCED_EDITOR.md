@@ -1,12 +1,12 @@
 # Advanced visual editor
 
-WebAux keeps the template editor. The visual builder is a second editing mode, stored as its own document and switched on with `PRISM_ADVANCED_EDITOR_ENABLED`.
+WebAux keeps the template editor. The visual builder is a permanent second editing mode, stored as its own document.
 
 ## Why a separate document
 
 The template configuration is a sanitised list of sections. A page builder needs a tree: a section contains a container, which contains a heading and a button. That tree does not fit the section schema, and adding hundreds of fields to it would break every published site.
 
-`event_page_documents.document_json` is the tree. It is tied to one event revision. The live site reads the document attached to `published_revision_id`. Turning the feature flag off hides the studio and rejects editor writes. It does not delete documents and does not change a published page.
+`event_page_documents.document_json` is the tree. It is tied to one event revision. The live site reads the document attached to `published_revision_id`.
 
 Editor chrome (selection, zoom, the open panel) is not stored in the document.
 
@@ -44,10 +44,6 @@ A sideways move stores `left` as a percentage of the parent on every screen. For
 `CAROUSEL` stores its slides as child `IMAGE` nodes. Presentation lives in scalar props: `preset` (`minimal`, `cards`, `hero`, `coverflow`, `fade`, `editorial`), `autoplay` (`0` or `1`), `interval` (milliseconds), and `perView` (`1` to `3`). Changing the preset does not replace the slides. Tablet shows at most two slides and mobile shows one. Autoplay pauses on hover and does not run when the visitor prefers reduced motion.
 
 Style values stay on the existing `styles` and `responsiveStyles` maps. `background` may be a hex colour or a `linear-gradient` with no `url()`. `background`, `boxShadow`, `filter`, and `border` may be up to 180 characters. Other style values stay at 80. `url(`, `expression(`, `javascript`, `<`, and `;` are still rejected. Shape presets write `borderRadius` and `overflow`. Shadow presets write `boxShadow`. Stacking writes `zIndex` and sets `position` to `relative` when the element was static. Existing documents that omit the new keys still render.
-
-## Flag
-
-`GET /api/v1/config/features` returns `{ "advancedEditorEnabled": true|false }` from `PRISM_ADVANCED_EDITOR_ENABLED`. The default is false. The static frontend reads this at runtime. Editor routes and write APIs both check it.
 
 ## What this slice includes
 

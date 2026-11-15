@@ -14,7 +14,7 @@
 - WhatsApp client and outbox. Disabled WhatsApp does not block the app. OTP then needs the bypass.
 - RSVP submit, owner list, summary, CSV, honeypot and rate limit.
 - Customer, staff, and public React routes against those APIs. Shared section renderer for every template.
-- A visual page document, stored per revision, behind `PRISM_ADVANCED_EDITOR_ENABLED` (default false). The template editor stays. Published pages render a saved visual document even when the flag is off.
+- A visual page document, stored per revision. The visual editor is always enabled. The template editor stays. Published pages render a saved visual document through `VisualPage`.
 - Frontend unit tests: hosting price, runway cells, escaped hero text, six-digit OTP rejection, canvas history, and visual document operations. `npm test` and `npm run build` should be re-run after this slice.
 
 ## Verification

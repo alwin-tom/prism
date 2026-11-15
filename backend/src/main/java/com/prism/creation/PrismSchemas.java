@@ -20,7 +20,7 @@ public final class PrismSchemas {
                 {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": ["title", "description", "style", "voice", "sections", "direction", "concept", "mood", "patterns"],
+                  "required": ["title", "description", "style", "voice", "sections", "direction", "concept", "mood", "patterns", "imagePlan"],
                   "properties": {
                     "title": {"type": "string"},
                     "description": {"type": "string", "description": "One or two sentences in the selected tone, using only supplied facts."},
@@ -30,7 +30,27 @@ public final class PrismSchemas {
                     "direction": {"type": "string", "enum": ["luxury-romantic", "modern-editorial", "cinematic-dark", "elegant-minimal", "playful-celebration", "pastel-dream", "modern-corporate", "premium-business", "creative-portfolio", "botanical-natural", "vintage-classic", "bold-contemporary", "scandinavian-minimal", "art-deco", "futuristic-gradient"]},
                     "concept": {"type": "string", "description": "A short art-direction name."},
                     "mood": {"type": "string", "description": "One sentence on the atmosphere."},
-                    "patterns": {"type": "array", "items": {"type": "string", "enum": ["full-width-hero", "split-hero", "centered-editorial", "image-led", "asymmetrical-columns", "floating-cards", "gradient-band", "alternating-image-text", "carousel", "timeline", "stacked-editorial"]}}
+                    "patterns": {"type": "array", "items": {"type": "string", "enum": ["full-width-hero", "split-hero", "centered-editorial", "image-led", "asymmetrical-columns", "floating-cards", "gradient-band", "alternating-image-text", "carousel", "timeline", "stacked-editorial"]}},
+                    "imagePlan": {
+                      "type": "array",
+                      "maxItems": 3,
+                      "description": "Zero to three AI images that materially improve the design. Prefer empty when uploaded photos already cover the need, or when CSS gradients suffice. Never ask for text-heavy images.",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["assetKey", "type", "sectionId", "purpose", "prompt", "aspectRatio", "priority", "required"],
+                        "properties": {
+                          "assetKey": {"type": "string", "description": "Stable key such as hero-main or gallery-moment."},
+                          "type": {"type": "string", "enum": ["HERO", "BACKGROUND", "GALLERY", "ILLUSTRATION", "OTHER"]},
+                          "sectionId": {"type": "string"},
+                          "purpose": {"type": "string"},
+                          "prompt": {"type": "string", "description": "Visual description only. No event names, dates, or readable text in the image."},
+                          "aspectRatio": {"type": "string", "enum": ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "4:5", "5:4", "21:9"]},
+                          "priority": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+                          "required": {"type": "boolean"}
+                        }
+                      }
+                    }
                   }
                 }
                 """);
@@ -65,7 +85,7 @@ public final class PrismSchemas {
                       "required": ["id", "type", "name", "props", "styles", "children"],
                       "properties": {
                         "id": {"type": "string"},
-                        "type": {"type": "string", "enum": ["SECTION", "CONTAINER", "FLEX", "GRID", "GROUP", "CAROUSEL", "HEADING", "PARAGRAPH", "BUTTON", "IMAGE", "SPACER", "DIVIDER", "QUOTE", "COUNTDOWN", "FAQ_ACCORDION", "FAQ_ITEM", "TIMELINE", "TIMELINE_ITEM"]},
+                        "type": {"type": "string", "enum": ["SECTION", "CONTAINER", "FLEX", "GRID", "GROUP", "CAROUSEL", "MARQUEE", "HEADING", "PARAGRAPH", "BUTTON", "IMAGE", "SPACER", "DIVIDER", "QUOTE", "COUNTDOWN", "FAQ_ACCORDION", "FAQ_ITEM", "TIMELINE", "TIMELINE_ITEM"]},
                         "name": {"type": "string"},
                         "props": {
                           "type": "object",

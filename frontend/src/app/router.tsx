@@ -1,9 +1,9 @@
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "../components/shell/AppShell";
 import { LoginPage, RegisterPage, StaffLoginPage } from "../pages/AuthPages";
-import { AccountPage, DashboardPage, DraftPreviewPage, EditorPage, EventPage, ExtendPage, PaymentPage, RsvpPage, WizardPage } from "../pages/CustomerPages";
+import { AccountPage, DashboardPage, DraftPreviewPage, EventPage, ExtendPage, PaymentPage, RsvpPage } from "../pages/CustomerPages";
 import { BillingPage, DomainsPage, HelpPage, MediaLibraryPage } from "../pages/LibraryPages";
 import { StudioPage } from "../features/visual-editor/StudioPage";
 import { CreationPage } from "../features/website-creation/CreationPage";
@@ -11,12 +11,16 @@ import { usePageSeo } from "../seo/usePageSeo";
 import { api } from "../services/api";
 import type { Account, Envelope } from "../types";
 
+function EditToStudioRedirect() {
+  const { id = "" } = useParams();
+  return <Navigate to={`/app/events/${id}/studio`} replace />;
+}
+
 const AdminHomePage = lazy(() => import("../pages/AdminPages").then((module) => ({ default: module.AdminHomePage })));
 const ReviewPage = lazy(() => import("../pages/AdminPages").then((module) => ({ default: module.ReviewPage })));
 const AdminEventsPage = lazy(() => import("../pages/AdminPages").then((module) => ({ default: module.AdminEventsPage })));
 const CustomersPage = lazy(() => import("../pages/AdminPages").then((module) => ({ default: module.CustomersPage })));
 const CategoriesPage = lazy(() => import("../pages/AdminPages").then((module) => ({ default: module.CategoriesPage })));
-const TemplatesPage = lazy(() => import("../pages/AdminPages").then((module) => ({ default: module.TemplatesPage })));
 const PaymentsPage = lazy(() => import("../pages/AdminPages").then((module) => ({ default: module.PaymentsPage })));
 const AuditPage = lazy(() => import("../pages/AdminPages").then((module) => ({ default: module.AuditPage })));
 const DesignIntelligencePage = lazy(() => import("../pages/DesignLibraryPages").then((module) => ({ default: module.DesignIntelligencePage })));
@@ -34,7 +38,7 @@ export function AppRouter() {
         <Route path="/app/events/:id/preview" element={<DraftPreviewPage />} />
         <Route path="/app" element={<Gate mode="customer" />}>
           <Route index element={<DashboardPage />} />
-          <Route path="new" element={<WizardPage />} />
+          <Route path="new" element={<Navigate to="/app/create" replace />} />
           <Route path="create" element={<CreationPage />} />
           <Route path="create/:sessionId" element={<CreationPage />} />
           <Route path="account" element={<AccountPage />} />
@@ -43,7 +47,7 @@ export function AppRouter() {
           <Route path="billing" element={<BillingPage />} />
           <Route path="help" element={<HelpPage />} />
           <Route path="events/:id" element={<EventPage />} />
-          <Route path="events/:id/edit" element={<EditorPage />} />
+          <Route path="events/:id/edit" element={<EditToStudioRedirect />} />
           <Route path="events/:id/studio" element={<StudioPage />} />
           <Route path="events/:id/pay" element={<PaymentPage />} />
           <Route path="events/:id/extend" element={<ExtendPage />} />
@@ -55,7 +59,7 @@ export function AppRouter() {
           <Route path="events" element={<AdminEventsPage />} />
           <Route path="customers" element={<CustomersPage />} />
           <Route path="categories" element={<CategoriesPage />} />
-          <Route path="templates" element={<TemplatesPage />} />
+          <Route path="templates" element={<Navigate to="/admin/categories" replace />} />
           <Route path="design-intelligence" element={<DesignIntelligencePage />} />
           <Route path="design-references" element={<DesignReferencesPage />} />
           <Route path="design-references/new" element={<DesignReferenceDetailPage />} />

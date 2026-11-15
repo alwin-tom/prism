@@ -27,23 +27,18 @@ public class TypographyEditService {
     private final EditorDocumentService editor;
     private final OpenRouterClient client;
     private final AiRuntime runtime;
-    private final PrismProperties properties;
     private final ObjectMapper mapper;
     private final DocumentValidator validator;
 
-    public TypographyEditService(EditorDocumentService editor, OpenRouterClient client, AiRuntime runtime, PrismProperties properties, ObjectMapper mapper) {
+    public TypographyEditService(EditorDocumentService editor, OpenRouterClient client, AiRuntime runtime, ObjectMapper mapper) {
         this.editor = editor;
         this.client = client;
         this.runtime = runtime;
-        this.properties = properties;
         this.mapper = mapper;
         this.validator = new DocumentValidator(mapper);
     }
 
     public Map<String, Object> preview(UUID eventId, String instruction, UserPrincipal principal) {
-        if (!properties.getCreation().isEnabled()) {
-            throw ApiException.badRequest("Typography editing is turned off.");
-        }
         String request = instruction == null ? "" : instruction.trim();
         if (request.length() < 3 || request.length() > 400) {
             throw ApiException.badRequest("Describe the typography change in a short sentence.");

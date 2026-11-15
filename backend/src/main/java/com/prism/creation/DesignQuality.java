@@ -70,6 +70,10 @@ public final class DesignQuality {
         if (access < 80) {
             issues.add("Some text may be hard to read against its background.");
         }
+        if (hasTextEllipse(page)) {
+            issues.add("Replace circular text panels with rounded rectangular cards so the copy fits.");
+            layout = Math.min(layout, 62);
+        }
         int overall = (colour + type + layout + consistency + image + motion + responsive + access) / 8;
         if (!shadow && direction != null && !"none".equals(direction.shadow())) {
             overall = Math.max(0, overall - 4);
@@ -190,5 +194,35 @@ public final class DesignQuality {
         double lighter = Math.max(left, right);
         double darker = Math.min(left, right);
         return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    private static boolean hasTextEllipse(JsonNode node) {
+        if (node == null || !node.isObject()) {
+            return false;
+        }
+        String type = node.path("type").asText("");
+        String radius = node.path("styles").path("borderRadius").asText("");
+        if (!"IMAGE".equals(type) && !"BUTTON".equals(type) && DesignDirection.isEllipseRadius(radius) && holdsText(node)) {
+            return true;
+        }
+        for (JsonNode child : node.path("children")) {
+            if (hasTextEllipse(child)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean holdsText(JsonNode node) {
+        String type = node.path("type").asText("");
+        if ("HEADING".equals(type) || "PARAGRAPH".equals(type) || "QUOTE".equals(type)) {
+            return true;
+        }
+        for (JsonNode child : node.path("children")) {
+            if (holdsText(child)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

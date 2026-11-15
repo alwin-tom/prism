@@ -25,9 +25,11 @@ public class DocumentValidator {
     private static final Set<String> PAGE_KEYS = Set.of("title", "description");
     private static final Set<String> NODE_KEYS = Set.of("id", "type", "name", "locked", "props", "styles", "responsiveStyles", "responsiveProps", "children");
     private static final Set<String> TYPES = Set.of(
-            "SECTION", "CONTAINER", "FLEX", "GRID", "GROUP", "CAROUSEL",
+            "SECTION", "CONTAINER", "FLEX", "GRID", "GROUP", "CAROUSEL", "MARQUEE",
             "HEADING", "PARAGRAPH", "BUTTON", "IMAGE", "SPACER", "DIVIDER",
             "QUOTE", "COUNTDOWN", "FAQ_ACCORDION", "FAQ_ITEM", "TIMELINE", "TIMELINE_ITEM");
+    private static final Set<String> LINK_STYLE_KEYS = Set.of("href", "linkTarget", "linkTitle", "linkColor", "linkHoverColor", "linkUnderline", "richText");
+    private static final Set<String> MARQUEE_DIRS = Set.of("left", "right", "up", "down");
     private static final Set<String> STYLES = Set.of(
             "color", "background", "fontSize", "fontWeight", "fontStyle", "fontFamily", "lineHeight", "letterSpacing",
             "textAlign", "textDecoration", "padding", "margin", "gap", "display", "flexDirection", "flexWrap",
@@ -40,7 +42,9 @@ public class DocumentValidator {
             "fontId", "fontRole", "fontStretch", "fontVariant", "fontVariationSettings", "fontFeatureSettings",
             "wordSpacing", "textIndent", "verticalAlign", "textJustify",
             "textDecorationColor", "textDecorationStyle", "textDecorationThickness", "textUnderlineOffset",
-            "textShadow", "textOverflow", "whiteSpace", "wordBreak", "overflowWrap", "textStroke", "textGradient");
+            "textShadow", "textOverflow", "whiteSpace", "wordBreak", "overflowWrap", "textStroke", "textGradient",
+            "backgroundMediaId", "backgroundSize", "backgroundPosition", "backgroundRepeat", "backgroundAttachment",
+            "backgroundOverlayType", "backgroundOverlayColor", "backgroundOverlayOpacity", "backgroundOverlayAngle", "backgroundOverlayEnd");
     private static final Set<String> CAROUSEL_PRESETS = Set.of("minimal", "cards", "hero", "coverflow", "fade", "editorial");
 
     private final ObjectMapper mapper;
@@ -107,11 +111,19 @@ public class DocumentValidator {
     }
 
     private void collectMedia(JsonNode node, Set<String> ids) {
-        if ("IMAGE".equals(node.path("type").asText()) ) {
+        if ("IMAGE".equals(node.path("type").asText())) {
             collectMediaId(node.path("props").path("mediaId"), ids);
             collectMediaId(node.path("responsiveProps").path("tablet").path("mediaId"), ids);
             collectMediaId(node.path("responsiveProps").path("mobile").path("mediaId"), ids);
         }
+        if ("MARQUEE".equals(node.path("type").asText())) {
+            for (JsonNode item : node.path("props").path("items")) {
+                collectMediaId(item.path("mediaId"), ids);
+            }
+        }
+        collectMediaId(node.path("styles").path("backgroundMediaId"), ids);
+        collectMediaId(node.path("responsiveStyles").path("tablet").path("backgroundMediaId"), ids);
+        collectMediaId(node.path("responsiveStyles").path("mobile").path("backgroundMediaId"), ids);
         for (JsonNode child : node.path("children")) {
             collectMedia(child, ids);
         }
@@ -177,31 +189,57 @@ public class DocumentValidator {
         }
         switch (type) {
             case "HEADING" -> {
-                rejectUnknown(node, Set.of("text", "level"), type);
+                rejectUnknown(node, union(Set.of("text", "level"), LINK_STYLE_KEYS), type);
                 props.put("text", text(node.get("text"), 400));
                 int level = node.path("level").asInt(2);
                 if (level < 1 || level > 6) {
                     throw ApiException.badRequest("Choose a heading level from 1 to 6.");
                 }
                 props.put("level", level);
+                putLinkFields(props, node, 400);
             }
             case "PARAGRAPH" -> {
-                rejectUnknown(node, Set.of("text"), type);
+                rejectUnknown(node, union(Set.of("text"), LINK_STYLE_KEYS), type);
                 props.put("text", text(node.get("text"), 4000));
+                putLinkFields(props, node, 4000);
             }
             case "BUTTON" -> {
-                rejectUnknown(node, Set.of("text", "href"), type);
+                rejectUnknown(node, Set.of("text", "href", "linkTarget", "linkTitle"), type);
                 props.put("text", text(node.get("text"), 160));
                 props.put("href", link(node.get("href")));
+                putOptionalLinkMeta(props, node);
+            }
+            case "MARQUEE" -> {
+                rejectUnknown(node, union(Set.of(
+                        "text", "items", "direction", "speed", "duration", "gap", "delay",
+                        "loop", "pauseOnHover", "pauseOnClick", "animationEnabled"
+                ), LINK_STYLE_KEYS), type);
+                props.put("text", text(node.get("text"), 800));
+                String direction = node.path("direction").asText("left").trim().toLowerCase(Locale.ROOT);
+                props.put("direction", MARQUEE_DIRS.contains(direction) ? direction : "left");
+                props.put("speed", bounded(node.get("speed"), 50, 1, 100));
+                props.put("duration", bounded(node.get("duration"), 28, 4, 120));
+                props.put("gap", bounded(node.get("gap"), 32, 0, 160));
+                props.put("delay", bounded(node.get("delay"), 0, 0, 30));
+                props.put("loop", flag(node.get("loop"), true));
+                props.put("pauseOnHover", flag(node.get("pauseOnHover"), true));
+                props.put("pauseOnClick", flag(node.get("pauseOnClick"), false));
+                props.put("animationEnabled", flag(node.get("animationEnabled"), true));
+                props.set("items", marqueeItems(node.get("items")));
+                putLinkFields(props, node, 800);
             }
             case "IMAGE" -> {
-                rejectUnknown(node, Set.of("mediaId", "alt"), type);
+                rejectUnknown(node, Set.of("mediaId", "alt", "assetKey"), type);
                 String mediaId = node.path("mediaId").asText("");
                 if (!mediaId.isBlank() && !UUID_TEXT.matcher(mediaId).matches()) {
                     throw ApiException.badRequest("Choose a picture from this event.");
                 }
                 props.put("mediaId", mediaId.toLowerCase(Locale.ROOT));
                 props.put("alt", text(node.get("alt"), 180));
+                String assetKey = node.path("assetKey").asText("").trim().toLowerCase(Locale.ROOT);
+                if (!assetKey.isBlank()) {
+                    props.put("assetKey", assetKey.length() > 80 ? assetKey.substring(0, 80) : assetKey);
+                }
             }
             case "SPACER" -> {
                 rejectUnknown(node, Set.of("size"), type);
@@ -216,9 +254,10 @@ public class DocumentValidator {
                 props.put("perView", bounded(node.get("perView"), 1, 1, 3));
             }
             case "QUOTE" -> {
-                rejectUnknown(node, Set.of("text", "attribution"), type);
+                rejectUnknown(node, union(Set.of("text", "attribution"), LINK_STYLE_KEYS), type);
                 props.put("text", text(node.get("text"), 800));
                 props.put("attribution", text(node.get("attribution"), 160));
+                putLinkFields(props, node, 800);
             }
             case "COUNTDOWN" -> {
                 rejectUnknown(node, Set.of("target", "label"), type);
@@ -230,9 +269,13 @@ public class DocumentValidator {
                 props.put("title", text(node.get("title"), 160));
             }
             case "FAQ_ITEM", "TIMELINE_ITEM" -> {
-                rejectUnknown(node, Set.of("text", "title"), type);
+                rejectUnknown(node, union(Set.of("text", "title"), Set.of("richText", "linkColor", "linkHoverColor", "linkUnderline")), type);
                 props.put("title", text(node.get("title"), 200));
                 props.put("text", text(node.get("text"), 2000));
+                if (node.has("richText")) {
+                    props.set("richText", richText(node.get("richText"), 2000));
+                }
+                putLinkColors(props, node);
             }
             default -> {
                 if (node.fieldNames().hasNext()) {
@@ -266,7 +309,7 @@ public class DocumentValidator {
         }
         switch (type) {
             case "IMAGE" -> {
-                rejectUnknown(node, Set.of("mediaId", "alt"), type);
+                rejectUnknown(node, Set.of("mediaId", "alt", "assetKey"), type);
                 if (node.has("mediaId")) {
                     String mediaId = node.path("mediaId").asText("");
                     if (!mediaId.isBlank() && !UUID_TEXT.matcher(mediaId).matches()) {
@@ -276,6 +319,12 @@ public class DocumentValidator {
                 }
                 if (node.has("alt")) {
                     props.put("alt", text(node.get("alt"), 180));
+                }
+                if (node.has("assetKey")) {
+                    String assetKey = node.path("assetKey").asText("").trim().toLowerCase(Locale.ROOT);
+                    if (!assetKey.isBlank()) {
+                        props.put("assetKey", assetKey.length() > 80 ? assetKey.substring(0, 80) : assetKey);
+                    }
                 }
             }
             case "SPACER" -> {
@@ -419,7 +468,22 @@ public class DocumentValidator {
         if ("transform".equals(key) && !value.isBlank() && !value.matches("^(rotate\\(-?\\d{1,3}deg\\)|translate\\(-?\\d{1,4}px, -?\\d{1,4}px\\)|scale\\([0-9.]+(?:, [0-9.]+)?\\))( (rotate\\(-?\\d{1,3}deg\\)|translate\\(-?\\d{1,4}px, -?\\d{1,4}px\\)|scale\\([0-9.]+(?:, [0-9.]+)?\\)))*$")) {
             throw ApiException.badRequest("That style value is not allowed.");
         }
-        return value;
+        if ("backgroundMediaId".equals(key) && !value.isBlank() && !UUID_TEXT.matcher(value).matches()) {
+            throw ApiException.badRequest("Choose a picture from this event.");
+        }
+        if ("backgroundOverlayType".equals(key) && !value.isBlank() && !Set.of("none", "solid", "gradient").contains(value.toLowerCase(Locale.ROOT))) {
+            throw ApiException.badRequest("That style value is not allowed.");
+        }
+        if ("backgroundRepeat".equals(key) && !value.isBlank() && !Set.of("no-repeat", "repeat", "repeat-x", "repeat-y").contains(value.toLowerCase(Locale.ROOT))) {
+            throw ApiException.badRequest("That style value is not allowed.");
+        }
+        if ("backgroundAttachment".equals(key) && !value.isBlank() && !Set.of("scroll", "fixed", "local").contains(value.toLowerCase(Locale.ROOT))) {
+            throw ApiException.badRequest("That style value is not allowed.");
+        }
+        if (("backgroundOverlayOpacity".equals(key) || "backgroundOverlayAngle".equals(key) || "zIndex".equals(key)) && !value.isBlank() && !value.matches("^-?\\d{1,4}$")) {
+            throw ApiException.badRequest("That style value is not allowed.");
+        }
+        return "backgroundMediaId".equals(key) && !value.isBlank() ? value.toLowerCase(Locale.ROOT) : value;
     }
 
     private String carouselPreset(JsonNode node) {
@@ -450,13 +514,192 @@ public class DocumentValidator {
             throw ApiException.badRequest("That link is not allowed.");
         }
         String lower = value.toLowerCase(Locale.ROOT);
-        if (lower.startsWith("javascript:") || lower.startsWith("data:")) {
+        if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:")) {
             throw ApiException.badRequest("That link is not allowed.");
         }
         if (lower.startsWith("https://") || lower.startsWith("http://") || lower.startsWith("mailto:") || lower.startsWith("tel:") || value.startsWith("#") || value.startsWith("/")) {
             return value;
         }
         throw ApiException.badRequest("That link is not allowed.");
+    }
+
+    private void putLinkFields(ObjectNode props, JsonNode node, int maxText) {
+        if (node.has("href")) {
+            props.put("href", link(node.get("href")));
+        }
+        putOptionalLinkMeta(props, node);
+        putLinkColors(props, node);
+        if (node.has("richText")) {
+            ArrayNode runs = richText(node.get("richText"), maxText);
+            props.set("richText", runs);
+            if (!node.has("text") || node.path("text").asText("").isBlank()) {
+                StringBuilder plain = new StringBuilder();
+                for (JsonNode run : runs) {
+                    plain.append(run.path("text").asText(""));
+                }
+                props.put("text", plain.length() > maxText ? plain.substring(0, maxText) : plain.toString());
+            }
+        }
+    }
+
+    private void putOptionalLinkMeta(ObjectNode props, JsonNode node) {
+        if (node.has("linkTarget")) {
+            String target = node.path("linkTarget").asText("_self").trim().toLowerCase(Locale.ROOT);
+            props.put("linkTarget", "_blank".equals(target) ? "_blank" : "_self");
+        }
+        if (node.has("linkTitle")) {
+            props.put("linkTitle", text(node.get("linkTitle"), 120));
+        }
+    }
+
+    private void putLinkColors(ObjectNode props, JsonNode node) {
+        if (node.has("linkColor")) {
+            props.put("linkColor", colour(node.get("linkColor")));
+        }
+        if (node.has("linkHoverColor")) {
+            props.put("linkHoverColor", colour(node.get("linkHoverColor")));
+        }
+        if (node.has("linkUnderline")) {
+            props.put("linkUnderline", flag(node.get("linkUnderline"), true));
+        }
+    }
+
+    private String colour(JsonNode node) {
+        String value = node == null ? "" : node.asText("").trim();
+        if (value.isBlank()) {
+            return "";
+        }
+        if (!value.matches("^#[0-9a-fA-F]{3,8}$")) {
+            throw ApiException.badRequest("That colour is not allowed.");
+        }
+        return value;
+    }
+
+    private int flag(JsonNode node, boolean fallback) {
+        if (node == null || node.isNull() || (node.isTextual() && node.asText("").isBlank())) {
+            return fallback ? 1 : 0;
+        }
+        if (node.isBoolean()) {
+            return node.asBoolean() ? 1 : 0;
+        }
+        String value = node.asText("").trim().toLowerCase(Locale.ROOT);
+        if ("0".equals(value) || "false".equals(value) || "no".equals(value)) {
+            return 0;
+        }
+        if ("1".equals(value) || "true".equals(value) || "yes".equals(value)) {
+            return 1;
+        }
+        return node.asInt(fallback ? 1 : 0) == 0 ? 0 : 1;
+    }
+
+    private ArrayNode richText(JsonNode node, int maxText) {
+        ArrayNode out = mapper.createArrayNode();
+        if (node == null || !node.isArray()) {
+            return out;
+        }
+        int total = 0;
+        for (JsonNode item : node) {
+            if (item == null || !item.isObject()) {
+                continue;
+            }
+            rejectUnknown(item, Set.of("text", "href", "target", "title"), "rich text");
+            String runText = text(item.get("text"), Math.min(400, maxText));
+            if (runText.isBlank()) {
+                continue;
+            }
+            if (total + runText.length() > maxText) {
+                runText = runText.substring(0, Math.max(0, maxText - total));
+                if (runText.isBlank()) {
+                    break;
+                }
+            }
+            total += runText.length();
+            ObjectNode run = mapper.createObjectNode();
+            run.put("text", runText);
+            String href = link(item.get("href"));
+            if (!href.isBlank()) {
+                run.put("href", href);
+                String target = item.path("target").asText("_self").trim().toLowerCase(Locale.ROOT);
+                run.put("target", "_blank".equals(target) ? "_blank" : "_self");
+                if (item.has("title")) {
+                    run.put("title", text(item.get("title"), 120));
+                }
+            }
+            out.add(run);
+            if (out.size() >= 40) {
+                break;
+            }
+        }
+        return out;
+    }
+
+    private ArrayNode marqueeItems(JsonNode node) {
+        ArrayNode out = mapper.createArrayNode();
+        if (node == null || !node.isArray()) {
+            return out;
+        }
+        Set<String> ids = new HashSet<>();
+        for (JsonNode item : node) {
+            if (item == null || !item.isObject()) {
+                continue;
+            }
+            rejectUnknown(item, Set.of("id", "kind", "text", "richText", "mediaId", "alt", "href", "target", "title"), "marquee item");
+            ObjectNode row = mapper.createObjectNode();
+            String id = item.path("id").asText("").toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9-]", "");
+            if (id.isBlank() || id.length() > 40 || !ids.add(id)) {
+                id = "mq-" + Integer.toString(ids.size() + 1, 36);
+                ids.add(id);
+            }
+            row.put("id", id);
+            String kind = "image".equalsIgnoreCase(item.path("kind").asText("text")) ? "image" : "text";
+            row.put("kind", kind);
+            if ("image".equals(kind)) {
+                String mediaId = item.path("mediaId").asText("");
+                if (!mediaId.isBlank() && !UUID_TEXT.matcher(mediaId).matches()) {
+                    throw ApiException.badRequest("Choose a picture from this event.");
+                }
+                row.put("mediaId", mediaId.toLowerCase(Locale.ROOT));
+                row.put("alt", text(item.get("alt"), 180));
+            } else {
+                ArrayNode runs = richText(item.get("richText"), 400);
+                String plain = text(item.get("text"), 400);
+                if (runs.isEmpty() && !plain.isBlank()) {
+                    ObjectNode run = mapper.createObjectNode();
+                    run.put("text", plain);
+                    runs.add(run);
+                }
+                if (!runs.isEmpty()) {
+                    row.set("richText", runs);
+                    StringBuilder builder = new StringBuilder();
+                    for (JsonNode run : runs) {
+                        builder.append(run.path("text").asText(""));
+                    }
+                    row.put("text", builder.length() > 400 ? builder.substring(0, 400) : builder.toString());
+                } else {
+                    row.put("text", plain);
+                }
+            }
+            String href = link(item.get("href"));
+            if (!href.isBlank()) {
+                row.put("href", href);
+                String target = item.path("target").asText("_self").trim().toLowerCase(Locale.ROOT);
+                row.put("target", "_blank".equals(target) ? "_blank" : "_self");
+                if (item.has("title")) {
+                    row.put("title", text(item.get("title"), 120));
+                }
+            }
+            out.add(row);
+            if (out.size() >= 20) {
+                break;
+            }
+        }
+        return out;
+    }
+
+    private Set<String> union(Set<String> left, Set<String> right) {
+        Set<String> out = new HashSet<>(left);
+        out.addAll(right);
+        return out;
     }
 
     private String text(JsonNode node, int max) {

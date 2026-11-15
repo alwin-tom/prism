@@ -41,6 +41,15 @@ export type WebsiteCategory = {
   active: boolean;
 };
 
+export type ImageProgress = {
+  total: number;
+  completed: number;
+  failed: number;
+  skipped: number;
+  pending: number;
+  currentLabel: string;
+};
+
 export type GenerationJob = {
   id: string;
   sessionId: string;
@@ -49,6 +58,7 @@ export type GenerationJob = {
   errorMessage: string | null;
   startedAt: string | null;
   completedAt: string | null;
+  imageProgress?: ImageProgress | null;
 };
 
 export const GROUPS = [

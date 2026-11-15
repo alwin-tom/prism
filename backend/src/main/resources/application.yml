@@ -44,25 +44,30 @@ springdoc:
     path: /swagger-ui.html
 
 prism:
-  advanced-editor-enabled: ${PRISM_ADVANCED_EDITOR_ENABLED:false}
   creation:
-    enabled: ${PRISM_AI_WEBSITE_GENERATION_ENABLED:false}
-    creative-v2-enabled: ${PRISM_AI_CREATIVE_V2_ENABLED:false}
-    design-library-enabled: ${PRISM_AI_DESIGN_LIBRARY_ENABLED:false}
-    design-embeddings-enabled: ${PRISM_AI_DESIGN_EMBEDDINGS_ENABLED:false}
     design-embedding-provider: ${PRISM_AI_DESIGN_EMBEDDING_PROVIDER:}
     design-embedding-model: ${PRISM_AI_DESIGN_EMBEDDING_MODEL:}
     design-embedding-dimensions: ${PRISM_AI_DESIGN_EMBEDDING_DIMENSIONS:1536}
     max-generations-per-user: ${PRISM_AI_MAX_GENERATIONS_PER_USER:20}
+  ui-models:
+    # true = existing free OpenRouter models; false = premium UI/UX models below.
+    # Missing or invalid values default to free mode.
+    use-free-ui-models: ${WEBAUX_USE_FREE_UI_MODELS:true}
+    premium-primary-model: ${WEBAUX_PREMIUM_UI_PRIMARY_MODEL:anthropic/claude-opus-5.5}
+    premium-secondary-model: ${WEBAUX_PREMIUM_UI_SECONDARY_MODEL:openai/gpt-6-astra}
+    premium-fallback-model: ${WEBAUX_PREMIUM_UI_FALLBACK_MODEL:google/gemini-4-carbon}
+    premium-refinement-model: ${WEBAUX_PREMIUM_UI_REFINEMENT_MODEL:moonshotai/kimi-k3.1-pro}
   openrouter:
     api-key: ${OPENROUTER_API_KEY:}
     base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}
     planning-model: ${OPENROUTER_PLANNING_MODEL:}
     generation-model: ${OPENROUTER_GENERATION_MODEL:}
     repair-model: ${OPENROUTER_REPAIR_MODEL:}
+    moderation-model: ${OPENROUTER_MODERATION_MODEL:}
     planning-fallbacks: ${OPENROUTER_PLANNING_FALLBACKS:}
     generation-fallbacks: ${OPENROUTER_GENERATION_FALLBACKS:}
     repair-fallbacks: ${OPENROUTER_REPAIR_FALLBACKS:}
+    moderation-fallbacks: ${OPENROUTER_MODERATION_FALLBACKS:}
     allow-paid-fallback: ${OPENROUTER_ALLOW_PAID_FALLBACK:false}
     timeout-seconds: ${OPENROUTER_TIMEOUT_SECONDS:120}
     max-retries: ${OPENROUTER_MAX_RETRIES:2}
@@ -91,6 +96,20 @@ prism:
     max-image-size-mb: ${PRISM_MAX_IMAGE_SIZE_MB:10}
     max-video-size-mb: ${PRISM_MAX_VIDEO_SIZE_MB:100}
     retention-days-after-expiry: ${PRISM_MEDIA_RETENTION_DAYS:90}
+  image:
+    enabled: ${PRISM_IMAGE_GENERATION_ENABLED:false}
+    provider: ${PRISM_IMAGE_PROVIDER:openrouter}
+    free-first: ${PRISM_IMAGE_FREE_FIRST:true}
+    paid-fallback-enabled: ${PRISM_IMAGE_PAID_FALLBACK_ENABLED:false}
+    max-images-per-website: ${PRISM_IMAGE_MAX_IMAGES_PER_WEBSITE:3}
+    max-cost-per-image-usd: ${PRISM_IMAGE_MAX_COST_PER_IMAGE_USD:0.05}
+    max-cost-per-website-usd: ${PRISM_IMAGE_MAX_COST_PER_WEBSITE_USD:0.15}
+    max-retries: ${PRISM_IMAGE_MAX_RETRIES:2}
+    model-cache-minutes: ${PRISM_IMAGE_MODEL_CACHE_MINUTES:360}
+    wait-seconds: ${PRISM_IMAGE_WAIT_SECONDS:120}
+    base64-enabled: ${PRISM_IMAGE_BASE64_ENABLED:false}
+    base64-max-size-kb: ${PRISM_IMAGE_BASE64_MAX_SIZE_KB:2048}
+    preferred-models: ${PRISM_IMAGE_PREFERRED_MODELS:}
   whatsapp:
     enabled: ${WHATSAPP_ENABLED:false}
     base-url: ${WHATSAPP_BASE_URL:https://graph.facebook.com}

@@ -22,9 +22,9 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
-import type { Account, Envelope } from "../../types";
+import type { Account } from "../../types";
 import { Mark } from "./Mark";
 
 function readCollapsed() {
@@ -45,14 +45,13 @@ function initials(name: string) {
 type Item = { to: string; label: string; icon: typeof LayoutDashboard; end?: boolean };
 type Group = { label: string; items: Item[] };
 
-function customerGroups(creation: boolean): Group[] {
+function customerGroups(): Group[] {
   return [
     {
       label: "Workspace",
       items: [
         { to: "/app", label: "Event Sites", icon: LayoutDashboard, end: true },
-        ...(creation ? [{ to: "/app/create", label: "Create a Website", icon: Sparkles }] : []),
-        { to: "/app/new", label: creation ? "Templates" : "New event site", icon: LayoutTemplate },
+        { to: "/app/create", label: "Create a Website", icon: Sparkles },
         { to: "/app/media", label: "Media Library", icon: Images },
         { to: "/app/domains", label: "Domains & Hosting", icon: Globe },
         { to: "/app/billing", label: "Billing & Invoices", icon: CreditCard },
@@ -75,7 +74,6 @@ const admin: Group[] = [
     label: "Library",
     items: [
       { to: "/admin/categories", label: "Categories", icon: Tags },
-      { to: "/admin/templates", label: "Templates", icon: LayoutTemplate },
       { to: "/admin/design-references", label: "Design refs", icon: LayoutTemplate },
       { to: "/admin/design-intelligence", label: "Design intel", icon: Inbox },
     ],
@@ -98,20 +96,17 @@ function crumb(pathname: string, mode: "customer" | "admin") {
     if (pathname.startsWith("/admin/payments")) return "Payments";
     if (pathname.startsWith("/admin/audit")) return "Audit";
     if (pathname.startsWith("/admin/categories")) return "Categories";
-    if (pathname.startsWith("/admin/templates")) return "Templates";
     if (pathname.startsWith("/admin/design")) return "Design";
     return "Staff";
   }
   if (pathname === "/app") return "Event Sites";
   if (pathname.startsWith("/app/create")) return "Create a Website";
-  if (pathname.startsWith("/app/new")) return "Templates";
   if (pathname.startsWith("/app/media")) return "Media Library";
   if (pathname.startsWith("/app/domains")) return "Domains & Hosting";
   if (pathname.startsWith("/app/billing")) return "Billing";
   if (pathname.startsWith("/app/account")) return "Settings";
   if (pathname.startsWith("/app/help")) return "Help";
-  if (pathname.includes("/studio")) return "Studio";
-  if (pathname.includes("/edit")) return "Editor";
+  if (pathname.includes("/studio") || pathname.includes("/edit")) return "Visual editor";
   if (pathname.includes("/pay")) return "Payment";
   if (pathname.includes("/extend")) return "Extend hosting";
   if (pathname.includes("/rsvps")) return "Replies";
@@ -124,14 +119,8 @@ export function AppShell({ account, mode }: { account: Account; mode: "customer"
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
-  const features = useQuery({
-    queryKey: ["features"],
-    queryFn: async () => (await api.get<Envelope<{ aiWebsiteGenerationEnabled: boolean }>>("/config/features")).data.data,
-    enabled: mode === "customer",
-  });
-  const creation = features.data?.aiWebsiteGenerationEnabled === true;
-  const groups = mode === "admin" ? admin : customerGroups(creation);
-  const createTo = creation ? "/app/create" : "/app/new";
+  const groups = mode === "admin" ? admin : customerGroups();
+  const createTo = "/app/create";
   const editor = /\/events\/[^/]+\/(edit|studio)$/.test(pathname);
   const current = crumb(pathname, mode);
 

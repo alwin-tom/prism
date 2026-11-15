@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, CreditCard, Download, Globe, Grid2X2, Heading1, Heart, Image as ImageIcon, LayoutList, Link2, MessageSquare, Pencil, Plus, QrCode, Redo2, Search, Sparkles, Square, SquareMousePointer, Type, Undo2 } from "lucide-react";
+import { ArrowLeft, CreditCard, Download, Globe, Grid2X2, Heading1, Heart, Image as ImageIcon, LayoutList, Link2, MessageSquare, Pencil, Plus, QrCode, Redo2, Search, Square, SquareMousePointer, Type, Undo2 } from "lucide-react";
 import { DeleteWebsiteButton } from "../components/DeleteWebsiteButton";
 import { GradientLink, HostingBattery, KpiCard, OperationalPill, SegmentedTabs, SoftButton } from "../components/dash/DashPrimitives";
 import { Button, Empty, Field, Pill } from "../components/ui";
@@ -12,7 +12,7 @@ import { createElement, ensureCanvas, growCanvas, orderCanvas, redoHistory, reme
 import { settlePayment } from "../services/checkout";
 import { api, errorMessage } from "../services/api";
 import { filesFromInput, uploadEventMediaMany } from "../services/mediaUpload";
-import type { CanvasElement, Category, Envelope, EventSite, Quote, RsvpSummary, TemplateSummary } from "../types";
+import type { CanvasElement, Envelope, EventSite, Quote, RsvpSummary } from "../types";
 import { quoteFromDays } from "../utils/money";
 
 export function DashboardPage() {
@@ -38,11 +38,7 @@ export function DashboardPage() {
   const review = rows.filter((event) => event.status === "SUBMITTED" || event.status === "IN_REVIEW" || event.status === "CHANGES_REQUESTED").length;
   const payable = rows.filter((event) => event.status === "APPROVED").length;
   const pool = rows.reduce((sum, event) => sum + Math.max(0, event.hosting.daysRemaining || 0), 0);
-  const features = useQuery({
-    queryKey: ["features"],
-    queryFn: async () => (await api.get<Envelope<{ aiWebsiteGenerationEnabled: boolean }>>("/config/features")).data.data,
-  });
-  const createTo = features.data?.aiWebsiteGenerationEnabled ? "/app/create" : "/app/new";
+  const createTo = "/app/create";
   const finding = rows.find((event) => event.status === "CHANGES_REQUESTED")
     ?? rows.find((event) => event.status === "APPROVED")
     ?? rows.find((event) => event.hosting.daysRemaining > 0 && event.hosting.daysRemaining <= 3);
@@ -62,7 +58,6 @@ export function DashboardPage() {
           <p>Manage your event portals, publish when ready, and keep an eye on hosting days and guest replies.</p>
         </div>
         <div className="dash-actions">
-          <SoftButton to="/app/new"><Sparkles size={16} aria-hidden /> Templates</SoftButton>
           <GradientLink to={createTo}><Plus size={16} aria-hidden /> Create a Website</GradientLink>
         </div>
       </div>
@@ -208,7 +203,7 @@ export function DashboardPage() {
                     />
                     <div className="site-card-actions">
                       {event.status === "PUBLISHED" ? <Link className="btn-chip" to={`/app/events/${event.id}/extend`}>Extend</Link> : null}
-                      <Link className="icon-soft" to={event.editorDocument?.root ? `/app/events/${event.id}/studio` : `/app/events/${event.id}/edit`} aria-label={`Edit ${event.eventName}`}>
+                      <Link className="icon-soft" to={`/app/events/${event.id}/studio`} aria-label={`Edit ${event.eventName}`}>
                         <Pencil size={16} />
                       </Link>
                     </div>
@@ -265,7 +260,7 @@ export function DashboardPage() {
                       <td>
                         <div className="site-row-actions">
                           {event.status === "PUBLISHED" ? <Link className="btn-chip" to={`/app/events/${event.id}/extend`}>Extend</Link> : null}
-                          <Link className="icon-soft" to={event.editorDocument?.root ? `/app/events/${event.id}/studio` : `/app/events/${event.id}/edit`} aria-label={`Edit ${event.eventName}`}>
+                          <Link className="icon-soft" to={`/app/events/${event.id}/studio`} aria-label={`Edit ${event.eventName}`}>
                             <Pencil size={16} />
                           </Link>
                           <DeleteWebsiteButton id={event.id} name={event.eventName} compact />
@@ -340,75 +335,6 @@ function nextStep(event: EventSite) {
   return `${event.eventName} is the one to open.`;
 }
 
-export function WizardPage() {
-  const [step, setStep] = useState(0);
-  const [categoryId, setCategoryId] = useState<string>();
-  const [templateId, setTemplateId] = useState<string>();
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [days, setDays] = useState(7);
-  const navigate = useNavigate();
-  const categories = useQuery({ queryKey: ["categories"], queryFn: async () => (await api.get<Envelope<Category[]>>("/categories")).data.data });
-  const templates = useQuery({
-    queryKey: ["templates", categoryId],
-    enabled: Boolean(categoryId),
-    queryFn: async () => (await api.get<Envelope<TemplateSummary[]>>(`/categories/${categoryId}/templates`)).data.data,
-  });
-  const create = useMutation({
-    mutationFn: async () => (await api.post<Envelope<EventSite>>("/events", {
-      categoryId, templateId, eventName: name, slug, requestedDays: days,
-    })).data.data,
-    onSuccess: (event) => navigate(`/app/events/${event.id}/edit?step=4`),
-  });
-  const quote = quoteFromDays(days);
-  return (
-    <>
-      <div className="sheet-title"><div><h1>New event site</h1><p>Eight short steps. The site is saved once the name and address are in.</p></div></div>
-      <div className="steps" aria-hidden="true">
-        {["Category", "Template", "The event", "Look", "Pictures", "Replies", "Address", "Submit"].map((label, index) => (
-          <span key={label} className={index === step ? "on" : undefined}>{label}</span>
-        ))}
-      </div>
-      {step === 0 ? (
-        <div className="cards">
-          {(categories.data ?? []).map((category) => (
-            <button key={category.id} className="choice" type="button" aria-pressed={categoryId === category.id} onClick={() => { setCategoryId(category.id); setStep(1); }}>
-              <strong>{category.name}</strong>
-              <p>{category.description}</p>
-            </button>
-          ))}
-        </div>
-      ) : null}
-      {step === 1 ? (
-        <div className="cards">
-          {(templates.data ?? []).map((template) => (
-            <button key={template.id} className="choice" type="button" aria-pressed={templateId === template.id} onClick={() => { setTemplateId(template.id); setStep(2); }}>
-              {template.thumbnailUrl ? <img src={template.thumbnailUrl} alt="" /> : <div className="thumb" />}
-              <strong>{template.name}</strong>
-              <p>{template.description}</p>
-            </button>
-          ))}
-        </div>
-      ) : null}
-      {step === 2 ? (
-        <form className="stack" style={{ maxWidth: 520 }} onSubmit={(event) => { event.preventDefault(); create.mutate(); }}>
-          <Field label="Event name"><input value={name} onChange={(event) => setName(event.target.value)} required /></Field>
-          <Field label="Public address" hint="Letters, numbers and hyphens. This becomes the URL.">
-            <input value={slug} onChange={(event) => setSlug(event.target.value)} required />
-          </Field>
-          <Field label="Hosting days">
-            <input type="number" min={1} max={365} value={days} onChange={(event) => setDays(Number(event.target.value))} />
-          </Field>
-          <HostingRunway days={days} label={`${quote.days} hosting days, ${quote.formatted}`} />
-          <p className="num">{quote.formatted} · ₹500 a day</p>
-          {create.isError ? <p className="error-line">{errorMessage(create.error, "The site was not created.")}</p> : null}
-          <Button type="submit" disabled={create.isPending}>Save and continue</Button>
-        </form>
-      ) : null}
-    </>
-  );
-}
-
 export function EventPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
@@ -416,32 +342,93 @@ export function EventPage() {
   const site = event.data;
   if (event.isLoading) return <div className="skeleton" style={{ height: 28, width: 180 }} />;
   if (!site) return <p className="error-line">{errorMessage(event.error, "That site was not found.")}</p>;
+  const canEdit = site.status === "DRAFT" || site.status === "CHANGES_REQUESTED" || site.status === "PUBLISHED";
+  const canPay = site.status === "APPROVED";
+  const canExtend = site.status === "PUBLISHED" || site.status === "EXPIRED";
+  const isLive = site.status === "PUBLISHED";
   return (
-    <>
-      <div className="sheet-title">
-        <div>
-          <h1>{site.eventName}</h1>
-          <p>{statusLine(site)}</p>
+    <div className="site-detail">
+      <header className="site-detail-head">
+        <div className="site-detail-identity">
+          <div className="site-detail-title">
+            <h1>{site.eventName}</h1>
+            <Pill status={site.status} />
+          </div>
+          <p className="site-detail-status">{statusLine(site)}</p>
         </div>
         <div className="title-actions">
-          {site.status === "DRAFT" || site.status === "CHANGES_REQUESTED" || site.status === "PUBLISHED" ? <Button asChild tone="secondary"><Link to={`/app/events/${site.id}/edit`}>Edit</Link></Button> : null}
-          {site.status === "APPROVED" ? <Button asChild><Link to={`/app/events/${site.id}/pay`}>Pay and publish</Link></Button> : null}
-          {site.status === "PUBLISHED" || site.status === "EXPIRED" ? <Button asChild><Link to={`/app/events/${site.id}/extend`}>Extend hosting</Link></Button> : null}
+          {canEdit ? <Button asChild tone="secondary"><Link to={`/app/events/${site.id}/studio`}><Pencil size={14} aria-hidden /> Editor</Link></Button> : null}
+          {canPay ? <Button asChild><Link to={`/app/events/${site.id}/pay`}>Pay and publish</Link></Button> : null}
+          {canExtend ? <Button asChild tone={canEdit ? "secondary" : undefined}><Link to={`/app/events/${site.id}/extend`}>Extend</Link></Button> : null}
           <DeleteWebsiteButton id={site.id} name={site.eventName} onDeleted={() => navigate("/app")} />
         </div>
-      </div>
-      <div className="work">
-        <div className="kpis">
-          <div className="kpi"><span>Status</span><strong style={{ fontSize: 16 }}><Pill status={site.status} /></strong></div>
-          <div className="kpi"><span>Hosting days left</span><strong className="num">{site.hosting.daysRemaining}</strong></div>
-          <div className="kpi"><span>Address</span><strong className="id" style={{ fontSize: 16 }}>/{site.slug}</strong></div>
+      </header>
+
+      {site.latestReview?.comments ? (
+        <aside className="site-detail-note" role="status">
+          <strong>From the reviewer</strong>
+          <p>{site.latestReview.comments}</p>
+        </aside>
+      ) : null}
+
+      <div className="site-detail-meta">
+        <div className="site-detail-fact">
+          <span>Address</span>
+          <strong className="id">/{site.slug}</strong>
+          {isLive ? <a href={`/${site.slug}`} target="_blank" rel="noreferrer">Open</a> : null}
         </div>
-        {site.latestReview?.comments ? <section className="panel" style={{ padding: 16 }}><h2>From the reviewer</h2><p style={{ marginTop: 8 }}>{site.latestReview.comments}</p></section> : null}
-        <p><Link to={`/app/events/${site.id}/rsvps`}>Replies</Link>{site.status === "PUBLISHED" ? <> · <a href={`/${site.slug}`}>Open the public site</a></> : null}</p>
-        <InviteCard name={site.eventName} slug={site.slug} when={site.configuration.event.startAt} venue={site.configuration.event.venueName} />
-        <div className="preview-frame"><PublicSite preview mediaEventId={site.id} event={{ slug: site.slug, eventName: site.eventName, availability: "PUBLISHED", templateCode: site.templateCode, configuration: site.configuration, editorDocument: site.editorDocument }} /></div>
+        <div className="site-detail-fact">
+          <span>Hosting</span>
+          <strong className="num">{site.hosting.daysRemaining}d left</strong>
+          <HostingBattery
+            remaining={site.hosting.daysRemaining}
+            requested={site.requestedDays || site.hosting.daysRemaining || 7}
+            label={`${site.hosting.daysRemaining} hosting days left`}
+          />
+        </div>
+        <div className="site-detail-fact site-detail-links">
+          <span>Shortcuts</span>
+          <div>
+            <Link to={`/app/events/${site.id}/rsvps`}>Replies</Link>
+            {canEdit ? <Link to={`/app/events/${site.id}/studio`}>Visual editor</Link> : null}
+            <Link to={`/app/events/${site.id}/preview`} target="_blank">Preview</Link>
+            {isLive ? <a href={`/${site.slug}`}>Public site</a> : null}
+          </div>
+        </div>
       </div>
-    </>
+
+      <div className="site-detail-body">
+        <aside className="site-detail-side">
+          <InviteCard
+            compact
+            name={site.eventName}
+            slug={site.slug}
+            when={site.configuration.event.startAt}
+            venue={site.configuration.event.venueName}
+          />
+        </aside>
+        <section className="site-detail-preview" aria-label="Page preview">
+          <div className="site-detail-preview-bar">
+            <span>Page preview</span>
+            {canEdit ? <Link to={`/app/events/${site.id}/studio`}>Edit in studio</Link> : null}
+          </div>
+          <div className="site-detail-preview-frame">
+            <PublicSite
+              preview
+              mediaEventId={site.id}
+              event={{
+                slug: site.slug,
+                eventName: site.eventName,
+                availability: "PUBLISHED",
+                templateCode: site.templateCode,
+                configuration: site.configuration,
+                editorDocument: site.editorDocument,
+              }}
+            />
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }
 
@@ -451,7 +438,6 @@ export function EditorPage() {
   const step = Number(params.get("step") ?? "4");
   const queryClient = useQueryClient();
   const event = useQuery({ queryKey: ["event", id], queryFn: async () => (await api.get<Envelope<EventSite>>(`/events/${id}`)).data.data });
-  const features = useQuery({ queryKey: ["features"], queryFn: async () => (await api.get<Envelope<{ advancedEditorEnabled: boolean }>>("/config/features")).data.data });
   const site = event.data;
   const [draft, setDraft] = useState<EventSite | null>(null);
   const past = useRef<EventSite[]>([]);
@@ -538,7 +524,7 @@ export function EditorPage() {
             ensureCanvas(next.configuration);
             openFullPreview(id, next);
           }}>Open in a new tab</Button>
-          {features.data?.advancedEditorEnabled ? <Link className="btn btn-secondary" to={`/app/events/${id}/studio`}>Visual editor</Link> : null}
+          <Link className="btn btn-secondary" to={`/app/events/${id}/studio`}>Visual editor</Link>
           <Button type="button" onClick={() => {
             const next = structuredClone(current);
             ensureCanvas(next.configuration);

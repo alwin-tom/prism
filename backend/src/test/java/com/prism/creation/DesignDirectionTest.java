@@ -9,12 +9,37 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DesignDirectionTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @Test
+    void neverUsesEllipseRadiusForTextCards() {
+        assertEquals("24px", DesignDirection.cardRadius("50%"));
+        assertTrue(DesignDirection.isEllipseRadius("50%"));
+        assertFalse(DesignDirection.isEllipseRadius(DesignDirection.softerCardRadius("16px")));
+        assertEquals("20px", DesignDirection.softerCardRadius("16px"));
+    }
+
+    @Test
+    void remapsColoursWhenUserPaletteIsPresent() {
+        ObjectNode answers = mapper.createObjectNode();
+        ObjectNode palette = answers.putObject("colourPalette");
+        palette.put("background", "#0b1220");
+        palette.put("ink", "#e8eef7");
+        palette.put("accent", "#38bdf8");
+        DesignDirection direction = DesignDirection.resolve(mapper.createObjectNode().put("direction", "luxury-romantic"), "WEDDING", answers);
+        assertEquals("#0b1220", direction.pageBackground());
+        assertEquals("#e8eef7", direction.text());
+        assertEquals("#38bdf8", direction.accent());
+        assertTrue(direction.pageDark());
+        assertTrue(direction.heroBackground().startsWith("linear-gradient"));
+        assertTrue(direction.heroBackground().contains("#0b1220"));
+    }
 
     @Test
     void givesEachCategoryADifferentIdentity() {
@@ -43,6 +68,28 @@ class DesignDirectionTest {
         assertNotEquals("#ffffff", painted.path("root").path("children").get(1).path("styles").path("background").asText());
         DesignQuality.Result quality = DesignQuality.assess(painted, direction);
         assertTrue(quality.overall() >= 70, "score " + quality.overall() + " " + quality.issues());
+    }
+
+    @Test
+    void convertsEllipticalTextCardsIntoReadablePanels() throws Exception {
+        DesignDirection direction = DesignDirection.resolve(mapper.createObjectNode().put("direction", "modern-corporate"), "CONFERENCE", mapper.createObjectNode());
+        ObjectNode document = (ObjectNode) mapper.readTree("""
+                {"schemaVersion":1,"documentId":"11111111-1111-1111-1111-111111111111","page":{"title":"Hire","description":""},"root":{"id":"page","type":"SECTION","name":"Page","props":{},"styles":{},"children":[
+                  {"id":"grid","type":"GRID","name":"Grid","props":{},"styles":{"display":"grid"},"children":[
+                    {"id":"card","type":"GROUP","name":"Card","props":{},"styles":{"borderRadius":"50%","padding":"8px","background":"#ffffff"},"children":[
+                      {"id":"title","type":"HEADING","name":"Heading","props":{"text":"In Person or Online","level":3},"styles":{"textAlign":"left"},"children":[]},
+                      {"id":"copy","type":"PARAGRAPH","name":"Paragraph","props":{"text":"Join the rooms that match the stage of your hiring practice."},"styles":{"textAlign":"left"},"children":[]}
+                    ]}
+                  ]}
+                ]}}
+                """);
+        ObjectNode painted = DesignApplicator.apply(document, direction);
+        ObjectNode card = (ObjectNode) painted.path("root").path("children").get(0).path("children").get(0);
+        assertFalse(DesignDirection.isEllipseRadius(card.path("styles").path("borderRadius").asText()));
+        assertEquals("center", card.path("styles").path("textAlign").asText());
+        assertEquals("center", card.path("children").get(0).path("styles").path("textAlign").asText());
+        assertTrue(card.path("styles").path("padding").asText().contains("px"));
+        assertNotEquals("8px", card.path("styles").path("padding").asText());
     }
 
     @Test

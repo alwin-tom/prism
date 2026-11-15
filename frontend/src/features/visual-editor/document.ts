@@ -1,14 +1,18 @@
+import type { MarqueeItem, PropValue, RichTextRun } from "./richText";
+import { newMarqueeItem } from "./richText";
+
 export type StyleMap = Record<string, string>;
+export type { PropValue, RichTextRun, MarqueeItem };
 
 export type EditorNode = {
   id: string;
   type: string;
   name: string;
   locked?: boolean;
-  props: Record<string, string | number>;
+  props: Record<string, PropValue>;
   styles: StyleMap;
   responsiveStyles: { tablet: StyleMap; mobile: StyleMap };
-  responsiveProps?: { tablet: Record<string, string | number>; mobile: Record<string, string | number> };
+  responsiveProps?: { tablet: Record<string, PropValue>; mobile: Record<string, PropValue> };
   children: EditorNode[];
 };
 
@@ -44,27 +48,49 @@ export function viewportDevice(): Breakpoint {
   return "desktop";
 }
 
-const SHARED_PROPS = new Set(["text", "href", "alt", "level", "attribution", "target", "label", "title"]);
+const SHARED_PROPS = new Set([
+  "text", "href", "alt", "level", "attribution", "target", "label", "title",
+  "richText", "linkTarget", "linkTitle", "linkColor", "linkHoverColor", "linkUnderline",
+  "items", "direction", "speed", "duration", "gap", "delay", "loop", "pauseOnHover", "pauseOnClick", "animationEnabled",
+]);
 
-const LIBRARY: Record<string, { name: string; category: string; props: Record<string, string | number>; styles: StyleMap }> = {
+const LIBRARY: Record<string, { name: string; category: string; props: Record<string, PropValue>; styles: StyleMap }> = {
   SECTION: { name: "Section", category: "Layout", props: {}, styles: { display: "flex", flexDirection: "column", gap: "16px", padding: "24px" } },
   CONTAINER: { name: "Container", category: "Layout", props: {}, styles: { display: "flex", flexDirection: "column", gap: "12px" } },
   FLEX: { name: "Row", category: "Layout", props: {}, styles: { display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "center" } },
   GRID: { name: "Grid", category: "Layout", props: {}, styles: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" } },
   GROUP: { name: "Group", category: "Layout", props: {}, styles: { display: "flex", flexDirection: "column", gap: "8px" } },
   CAROUSEL: { name: "Carousel", category: "Media", props: { preset: "minimal", autoplay: 1, interval: 5000, perView: 1 }, styles: { width: "100%" } },
-  HEADING: { name: "Heading", category: "Text", props: { text: "Heading", level: 2 }, styles: { fontSize: "36px", fontFamily: "Fraunces" } },
-  PARAGRAPH: { name: "Text", category: "Text", props: { text: "Write something" }, styles: { fontSize: "18px" } },
+  HEADING: { name: "Heading", category: "Text", props: { text: "Heading", level: 2, href: "", richText: [{ text: "Heading" }] }, styles: { fontSize: "36px", fontFamily: "Fraunces" } },
+  PARAGRAPH: { name: "Text", category: "Text", props: { text: "Write something", href: "", richText: [{ text: "Write something" }] }, styles: { fontSize: "18px" } },
   BUTTON: { name: "Button", category: "Text", props: { text: "Button", href: "" }, styles: { padding: "12px 20px", background: "#121417", color: "#ffffff", borderRadius: "8px" } },
   IMAGE: { name: "Picture", category: "Media", props: { mediaId: "", alt: "" }, styles: { width: "100%", objectFit: "cover" } },
   SPACER: { name: "Spacer", category: "Layout", props: { size: 24 }, styles: {} },
   DIVIDER: { name: "Divider", category: "Layout", props: {}, styles: { height: "1px", background: "#d5d8dc" } },
-  QUOTE: { name: "Quote", category: "Text", props: { text: "A short statement", attribution: "" }, styles: { fontSize: "28px", fontFamily: "Fraunces", textAlign: "center", padding: "24px" } },
+  QUOTE: { name: "Quote", category: "Text", props: { text: "A short statement", attribution: "", href: "", richText: [{ text: "A short statement" }] }, styles: { fontSize: "28px", fontFamily: "Fraunces", textAlign: "center", padding: "24px" } },
   COUNTDOWN: { name: "Countdown", category: "Media", props: { target: "", label: "Until the day" }, styles: { display: "flex", flexDirection: "column", gap: "8px", padding: "16px", textAlign: "center" } },
   FAQ_ACCORDION: { name: "FAQ", category: "Content", props: { title: "Questions" }, styles: { display: "flex", flexDirection: "column", gap: "12px", padding: "16px" } },
-  FAQ_ITEM: { name: "FAQ item", category: "Content", props: { title: "Question", text: "Answer" }, styles: { display: "flex", flexDirection: "column", gap: "6px", padding: "12px 0" } },
+  FAQ_ITEM: { name: "FAQ item", category: "Content", props: { title: "Question", text: "Answer", richText: [{ text: "Answer" }] }, styles: { display: "flex", flexDirection: "column", gap: "6px", padding: "12px 0" } },
   TIMELINE: { name: "Timeline", category: "Content", props: { title: "Schedule" }, styles: { display: "flex", flexDirection: "column", gap: "16px", padding: "16px" } },
-  TIMELINE_ITEM: { name: "Timeline item", category: "Content", props: { title: "Moment", text: "Details" }, styles: { display: "flex", flexDirection: "column", gap: "4px", padding: "8px 0 8px 16px", borderWidth: "0 0 0 2px", borderStyle: "solid", borderColor: "#d5d8dc" } },
+  TIMELINE_ITEM: { name: "Timeline item", category: "Content", props: { title: "Moment", text: "Details", richText: [{ text: "Details" }] }, styles: { display: "flex", flexDirection: "column", gap: "4px", padding: "8px 0 8px 16px", borderWidth: "0 0 0 2px", borderStyle: "solid", borderColor: "#d5d8dc" } },
+  MARQUEE: {
+    name: "Marquee",
+    category: "Media",
+    props: {
+      text: "Announcement",
+      direction: "left",
+      speed: 50,
+      duration: 28,
+      gap: 32,
+      delay: 0,
+      loop: 1,
+      pauseOnHover: 1,
+      pauseOnClick: 0,
+      animationEnabled: 1,
+      items: [newMarqueeItem("text")],
+    },
+    styles: { width: "100%", overflow: "hidden", padding: "12px 0", background: "#f4f6f8" },
+  },
 };
 
 export const CAROUSEL_PRESETS = ["minimal", "cards", "hero", "coverflow", "fade", "editorial"] as const;
@@ -98,7 +124,7 @@ export function stylesFor(node: EditorNode, breakpoint: Breakpoint): StyleMap {
   return { ...node.styles, ...(node.responsiveStyles?.[breakpoint] ?? {}) };
 }
 
-export function propsFor(node: EditorNode, breakpoint: Breakpoint): Record<string, string | number> {
+export function propsFor(node: EditorNode, breakpoint: Breakpoint): Record<string, PropValue> {
   if (breakpoint === "desktop") return node.props;
   return { ...node.props, ...(node.responsiveProps?.[breakpoint] ?? {}) };
 }
@@ -133,8 +159,14 @@ export function removeResponsiveOverride(document: EditorDocument, elementId: st
 export function setDeviceVisibility(document: EditorDocument, elementId: string, device: Breakpoint, hidden: boolean) {
   const node = findNode(document.root, elementId);
   if (!node) return;
+  // Visibility can change while locked so Layers can hide without unlocking.
   if (hidden) {
-    updateNode(document, elementId, { styles: { display: "none" } }, device);
+    if (device === "desktop") {
+      node.styles.display = "none";
+      return;
+    }
+    node.responsiveStyles = node.responsiveStyles ?? { tablet: {}, mobile: {} };
+    node.responsiveStyles[device] = { ...node.responsiveStyles[device], display: "none" };
     return;
   }
   if (device !== "desktop") {
@@ -158,6 +190,7 @@ export function findNode(node: EditorNode, id: string): EditorNode | null {
 export function addChild(document: EditorDocument, parentId: string, type: string): EditorNode {
   const parent = findNode(document.root, parentId) ?? document.root;
   const node = createNode(type);
+  node.styles.zIndex = String(parent.children.length);
   parent.children.push(node);
   return node;
 }
@@ -199,7 +232,7 @@ export function insertBlock(document: EditorDocument, parentId: string, block: s
   return group;
 }
 
-export function updateNode(document: EditorDocument, id: string, patch: { name?: string; locked?: boolean; props?: Record<string, string | number>; styles?: StyleMap }, breakpoint: Breakpoint) {
+export function updateNode(document: EditorDocument, id: string, patch: { name?: string; locked?: boolean; props?: Record<string, PropValue>; styles?: StyleMap }, breakpoint: Breakpoint) {
   const node = findNode(document.root, id);
   if (!node || node.locked && patch.locked !== false && patch.name === undefined) return;
   if (patch.name !== undefined) node.name = patch.name;
@@ -209,8 +242,8 @@ export function updateNode(document: EditorDocument, id: string, patch: { name?:
   }
   if (node.locked && patch.locked !== false) return;
   if (patch.props) {
-    const shared: Record<string, string | number> = {};
-    const local: Record<string, string | number> = {};
+    const shared: Record<string, PropValue> = {};
+    const local: Record<string, PropValue> = {};
     for (const [key, value] of Object.entries(patch.props)) {
       if (breakpoint === "desktop" || SHARED_PROPS.has(key)) shared[key] = value;
       else local[key] = value;
@@ -222,10 +255,17 @@ export function updateNode(document: EditorDocument, id: string, patch: { name?:
     }
   }
   if (patch.styles) {
-    if (breakpoint === "desktop") node.styles = { ...node.styles, ...patch.styles };
-    else {
+    if (breakpoint === "desktop") {
+      node.styles = { ...node.styles, ...patch.styles };
+      for (const [key, value] of Object.entries(patch.styles)) {
+        if (value === "") delete node.styles[key];
+      }
+    } else {
       node.responsiveStyles = node.responsiveStyles ?? { tablet: {}, mobile: {} };
       node.responsiveStyles[breakpoint] = { ...node.responsiveStyles[breakpoint], ...patch.styles };
+      for (const [key, value] of Object.entries(patch.styles)) {
+        if (value === "") delete node.responsiveStyles[breakpoint][key];
+      }
     }
   }
 }
@@ -280,14 +320,73 @@ export function ungroupNode(document: EditorDocument, id: string) {
   parent.children.splice(index, 1, ...node.children);
 }
 
-export function restack(document: EditorDocument, id: string, where: "forward" | "backward" | "front" | "back", breakpoint: Breakpoint = "desktop") {
+const STACK_MIN = -100;
+const STACK_MAX = 100;
+
+/** Explicit z-index for one element (clamped). Does not renumber siblings. */
+export function setStackIndex(document: EditorDocument, id: string, value: number, breakpoint: Breakpoint = "desktop") {
   const node = findNode(document.root, id);
   if (!node || node.locked || id === document.root.id) return;
-  const current = Number.parseInt(stylesFor(node, breakpoint).zIndex ?? "", 10);
-  const base = Number.isFinite(current) ? current : 1;
-  const next = where === "front" ? 20 : where === "back" ? 0 : where === "forward" ? Math.min(20, base + 1) : Math.max(0, base - 1);
+  writeStackStyles(node, clampStack(value), breakpoint);
+}
+
+/**
+ * Sibling-relative stacking. Renumbers peers to 0..n-1 so values stay bounded,
+ * then moves the target within that range (front / forward / backward / back).
+ */
+export function restack(document: EditorDocument, id: string, where: "forward" | "backward" | "front" | "back", breakpoint: Breakpoint = "desktop") {
+  const parent = parentOf(document.root, id);
+  const node = findNode(document.root, id);
+  if (!parent || !node || node.locked || id === document.root.id) return;
+  const siblings = parent.children;
+  const ranked = [...siblings].sort((left, right) => {
+    const delta = stackValue(left, breakpoint) - stackValue(right, breakpoint);
+    if (delta !== 0) return delta;
+    return siblings.indexOf(left) - siblings.indexOf(right);
+  });
+  const from = ranked.findIndex((child) => child.id === id);
+  if (from < 0) return;
+  ranked.splice(from, 1);
+  const to = where === "front"
+    ? ranked.length
+    : where === "back"
+      ? 0
+      : where === "forward"
+        ? Math.min(ranked.length, from + 1)
+        : Math.max(0, from - 1);
+  ranked.splice(to, 0, node);
+  ranked.forEach((child, index) => writeStackStyles(child, index, breakpoint));
+}
+
+/** After DOM reorder within a parent, keep z-index aligned to sibling order. */
+export function normalizeSiblingStack(document: EditorDocument, parentId: string, breakpoint: Breakpoint = "desktop") {
+  const parent = findNode(document.root, parentId);
+  if (!parent) return;
+  parent.children.forEach((child, index) => writeStackStyles(child, index, breakpoint));
+}
+
+function stackValue(node: EditorNode, breakpoint: Breakpoint) {
+  const raw = Number.parseInt(stylesFor(node, breakpoint).zIndex ?? "", 10);
+  return Number.isFinite(raw) ? raw : 0;
+}
+
+function clampStack(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.min(STACK_MAX, Math.max(STACK_MIN, Math.round(value)));
+}
+
+function writeStackStyles(node: EditorNode, zIndex: number, breakpoint: Breakpoint) {
   const position = stylesFor(node, breakpoint).position;
-  updateNode(document, id, { styles: { zIndex: String(next), position: position && position !== "static" ? position : "relative" } }, breakpoint);
+  const styles: StyleMap = {
+    zIndex: String(clampStack(zIndex)),
+    position: position && position !== "static" ? position : "relative",
+  };
+  if (breakpoint === "desktop") {
+    node.styles = { ...node.styles, ...styles };
+    return;
+  }
+  node.responsiveStyles = node.responsiveStyles ?? { tablet: {}, mobile: {} };
+  node.responsiveStyles[breakpoint] = { ...node.responsiveStyles[breakpoint], ...styles };
 }
 
 export function removeNode(document: EditorDocument, id: string) {
@@ -295,22 +394,27 @@ export function removeNode(document: EditorDocument, id: string) {
   removeFrom(document.root, id);
 }
 
-export function shiftChild(document: EditorDocument, id: string, direction: -1 | 1) {
+export function shiftChild(document: EditorDocument, id: string, direction: -1 | 1, breakpoint: Breakpoint = "desktop") {
   const parent = parentOf(document.root, id);
   if (!parent) return;
   const index = parent.children.findIndex((child) => child.id === id);
   const target = index + direction;
   if (index < 0 || target < 0 || target >= parent.children.length) return;
-  moveChild(document, id, parent.id, target);
+  moveChild(document, id, parent.id, target, breakpoint);
 }
 
-export function moveChild(document: EditorDocument, id: string, parentId: string, index: number) {
+export function moveChild(document: EditorDocument, id: string, parentId: string, index: number, breakpoint: Breakpoint = "desktop") {
   if (id === document.root.id || id === parentId) return;
+  const previousParent = parentOf(document.root, id);
   const node = detach(document.root, id);
   const parent = findNode(document.root, parentId);
   if (!node || !parent || contains(node, parent.id)) return;
   const at = Math.max(0, Math.min(index, parent.children.length));
   parent.children.splice(at, 0, node);
+  if (previousParent && previousParent.id !== parent.id) {
+    normalizeSiblingStack(document, previousParent.id, breakpoint);
+  }
+  normalizeSiblingStack(document, parent.id, breakpoint);
 }
 
 function removeFrom(node: EditorNode, id: string): boolean {

@@ -10,6 +10,8 @@ import com.prism.editor.EditorDocumentRepository;
 import com.prism.hosting.HostingPeriod;
 import com.prism.hosting.HostingService;
 import com.prism.media.MediaRepository;
+import com.prism.moderation.ModerationJobService;
+import com.prism.moderation.ModerationReportService;
 import com.prism.notification.OutboxService;
 import com.prism.pricing.PricingService;
 import com.prism.review.EventReview;
@@ -57,6 +59,8 @@ public class EventService {
     private final ObjectMapper mapper;
     private final PrismProperties properties;
     private final EditorDocumentRepository editorDocuments;
+    private final ModerationJobService moderationJobs;
+    private final ModerationReportService moderationReports;
 
     public EventService(
             EventRepository events,
@@ -75,7 +79,9 @@ public class EventService {
             AuditService audit,
             ObjectMapper mapper,
             PrismProperties properties,
-            EditorDocumentRepository editorDocuments
+            EditorDocumentRepository editorDocuments,
+            ModerationJobService moderationJobs,
+            ModerationReportService moderationReports
     ) {
         this.events = events;
         this.revisions = revisions;
@@ -94,6 +100,8 @@ public class EventService {
         this.mapper = mapper;
         this.properties = properties;
         this.editorDocuments = editorDocuments;
+        this.moderationJobs = moderationJobs;
+        this.moderationReports = moderationReports;
     }
 
     public EventSite requireOwner(UUID id, UserPrincipal principal) {
@@ -246,6 +254,7 @@ public class EventService {
                 "slug", event.slug
         ), "submitted:" + latest.id);
         audit.record(principal.id(), "EVENT_SUBMITTED", "EVENT", event.id, Map.of("revision", latest.revisionNumber), ip);
+        moderationJobs.enqueue(latest);
         return present(event, latest);
     }
 
@@ -296,6 +305,11 @@ public class EventService {
         body.put("hosting", hostingView);
         List<EventReview> history = reviews.findByEventIdOrderByCreatedAtDesc(event.id);
         body.put("latestReview", history.isEmpty() ? null : reviewView(history.getFirst()));
+        if (revision != null) {
+            body.put("moderation", moderationReports.summaryCard(revision.id));
+        } else {
+            body.put("moderation", null);
+        }
         return body;
     }
 
@@ -317,6 +331,27 @@ public class EventService {
             throw ApiException.notFound("That revision was not found.");
         }
         return revision;
+    }
+
+    /**
+     * Returns the current draft revision, cloning one when the latest revision is
+     * approved, rejected, or has changes requested. Blocks while a review is queued.
+     */
+    @Transactional
+    public EventRevision ensureEditableDraft(EventSite event) {
+        ensureNoQueue(event.id);
+        EventRevision latest = latest(event.id);
+        if ("DRAFT".equals(latest.submissionStatus)) {
+            return latest;
+        }
+        if ("CHANGES_REQUESTED".equals(latest.submissionStatus)
+                || "REJECTED".equals(latest.submissionStatus)
+                || "APPROVED".equals(latest.submissionStatus)) {
+            EventRevision draft = cloneRevision(event, latest, latest.configurationJson);
+            events.save(event);
+            return draft;
+        }
+        throw ApiException.badRequest("Save a draft before editing the visual page.");
     }
 
     private EventRevision editable(EventSite event, JsonNode desired) {

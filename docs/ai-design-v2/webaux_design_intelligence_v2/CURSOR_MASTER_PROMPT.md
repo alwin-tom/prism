@@ -47,9 +47,7 @@ Current architecture:
 - The generated page opens in the existing visual studio.
 - Existing draft/revision, review, payment, and publishing flows remain authoritative.
 
-Current feature flags include:
-- `PRISM_ADVANCED_EDITOR_ENABLED` (default false)
-- `PRISM_AI_WEBSITE_GENERATION_ENABLED` (default false)
+Website generation and the visual editor are always enabled.
 
 Keep existing environment variable names working even if internal naming is modernised. Do not perform a broad branding rename as part of this task.
 

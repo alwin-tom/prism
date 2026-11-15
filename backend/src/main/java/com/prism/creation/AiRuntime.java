@@ -53,8 +53,15 @@ public class AiRuntime {
     @Transactional(readOnly = true)
     public Map<String, Object> view() {
         PrismProperties.OpenRouter current = forThisRun();
+        PrismProperties.UiModels ui = properties.getUiModels();
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("source", settings.findById(ROW).isPresent() ? "admin" : "environment");
+        body.put("uiModelStrategy", ui.isUseFreeUiModels() ? "FREE" : "PREMIUM");
+        body.put("useFreeUiModels", ui.isUseFreeUiModels());
+        body.put("premiumPrimaryModel", ui.getPremiumPrimaryModel());
+        body.put("premiumSecondaryModel", ui.getPremiumSecondaryModel());
+        body.put("premiumFallbackModel", ui.getPremiumFallbackModel());
+        body.put("premiumRefinementModel", ui.getPremiumRefinementModel());
         body.put("planningModel", current.getPlanningModel());
         body.put("generationModel", current.getGenerationModel());
         body.put("repairModel", current.getRepairModel());

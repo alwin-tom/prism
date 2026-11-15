@@ -18,9 +18,10 @@ import java.util.regex.Pattern;
 public final class DocumentNormalizer {
 
     private static final Set<String> TYPES = Set.of(
-            "SECTION", "CONTAINER", "FLEX", "GRID", "GROUP", "CAROUSEL",
+            "SECTION", "CONTAINER", "FLEX", "GRID", "GROUP", "CAROUSEL", "MARQUEE",
             "HEADING", "PARAGRAPH", "BUTTON", "IMAGE", "SPACER", "DIVIDER",
             "QUOTE", "COUNTDOWN", "FAQ_ACCORDION", "FAQ_ITEM", "TIMELINE", "TIMELINE_ITEM");
+    private static final Set<String> MARQUEE_DIRS = Set.of("left", "right", "up", "down");
     private static final Set<String> STYLES = Set.of(
             "color", "background", "fontSize", "fontWeight", "fontStyle", "fontFamily", "lineHeight", "letterSpacing",
             "textAlign", "textDecoration", "padding", "margin", "gap", "display", "flexDirection", "flexWrap",
@@ -33,7 +34,9 @@ public final class DocumentNormalizer {
             "fontId", "fontRole", "fontStretch", "fontVariant", "fontVariationSettings", "fontFeatureSettings",
             "wordSpacing", "textIndent", "verticalAlign", "textJustify",
             "textDecorationColor", "textDecorationStyle", "textDecorationThickness", "textUnderlineOffset",
-            "textShadow", "textOverflow", "whiteSpace", "wordBreak", "overflowWrap", "textStroke", "textGradient");
+            "textShadow", "textOverflow", "whiteSpace", "wordBreak", "overflowWrap", "textStroke", "textGradient",
+            "backgroundMediaId", "backgroundSize", "backgroundPosition", "backgroundRepeat", "backgroundAttachment",
+            "backgroundOverlayType", "backgroundOverlayColor", "backgroundOverlayOpacity", "backgroundOverlayAngle", "backgroundOverlayEnd");
     private static final Set<String> CAROUSEL_PRESETS = Set.of("minimal", "cards", "hero", "coverflow", "fade", "editorial");
     private static final Pattern ID = Pattern.compile("^[a-z0-9-]{1,40}$");
     private static final Pattern UUID_TEXT = Pattern.compile("^[0-9a-fA-F-]{36}$");
@@ -93,10 +96,10 @@ public final class DocumentNormalizer {
         out.put("type", type);
         out.put("name", clip(node.path("name").asText(type), 80));
         out.set("props", props(type, node.get("props"), mediaIds, warnings));
-        out.set("styles", styles(node.get("styles"), warnings));
+        out.set("styles", styles(node.get("styles"), mediaIds, warnings));
         ObjectNode responsive = out.putObject("responsiveStyles");
-        responsive.set("tablet", styles(node.path("responsiveStyles").get("tablet"), warnings));
-        responsive.set("mobile", styles(node.path("responsiveStyles").get("mobile"), warnings));
+        responsive.set("tablet", styles(node.path("responsiveStyles").get("tablet"), mediaIds, warnings));
+        responsive.set("mobile", styles(node.path("responsiveStyles").get("mobile"), mediaIds, warnings));
         ObjectNode responsiveProps = out.putObject("responsiveProps");
         responsiveProps.set("tablet", partialProps(type, node.path("responsiveProps").get("tablet"), mediaIds, warnings));
         responsiveProps.set("mobile", partialProps(type, node.path("responsiveProps").get("mobile"), mediaIds, warnings));
@@ -122,11 +125,31 @@ public final class DocumentNormalizer {
                 props.put("text", copy(source, 400));
                 int level = source.path("level").asInt(2);
                 props.put("level", Math.min(6, Math.max(1, level)));
+                copyLinks(props, source, 400);
             }
-            case "PARAGRAPH" -> props.put("text", copy(source, 4000));
+            case "PARAGRAPH" -> {
+                props.put("text", copy(source, 4000));
+                copyLinks(props, source, 4000);
+            }
             case "BUTTON" -> {
                 props.put("text", copy(source, 160));
                 props.put("href", link(source.path("href").asText("")));
+                copyLinkMeta(props, source);
+            }
+            case "MARQUEE" -> {
+                props.put("text", clip(source.path("text").asText("Announcement"), 800));
+                String direction = source.path("direction").asText("left").trim().toLowerCase(Locale.ROOT);
+                props.put("direction", MARQUEE_DIRS.contains(direction) ? direction : "left");
+                props.put("speed", bounded(source.get("speed"), 50, 1, 100));
+                props.put("duration", bounded(source.get("duration"), 28, 4, 120));
+                props.put("gap", bounded(source.get("gap"), 32, 0, 160));
+                props.put("delay", bounded(source.get("delay"), 0, 0, 30));
+                props.put("loop", source.path("loop").asText("1").startsWith("0") ? 0 : 1);
+                props.put("pauseOnHover", source.path("pauseOnHover").asText("1").startsWith("0") ? 0 : 1);
+                props.put("pauseOnClick", source.path("pauseOnClick").asText("0").startsWith("1") ? 1 : 0);
+                props.put("animationEnabled", source.path("animationEnabled").asText("1").startsWith("0") ? 0 : 1);
+                props.set("items", normalizeMarqueeItems(source.get("items"), mediaIds, warnings));
+                copyLinks(props, source, 800);
             }
             case "IMAGE" -> {
                 String mediaId = source.path("mediaId").asText("").toLowerCase(Locale.ROOT);
@@ -136,6 +159,10 @@ public final class DocumentNormalizer {
                 }
                 props.put("mediaId", mediaId);
                 props.put("alt", clip(source.path("alt").asText(""), 180));
+                String assetKey = source.path("assetKey").asText("").trim().toLowerCase(Locale.ROOT);
+                if (!assetKey.isBlank()) {
+                    props.put("assetKey", assetKey.length() > 80 ? assetKey.substring(0, 80) : assetKey);
+                }
             }
             case "SPACER" -> props.put("size", Math.min(240, Math.max(4, source.path("size").asInt(24))));
             case "CAROUSEL" -> {
@@ -148,6 +175,7 @@ public final class DocumentNormalizer {
             case "QUOTE" -> {
                 props.put("text", clip(source.path("text").asText(""), 800));
                 props.put("attribution", clip(source.path("attribution").asText(""), 160));
+                copyLinks(props, source, 800);
             }
             case "COUNTDOWN" -> {
                 props.put("target", clip(source.path("target").asText(""), 40));
@@ -157,6 +185,7 @@ public final class DocumentNormalizer {
             case "FAQ_ITEM", "TIMELINE_ITEM" -> {
                 props.put("title", clip(source.path("title").asText(""), 200));
                 props.put("text", clip(source.path("text").asText(""), 2000));
+                copyLinks(props, source, 2000);
             }
             default -> {
             }
@@ -181,6 +210,12 @@ public final class DocumentNormalizer {
                 }
                 if (node.has("alt")) {
                     props.put("alt", clip(node.path("alt").asText(""), 180));
+                }
+                if (node.has("assetKey")) {
+                    String assetKey = node.path("assetKey").asText("").trim().toLowerCase(Locale.ROOT);
+                    if (!assetKey.isBlank()) {
+                        props.put("assetKey", assetKey.length() > 80 ? assetKey.substring(0, 80) : assetKey);
+                    }
                 }
             }
             case "SPACER" -> {
@@ -238,7 +273,7 @@ public final class DocumentNormalizer {
         return props;
     }
 
-    private ObjectNode styles(JsonNode node, List<String> warnings) {
+    private ObjectNode styles(JsonNode node, Set<String> mediaIds, List<String> warnings) {
         ObjectNode styles = mapper.createObjectNode();
         if (node == null || !node.isObject()) {
             return styles;
@@ -262,10 +297,147 @@ public final class DocumentNormalizer {
             if ("transform".equals(key) && !value.isBlank() && !value.matches("^(rotate\\(-?\\d{1,3}deg\\)|translate\\(-?\\d{1,4}px, -?\\d{1,4}px\\)|scale\\([0-9.]+(?:, [0-9.]+)?\\))( (rotate\\(-?\\d{1,3}deg\\)|translate\\(-?\\d{1,4}px, -?\\d{1,4}px\\)|scale\\([0-9.]+(?:, [0-9.]+)?\\)))*$")) {
                 return;
             }
+            if ("backgroundMediaId".equals(key)) {
+                value = value.toLowerCase(Locale.ROOT);
+                if (!value.isBlank() && (!UUID_TEXT.matcher(value).matches() || !mediaIds.contains(value))) {
+                    warnings.add("Omitted a background picture that is not on this event.");
+                    return;
+                }
+            }
             styles.put(key, value);
         });
         FontRegistry.reconcile(styles);
         return styles;
+    }
+
+    private void copyLinks(ObjectNode props, JsonNode source, int maxText) {
+        if (source.has("href")) {
+            props.put("href", link(source.path("href").asText("")));
+        }
+        copyLinkMeta(props, source);
+        if (source.has("linkColor")) {
+            String color = source.path("linkColor").asText("").trim();
+            if (color.matches("^#[0-9a-fA-F]{3,8}$")) {
+                props.put("linkColor", color);
+            }
+        }
+        if (source.has("linkHoverColor")) {
+            String color = source.path("linkHoverColor").asText("").trim();
+            if (color.matches("^#[0-9a-fA-F]{3,8}$")) {
+                props.put("linkHoverColor", color);
+            }
+        }
+        if (source.has("linkUnderline")) {
+            props.put("linkUnderline", source.path("linkUnderline").asText("1").startsWith("0") ? 0 : 1);
+        }
+        if (source.has("richText") && source.get("richText").isArray()) {
+            props.set("richText", normalizeRichText(source.get("richText"), maxText));
+        }
+    }
+
+    private void copyLinkMeta(ObjectNode props, JsonNode source) {
+        if (source.has("linkTarget")) {
+            String target = source.path("linkTarget").asText("_self").trim().toLowerCase(Locale.ROOT);
+            props.put("linkTarget", "_blank".equals(target) ? "_blank" : "_self");
+        }
+        if (source.has("linkTitle")) {
+            props.put("linkTitle", clip(source.path("linkTitle").asText(""), 120));
+        }
+    }
+
+    private ArrayNode normalizeRichText(JsonNode node, int maxText) {
+        ArrayNode out = mapper.createArrayNode();
+        int total = 0;
+        for (JsonNode item : node) {
+            if (item == null || !item.isObject()) {
+                continue;
+            }
+            String runText = clip(item.path("text").asText(""), Math.min(400, maxText));
+            if (runText.isBlank()) {
+                continue;
+            }
+            if (total + runText.length() > maxText) {
+                runText = runText.substring(0, Math.max(0, maxText - total));
+                if (runText.isBlank()) {
+                    break;
+                }
+            }
+            total += runText.length();
+            ObjectNode run = mapper.createObjectNode();
+            run.put("text", runText);
+            String href = link(item.path("href").asText(""));
+            if (!href.isBlank()) {
+                run.put("href", href);
+                String target = item.path("target").asText("_self").trim().toLowerCase(Locale.ROOT);
+                run.put("target", "_blank".equals(target) ? "_blank" : "_self");
+                if (item.has("title")) {
+                    run.put("title", clip(item.path("title").asText(""), 120));
+                }
+            }
+            out.add(run);
+            if (out.size() >= 40) {
+                break;
+            }
+        }
+        return out;
+    }
+
+    private ArrayNode normalizeMarqueeItems(JsonNode node, Set<String> mediaIds, List<String> warnings) {
+        ArrayNode out = mapper.createArrayNode();
+        if (node == null || !node.isArray()) {
+            return out;
+        }
+        int index = 0;
+        for (JsonNode item : node) {
+            if (item == null || !item.isObject()) {
+                continue;
+            }
+            ObjectNode row = mapper.createObjectNode();
+            String id = item.path("id").asText("").toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9-]", "");
+            if (id.isBlank() || id.length() > 40) {
+                id = "mq-" + (++index);
+            }
+            row.put("id", id);
+            String kind = "image".equalsIgnoreCase(item.path("kind").asText("text")) ? "image" : "text";
+            row.put("kind", kind);
+            if ("image".equals(kind)) {
+                String mediaId = item.path("mediaId").asText("").toLowerCase(Locale.ROOT);
+                if (!mediaId.isBlank() && !mediaIds.contains(mediaId)) {
+                    warnings.add("Cleared a marquee image that is not one of the uploaded files.");
+                    mediaId = "";
+                }
+                row.put("mediaId", mediaId);
+                row.put("alt", clip(item.path("alt").asText(""), 180));
+            } else {
+                ArrayNode runs = item.has("richText") ? normalizeRichText(item.get("richText"), 400) : mapper.createArrayNode();
+                String plain = clip(item.path("text").asText(""), 400);
+                if (runs.isEmpty() && !plain.isBlank()) {
+                    ObjectNode run = mapper.createObjectNode();
+                    run.put("text", plain);
+                    runs.add(run);
+                }
+                row.set("richText", runs);
+                StringBuilder builder = new StringBuilder();
+                for (JsonNode run : runs) {
+                    builder.append(run.path("text").asText(""));
+                }
+                row.put("text", builder.length() > 0 ? clip(builder.toString(), 400) : plain);
+            }
+            String href = link(item.path("href").asText(""));
+            if (!href.isBlank()) {
+                row.put("href", href);
+                String target = item.path("target").asText("_self").trim().toLowerCase(Locale.ROOT);
+                row.put("target", "_blank".equals(target) ? "_blank" : "_self");
+                if (item.has("title")) {
+                    row.put("title", clip(item.path("title").asText(""), 120));
+                }
+            }
+            out.add(row);
+            if (out.size() >= 20) {
+                break;
+            }
+        }
+        return out;
     }
 
     private String link(String value) {
@@ -274,7 +446,7 @@ public final class DocumentNormalizer {
             return "";
         }
         String lower = trimmed.toLowerCase(Locale.ROOT);
-        if (lower.startsWith("javascript:") || lower.startsWith("data:")) {
+        if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:")) {
             return "";
         }
         if (lower.startsWith("https://") || lower.startsWith("http://") || lower.startsWith("mailto:") || lower.startsWith("tel:") || trimmed.startsWith("#") || trimmed.startsWith("/")) {

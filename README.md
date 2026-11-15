@@ -42,7 +42,7 @@ With the OTP bypass on, the development code is accepted by `POST /api/v1/auth/o
 docker compose up --build
 ```
 
-The site is served at `http://localhost:8088`. PostgreSQL data and uploaded media survive container restarts (`pgdata` and `media` volumes). Set `PRISM_ADMIN_INITIAL_PHONE` and `PRISM_ADMIN_INITIAL_PASSWORD` in the environment before the first start. The password must be at least 10 characters. An existing admin is not overwritten. For Compose, set `PRISM_PUBLIC_BASE_URL` and `PRISM_API_BASE_URL` in `.env` (defaults are `http://localhost:8088`).
+The site is served at `http://localhost:8088`. PostgreSQL data and uploaded/generated media survive container restarts (`pgdata` and `media` volumes). AI-generated images use the same `media` volume under `/data/media` — no extra volume is required. See `docs/ai-image-generation.md`. Set `PRISM_ADMIN_INITIAL_PHONE` and `PRISM_ADMIN_INITIAL_PASSWORD` in the environment before the first start. The password must be at least 10 characters. An existing admin is not overwritten. For Compose, set `PRISM_PUBLIC_BASE_URL` and `PRISM_API_BASE_URL` in `.env` (defaults are `http://localhost:8088`).
 
 ### Production (`https://webaux.app`)
 
@@ -84,3 +84,5 @@ Backend integration tests use Testcontainers (`postgres:16-alpine`) and do not c
 - [API_SPECIFICATION.md](API_SPECIFICATION.md)
 - [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)
 - [PROJECT_STATUS.md](PROJECT_STATUS.md)
+- [docs/content-moderation.md](docs/content-moderation.md)
+- [docs/ui-model-selection.md](docs/ui-model-selection.md)

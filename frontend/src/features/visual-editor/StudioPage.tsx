@@ -1,12 +1,16 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlignCenter, AlignEndHorizontal, AlignEndVertical, AlignHorizontalSpaceBetween, AlignLeft, AlignRight, AlignStartHorizontal, AlignStartVertical, AlignCenterHorizontal, AlignCenterVertical, ArrowLeft, BringToFront, ChevronDown, ChevronUp, ClipboardPaste, Copy, Eye, Monitor, Paintbrush, PaintBucket, Redo2, Save, SendToBack, Smartphone, Tablet, Trash2, Undo2, ZoomIn, ZoomOut, CopyPlus } from "lucide-react";
+import { AlignCenter, AlignEndHorizontal, AlignEndVertical, AlignHorizontalSpaceBetween, AlignLeft, AlignRight, AlignStartHorizontal, AlignStartVertical, AlignCenterHorizontal, AlignCenterVertical, ArrowLeft, BringToFront, ChevronDown, ChevronUp, ClipboardPaste, Copy, Eye, EyeOff, Lock, Unlock, Monitor, Paintbrush, PaintBucket, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Redo2, Save, Send, SendToBack, Smartphone, Tablet, Trash2, Undo2, ZoomIn, ZoomOut, CopyPlus } from "lucide-react";
 import { api, errorMessage } from "../../services/api";
 import type { Envelope, EventSite } from "../../types";
 import { Mark } from "../../components/shell/Mark";
 import { TypographyPanel } from "../typography/TypographyPanel";
-import { CAROUSEL_PRESETS, ELEMENT_LIBRARY, FRAME_WIDTH, INSERT_BLOCKS, SHADOW_PRESETS, addChild, duplicateNode, findNode, groupNodes, hasOverride, insertBlock, insertCopy, parentOf, placeAcross, propsFor, removeNode, removeResponsiveOverride, restack, setDeviceVisibility, shiftChild, stylesFor, ungroupNode, updateNode, type Breakpoint, type EditorDocument, type EditorNode } from "./document";
+import { BackgroundField } from "./BackgroundField";
+import { supportsBackgroundImage } from "./background";
+import { CAROUSEL_PRESETS, ELEMENT_LIBRARY, FRAME_WIDTH, INSERT_BLOCKS, SHADOW_PRESETS, addChild, duplicateNode, findNode, groupNodes, hasOverride, insertBlock, insertCopy, moveChild, parentOf, placeAcross, propsFor, removeNode, removeResponsiveOverride, restack, setDeviceVisibility, setStackIndex, shiftChild, stylesFor, ungroupNode, updateNode, type Breakpoint, type EditorDocument, type EditorNode, type PropValue } from "./document";
+import { RichTextLinkField } from "./LinkEditor";
+import { MarqueeField } from "./MarqueeField";
 import { contentBoxWidth, moveStyles, preferPercent, readRotate, usedOffset } from "./geometry";
 import { VisualPage } from "./VisualPage";
 
@@ -44,20 +48,12 @@ function stepZoom(current: number, direction: number) {
 export function StudioPage() {
   const { id = "" } = useParams();
   const queryClient = useQueryClient();
-  const features = useQuery({
-    queryKey: ["features"],
-    queryFn: async () => (await api.get<Envelope<{ advancedEditorEnabled: boolean }>>("/config/features")).data.data,
-  });
   const page = useQuery({
     queryKey: ["editor-document", id],
-    enabled: features.data?.advancedEditorEnabled === true,
+    enabled: Boolean(id),
     retry: false,
     queryFn: async () => (await api.get<Envelope<Stored>>(`/events/${id}/editor/document`)).data.data,
   });
-  if (features.isLoading) return <p className="studio-note">Loading the editor.</p>;
-  if (!features.data?.advancedEditorEnabled) {
-    return <p className="studio-note">The advanced editor is turned off. <Link to={`/app/events/${id}/edit`}>Back to the current editor</Link></p>;
-  }
   if (page.isLoading) return <p className="studio-note">Loading the page.</p>;
   if (page.isError || !page.data) {
     return <StartStudio id={id} onReady={() => void queryClient.invalidateQueries({ queryKey: ["editor-document", id] })} />;
@@ -72,15 +68,16 @@ function StartStudio({ id, onReady }: { id: string; onReady: () => void }) {
   });
   return (
     <div className="studio-note">
-      <p>This keeps the current template and makes a separate visual page from it. The published site does not change until this revision is approved.</p>
-      <button type="button" disabled={convert.isPending} onClick={() => convert.mutate()}>{convert.isPending ? "Preparing" : "Convert this template"}</button>
+      <p>This keeps the current template and makes a visual page from it. The published site does not change until this revision is approved.</p>
+      <button type="button" disabled={convert.isPending} onClick={() => convert.mutate()}>{convert.isPending ? "Preparing" : "Open visual editor"}</button>
       {convert.isError ? <p>{errorMessage(convert.error, "The visual page was not created.")}</p> : null}
-      <p><Link to={`/app/events/${id}/edit`}>Stay with the current editor</Link></p>
+      <p><Link to={`/app/events/${id}`}>Back to the site</Link></p>
     </div>
   );
 }
 
 function Studio({ id, initial }: { id: string; initial: Stored }) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [document, setDocument] = useState(initial.document);
   const [version, setVersion] = useState(initial.version);
@@ -90,12 +87,15 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
   const [rail, setRail] = useState<"add" | "layers" | "blocks">("add");
   const [alsoSelected, setAlsoSelected] = useState<string[]>([]);
   const [breakpoint, setBreakpoint] = useState<Breakpoint>("desktop");
+  const [libraryOpen, setLibraryOpen] = useState(() => readDock("prism-studio-library", true));
+  const [inspectorOpen, setInspectorOpen] = useState(() => readDock("prism-studio-inspector", true));
   const [zoom, setZoom] = useState(FIT_ZOOM);
   const userZoomed = useRef(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const [sheetHeight, setSheetHeight] = useState(640);
   const [status, setStatus] = useState("Saved");
+  const [submitError, setSubmitError] = useState("");
   const generation = useRef(0);
   const pushVersion = useRef(false);
   const clipboard = useRef<EditorNode | null>(null);
@@ -191,6 +191,28 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
     },
     onError: (error) => setStatus(errorMessage(error, "Save failed")),
   });
+
+  const submit = useMutation({
+    mutationFn: async () => {
+      const stored = (await api.put<Envelope<Stored>>(`/events/${id}/editor/document`, { document, version })).data.data;
+      setVersion(stored.version);
+      return (await api.post<Envelope<EventSite>>(`/events/${id}/submit`)).data.data;
+    },
+    onSuccess: () => {
+      setSubmitError("");
+      setStatus("Submitted for review");
+      void queryClient.invalidateQueries({ queryKey: ["event", id] });
+      void queryClient.invalidateQueries({ queryKey: ["events"] });
+      navigate(`/app/events/${id}`);
+    },
+    onError: (error) => {
+      setSubmitError(errorMessage(error, "The site was not submitted."));
+      setStatus(errorMessage(error, "Submit failed"));
+    },
+  });
+
+  const eventStatus = site.data?.status ?? "";
+  const canSubmit = eventStatus === "DRAFT" || eventStatus === "CHANGES_REQUESTED";
 
   useEffect(() => {
     if (status !== "Unsaved changes" || save.isPending) return;
@@ -335,11 +357,11 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
     <div className="studio">
       <header className="studio-bar">
         <div className="studio-bar-title">
-          <Link to={`/app/events/${id}/edit`} aria-label="Back to the event"><ArrowLeft size={16} /></Link>
+          <Link to={`/app/events/${id}`} aria-label="Back to the event"><ArrowLeft size={16} /></Link>
           <Mark />
           <strong title={document.page.title || "Visual page"}>{document.page.title || "Visual page"}</strong>
         </div>
-        <span className="studio-status">{save.isPending ? "Saving" : status}</span>
+        <span className="studio-status" title={submitError || undefined}>{save.isPending || submit.isPending ? (submit.isPending ? "Submitting" : "Saving") : status}</span>
         <div className="studio-tools">
           <div className="studio-tool" role="group" aria-label="History">
             <Tool label="Undo" disabled={past.length === 0} onClick={undo}><Undo2 size={15} /></Tool>
@@ -372,53 +394,106 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
         </div>
         <div className="studio-actions">
           <button type="button" onClick={openPreview} disabled={!site.data}><Eye size={15} /> Preview</button>
-          <button type="button" onClick={() => save.mutate(generation.current)} disabled={save.isPending}><Save size={15} /> Save</button>
-          <button type="button" onClick={() => { pushVersion.current = true; save.mutate(generation.current); }} disabled={save.isPending}>Push version</button>
+          <button type="button" onClick={() => save.mutate(generation.current)} disabled={save.isPending || submit.isPending}><Save size={15} /> Save</button>
+          <button type="button" onClick={() => { pushVersion.current = true; save.mutate(generation.current); }} disabled={save.isPending || submit.isPending}>Push version</button>
+          {canSubmit ? (
+            <button
+              type="button"
+              className="studio-submit"
+              disabled={save.isPending || submit.isPending}
+              onClick={() => {
+                setSubmitError("");
+                submit.mutate();
+              }}
+            >
+              <Send size={15} /> {submit.isPending ? "Submitting…" : "Submit for review"}
+            </button>
+          ) : null}
         </div>
       </header>
-      <div className="studio-body">
-        <aside className="studio-library">
-          <div className="studio-rail-tabs" role="tablist" aria-label="Library">
-            <button type="button" aria-pressed={rail === "add"} onClick={() => setRail("add")}>Add</button>
-            <button type="button" aria-pressed={rail === "layers"} onClick={() => setRail("layers")}>Layers</button>
-            <button type="button" aria-pressed={rail === "blocks"} onClick={() => setRail("blocks")}>Blocks</button>
-          </div>
-          {rail === "add" ? ["Layout", "Text", "Media"].map((category) => (
-            <div key={category} className="studio-library-group">
-              <p>{category}</p>
-              {ELEMENT_LIBRARY.filter((item) => item.category === category).map((item) => (
+      <div className={`studio-body${!libraryOpen ? " is-library-docked" : ""}${!inspectorOpen ? " is-inspector-docked" : ""}`}>
+        <aside className="studio-library" aria-label="Elements">
+          {libraryOpen ? (
+            <>
+              <div className="studio-panel-head">
+                <div className="studio-rail-tabs" role="tablist" aria-label="Library">
+                  <button type="button" aria-pressed={rail === "add"} onClick={() => setRail("add")}>Add</button>
+                  <button type="button" aria-pressed={rail === "layers"} onClick={() => setRail("layers")}>Layers</button>
+                  <button type="button" aria-pressed={rail === "blocks"} onClick={() => setRail("blocks")}>Blocks</button>
+                </div>
                 <button
-                  key={item.type}
                   type="button"
-                  draggable
-                  onDragStart={(event) => event.dataTransfer.setData("application/prism-element", item.type)}
-                  onClick={() => change((copy) => {
-                    const node = addChild(copy, selectedId, item.type);
-                    if (item.type === "COUNTDOWN") {
-                      const start = String(site.data?.configuration?.event?.startAt ?? "").trim();
-                      if (start) updateNode(copy, node.id, { props: { target: start } }, breakpoint);
-                    }
-                    setSelectedId(node.id);
-                    setAlsoSelected([]);
-                  })}
-                >{item.name}</button>
-              ))}
-            </div>
-          )) : null}
-          {rail === "layers" ? (
-            <div className="studio-layers">
-              <Layer node={document.root} breakpoint={breakpoint} selectedId={selectedId} onSelect={setSelectedId} onShift={(nodeId, direction) => change((copy) => shiftChild(copy, nodeId, direction))} depth={0} index={0} count={1} />
-            </div>
-          ) : null}
-          {rail === "blocks" ? (
-            <div className="studio-library-group">
-              <p>Blocks</p>
-              {INSERT_BLOCKS.map((block) => (
-                <button key={block.id} type="button" onClick={() => change((copy) => { const node = insertBlock(copy, selectedId, block.id); setSelectedId(node.id); })}>{block.name}</button>
-              ))}
-              <p className="studio-hint">A heading and text, a picture with a caption, or a reply button. Each one is made of the same elements you can edit.</p>
-            </div>
-          ) : null}
+                  className="studio-dock"
+                  aria-label="Minimize elements panel"
+                  title="Minimize elements"
+                  onClick={() => { setLibraryOpen(false); writeDock("prism-studio-library", false); }}
+                >
+                  <PanelLeftClose size={15} />
+                </button>
+              </div>
+              {rail === "add" ? ["Layout", "Text", "Media", "Content"].map((category) => (
+                <div key={category} className="studio-library-group">
+                  <p>{category}</p>
+                  {ELEMENT_LIBRARY.filter((item) => item.category === category).map((item) => (
+                    <button
+                      key={item.type}
+                      type="button"
+                      draggable
+                      onDragStart={(event) => event.dataTransfer.setData("application/prism-element", item.type)}
+                      onClick={() => change((copy) => {
+                        const node = addChild(copy, selectedId, item.type);
+                        if (item.type === "COUNTDOWN") {
+                          const start = String(site.data?.configuration?.event?.startAt ?? "").trim();
+                          if (start) updateNode(copy, node.id, { props: { target: start } }, breakpoint);
+                        }
+                        setSelectedId(node.id);
+                        setAlsoSelected([]);
+                      })}
+                    >{item.name}</button>
+                  ))}
+                </div>
+              )) : null}
+              {rail === "layers" ? (
+                <div className="studio-layers">
+                  <Layer
+                    node={document.root}
+                    breakpoint={breakpoint}
+                    selectedId={selectedId}
+                    onSelect={(nodeId) => { setSelectedId(nodeId); setAlsoSelected([]); }}
+                    onShift={(nodeId, direction) => change((copy) => shiftChild(copy, nodeId, direction, breakpoint))}
+                    onToggleVisible={(nodeId, hidden) => change((copy) => setDeviceVisibility(copy, nodeId, breakpoint, hidden))}
+                    onToggleLock={(nodeId, locked) => change((copy) => updateNode(copy, nodeId, { locked }, breakpoint))}
+                    onRename={(nodeId, name) => change((copy) => updateNode(copy, nodeId, { name }, breakpoint))}
+                    onMove={(nodeId, parentId, index) => change((copy) => moveChild(copy, nodeId, parentId, index, breakpoint))}
+                    depth={0}
+                    index={0}
+                    count={1}
+                    parentId=""
+                  />
+                </div>
+              ) : null}
+              {rail === "blocks" ? (
+                <div className="studio-library-group">
+                  <p>Blocks</p>
+                  {INSERT_BLOCKS.map((block) => (
+                    <button key={block.id} type="button" onClick={() => change((copy) => { const node = insertBlock(copy, selectedId, block.id); setSelectedId(node.id); })}>{block.name}</button>
+                  ))}
+                  <p className="studio-hint">A heading and text, a picture with a caption, or a reply button. Each one is made of the same elements you can edit.</p>
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <button
+              type="button"
+              className="studio-dock-expand"
+              aria-label="Show elements panel"
+              title="Show elements"
+              onClick={() => { setLibraryOpen(true); writeDock("prism-studio-library", true); }}
+            >
+              <PanelLeftOpen size={15} />
+              <span>Elements</span>
+            </button>
+          )}
         </aside>
         <div className="studio-canvas" ref={canvasRef}>
           <div className="studio-zoom-slot" style={{ width: width * zoom, height: sheetHeight * zoom }}>
@@ -485,11 +560,24 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
           </div>
           </div>
         </div>
-        <aside className="studio-inspector">
-          <p className="studio-device-note">
-            <span>Editing {deviceName}</span>
-            {breakpoint === "desktop" ? <em className="studio-inherited">Base</em> : <em className="studio-inherited">Inherited unless marked</em>}
-          </p>
+        <aside className="studio-inspector" aria-label="Inspector">
+          {inspectorOpen ? (
+            <>
+          <div className="studio-panel-head">
+            <p className="studio-device-note">
+              <span>Editing {deviceName}</span>
+              {breakpoint === "desktop" ? <em className="studio-inherited">Base</em> : <em className="studio-inherited">Inherited unless marked</em>}
+            </p>
+            <button
+              type="button"
+              className="studio-dock"
+              aria-label="Minimize inspector panel"
+              title="Minimize inspector"
+              onClick={() => { setInspectorOpen(false); writeDock("prism-studio-inspector", false); }}
+            >
+              <PanelRightClose size={15} />
+            </button>
+          </div>
           <p>{selected.name}</p>
           <label className="check-line">Hidden on {deviceName}
             <input type="checkbox" checked={styleValue(selected, breakpoint, "display") === "none"} onChange={(event) => change((copy) => setDeviceVisibility(copy, selected.id, breakpoint, event.target.checked))} />
@@ -499,7 +587,13 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
               <input value={String(selected.props.title ?? "")} onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { title: event.target.value } }, breakpoint))} />
             </label>
           ) : null}
-          {selected.props.text !== undefined ? (
+          {["HEADING", "PARAGRAPH", "QUOTE", "FAQ_ITEM", "TIMELINE_ITEM"].includes(selected.type) ? (
+            <RichTextLinkField
+              props={selected.props}
+              allowWholeElement={selected.type !== "FAQ_ITEM" && selected.type !== "TIMELINE_ITEM"}
+              onChange={(patch) => change((copy) => updateNode(copy, selected.id, { props: patch as Record<string, PropValue> }, breakpoint))}
+            />
+          ) : selected.props.text !== undefined && selected.type !== "MARQUEE" && selected.type !== "BUTTON" ? (
             <label>Text
               <textarea value={String(selected.props.text)} onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { text: event.target.value } }, breakpoint))} />
             </label>
@@ -508,6 +602,13 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
             <label>Attribution
               <input value={String(selected.props.attribution ?? "")} onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { attribution: event.target.value } }, breakpoint))} />
             </label>
+          ) : null}
+          {selected.type === "MARQUEE" ? (
+            <MarqueeField
+              props={selected.props}
+              eventId={id}
+              onChange={(patch) => change((copy) => updateNode(copy, selected.id, { props: patch }, breakpoint))}
+            />
           ) : null}
           {selected.type === "COUNTDOWN" ? (
             <>
@@ -531,6 +632,9 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
           ) : null}
           {selected.type === "BUTTON" ? (
             <>
+              <label>Label
+                <input value={String(selected.props.text ?? "")} onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { text: event.target.value } }, breakpoint))} />
+              </label>
               <label>Action
                 <select
                   value={String(selected.props.href ?? "").trim().toLowerCase() === "#rsvp" ? "rsvp" : "link"}
@@ -543,9 +647,17 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
                 </select>
               </label>
               {String(selected.props.href ?? "").trim().toLowerCase() === "#rsvp" ? null : (
-                <label>Link
-                  <input value={String(selected.props.href ?? "")} onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { href: event.target.value } }, breakpoint))} />
-                </label>
+                <>
+                  <label>Link
+                    <input value={String(selected.props.href ?? "")} onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { href: event.target.value } }, breakpoint))} />
+                  </label>
+                  <label>Open in
+                    <select value={String(selected.props.linkTarget ?? "_self")} onChange={(event) => change((copy) => updateNode(copy, selected.id, { props: { linkTarget: event.target.value } }, breakpoint))}>
+                      <option value="_self">Same tab</option>
+                      <option value="_blank">New tab</option>
+                    </select>
+                  </label>
+                </>
               )}
             </>
           ) : null}
@@ -558,9 +670,25 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
               onAlt={(alt) => change((copy) => updateNode(copy, selected.id, { props: { alt } }, breakpoint))}
             />
           ) : null}
+          <label>Name
+            <input value={selected.name} onChange={(event) => change((copy) => updateNode(copy, selected.id, { name: event.target.value }, breakpoint))} />
+          </label>
           <ColourField label="Text colour" value={styleValue(selected, breakpoint, "color")} fallback="#121417" onChange={(value, coalesce) => paint({ color: value }, coalesce)} />
-          <ColourField label="Background" value={solidBackground(styleValue(selected, breakpoint, "background"))} fallback="#ffffff" onChange={(value, coalesce) => paint({ background: value }, coalesce)} />
+          <p className="studio-label">Background</p>
+          <ColourField label="Background colour" value={solidBackground(styleValue(selected, breakpoint, "background"))} fallback="#ffffff" onChange={(value, coalesce) => paint({ background: value }, coalesce)} />
           <GradientField value={styleValue(selected, breakpoint, "background")} onChange={(value, coalesce) => paint({ background: value }, coalesce)} />
+          {supportsBackgroundImage(selected.type) ? (
+            <BackgroundField
+              eventId={id}
+              styles={stylesFor(selected, breakpoint)}
+              onChange={(patch, coalesce) => paint(patch, coalesce)}
+              onUpload={async (file) => {
+                const mediaId = await uploadPicture(id, file);
+                await queryClient.invalidateQueries({ queryKey: ["media", id] });
+                return mediaId;
+              }}
+            />
+          ) : null}
           <p className="studio-label">Shape</p>
           <div className="studio-presets" role="group" aria-label="Shape">
             <button type="button" aria-pressed={shapePreset(styleValue(selected, breakpoint, "borderRadius")) === "square"} onClick={() => paint({ borderRadius: "0", overflow: "visible" })}>Square</button>
@@ -713,22 +841,88 @@ function Studio({ id, initial }: { id: string; initial: Stored }) {
             <AlignButton label="Place at the right" pressed={styleValue(selected, breakpoint, "alignSelf") === "flex-end"} onClick={() => paint({ alignSelf: "flex-end" })}><AlignRight size={15} /></AlignButton>
           </div>
           <p className="studio-hint">Drag an element to move it on this screen only. A line appears when it meets the middle or lines up with another element. Edges change one side. Corners keep the proportion. The circle above the box rotates. Zoom changes the view, not the page width.</p>
+          <p className="studio-label">Layout / Advanced</p>
+          <div className="studio-stack-row">
+            <label>Z-index
+              <input
+                type="number"
+                min={-100}
+                max={100}
+                disabled={selected.id === document.root.id || selected.locked}
+                value={styleValue(selected, breakpoint, "zIndex") || "0"}
+                onChange={(event) => {
+                  const next = Number.parseInt(event.target.value, 10);
+                  change((copy) => setStackIndex(copy, selected.id, Number.isFinite(next) ? next : 0, breakpoint));
+                }}
+              />
+            </label>
+            <button type="button" disabled={selected.id === document.root.id || selected.locked} aria-label="Increase z-index" onClick={() => change((copy) => setStackIndex(copy, selected.id, (Number.parseInt(styleValue(selected, breakpoint, "zIndex") || "0", 10) || 0) + 1, breakpoint))}>+</button>
+            <button type="button" disabled={selected.id === document.root.id || selected.locked} aria-label="Decrease z-index" onClick={() => change((copy) => setStackIndex(copy, selected.id, (Number.parseInt(styleValue(selected, breakpoint, "zIndex") || "0", 10) || 0) - 1, breakpoint))}>-</button>
+          </div>
           <div className="studio-presets" role="group" aria-label="Stacking order">
-            <button type="button" disabled={selected.id === document.root.id} onClick={() => change((copy) => restack(copy, selected.id, "forward", breakpoint))}>Forward</button>
-            <button type="button" disabled={selected.id === document.root.id} onClick={() => change((copy) => restack(copy, selected.id, "backward", breakpoint))}>Backward</button>
+            <button type="button" disabled={selected.id === document.root.id || selected.locked} onClick={() => change((copy) => restack(copy, selected.id, "front", breakpoint))}>Bring to front</button>
+            <button type="button" disabled={selected.id === document.root.id || selected.locked} onClick={() => change((copy) => restack(copy, selected.id, "forward", breakpoint))}>Forward</button>
+            <button type="button" disabled={selected.id === document.root.id || selected.locked} onClick={() => change((copy) => restack(copy, selected.id, "backward", breakpoint))}>Backward</button>
+            <button type="button" disabled={selected.id === document.root.id || selected.locked} onClick={() => change((copy) => restack(copy, selected.id, "back", breakpoint))}>Send to back</button>
           </div>
           <button type="button" onClick={() => change((copy) => updateNode(copy, selected.id, { locked: !selected.locked }, breakpoint))}>{selected.locked ? "Unlock" : "Lock"}</button>
           <button type="button" disabled={alsoSelected.length < 1} onClick={() => change((copy) => { const group = groupNodes(copy, [selectedId, ...alsoSelected]); if (group) { setSelectedId(group.id); setAlsoSelected([]); } })}>Group</button>
           <button type="button" disabled={selected.type !== "GROUP"} onClick={() => change((copy) => ungroupNode(copy, selectedId))}>Ungroup</button>
           {selected.id !== document.root.id ? <button type="button" onClick={() => { change((copy) => removeNode(copy, selected.id)); setSelectedId(document.root.id); }}>Remove</button> : null}
-          <p className="studio-label">Order</p>
+          <p className="studio-label">Layers</p>
           <div className="studio-layers">
-            <Layer node={document.root} breakpoint={breakpoint} selectedId={selectedId} onSelect={setSelectedId} onShift={(nodeId, direction) => change((copy) => shiftChild(copy, nodeId, direction))} depth={0} index={0} count={1} />
+            <Layer
+              node={document.root}
+              breakpoint={breakpoint}
+              selectedId={selectedId}
+              onSelect={(nodeId) => { setSelectedId(nodeId); setAlsoSelected([]); }}
+              onShift={(nodeId, direction) => change((copy) => shiftChild(copy, nodeId, direction, breakpoint))}
+              onToggleVisible={(nodeId, hidden) => change((copy) => setDeviceVisibility(copy, nodeId, breakpoint, hidden))}
+              onToggleLock={(nodeId, locked) => change((copy) => updateNode(copy, nodeId, { locked }, breakpoint))}
+              onRename={(nodeId, name) => change((copy) => updateNode(copy, nodeId, { name }, breakpoint))}
+              onMove={(nodeId, parentId, index) => change((copy) => moveChild(copy, nodeId, parentId, index, breakpoint))}
+              depth={0}
+              index={0}
+              count={1}
+              parentId=""
+            />
           </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="studio-dock-expand"
+              aria-label="Show inspector panel"
+              title="Show inspector"
+              onClick={() => { setInspectorOpen(true); writeDock("prism-studio-inspector", true); }}
+            >
+              <PanelRightOpen size={15} />
+              <span>Inspector</span>
+            </button>
+          )}
         </aside>
       </div>
     </div>
   );
+}
+
+function readDock(key: string, fallback: boolean) {
+  try {
+    const value = window.localStorage.getItem(key);
+    if (value === "0") return false;
+    if (value === "1") return true;
+  } catch {
+    /* ignore */
+  }
+  return fallback;
+}
+
+function writeDock(key: string, open: boolean) {
+  try {
+    window.localStorage.setItem(key, open ? "1" : "0");
+  } catch {
+    /* ignore */
+  }
 }
 
 function shapePreset(radius: string) {
@@ -792,12 +986,25 @@ function PictureField({ eventId, mediaId, alt, onPick, onAlt }: {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [regenBusy, setRegenBusy] = useState(false);
+  const features = useQuery({
+    queryKey: ["features"],
+    queryFn: async () => (await api.get<Envelope<{ imageGenerationEnabled?: boolean }>>("/config/features")).data.data,
+  });
   const media = useQuery({
     queryKey: ["media", eventId],
     queryFn: async () => (await api.get<Envelope<{ id: string; mediaType: string; url: string; originalFilename: string }[]>>(`/events/${eventId}/media`)).data.data,
     retry: false,
   });
+  const generated = useQuery({
+    queryKey: ["generated-assets", eventId],
+    enabled: features.data?.imageGenerationEnabled === true,
+    queryFn: async () => (await api.get<Envelope<{ id: string; mediaId: string | null; status: string; assetKey: string; purpose: string | null; url: string | null }[]>>(`/events/${eventId}/generated-assets`)).data.data,
+    retry: false,
+  });
   const pictures = (media.data ?? []).filter((file) => file.mediaType === "IMAGE");
+  const generatedReady = (generated.data ?? []).filter((asset) => asset.status === "COMPLETED" && asset.mediaId);
+  const selectedGenerated = generatedReady.find((asset) => asset.mediaId === mediaId);
   async function send(file: File | undefined) {
     if (!file) return;
     setBusy(true);
@@ -812,12 +1019,55 @@ function PictureField({ eventId, mediaId, alt, onPick, onAlt }: {
       setBusy(false);
     }
   }
+  async function regenerate() {
+    if (!selectedGenerated) return;
+    setRegenBusy(true);
+    try {
+      const job = (await api.post<Envelope<{ status: string; generatedAssetId: string }>>(`/events/${eventId}/generated-assets/${selectedGenerated.id}/regenerate`)).data.data;
+      await queryClient.invalidateQueries({ queryKey: ["generated-assets", eventId] });
+      await queryClient.invalidateQueries({ queryKey: ["media", eventId] });
+      await queryClient.invalidateQueries({ queryKey: ["editor-document", eventId] });
+      const refreshed = (await api.get<Envelope<{ id: string; mediaId: string | null; status: string }[]>>(`/events/${eventId}/generated-assets`)).data.data;
+      const next = refreshed.find((asset) => asset.id === job.generatedAssetId) ?? refreshed.find((asset) => asset.status === "COMPLETED" && asset.mediaId);
+      if (next?.mediaId) onPick(next.mediaId);
+      setMessage(job.status === "COMPLETED" ? "Image regenerated." : job.status === "SKIPPED" ? "Image generation was skipped." : "Image regeneration finished with an error.");
+    } catch (error) {
+      setMessage(errorMessage(error, "The image could not be regenerated."));
+    } finally {
+      setRegenBusy(false);
+    }
+  }
   return (
     <>
       <label className="picture-upload">
         {busy ? "Uploading" : mediaId ? "Replace picture" : "Upload a picture"}
         <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" aria-label="Upload a picture" disabled={busy} onChange={(event) => void send(event.target.files?.[0])} />
       </label>
+      {generatedReady.length > 0 ? (
+        <>
+          <p className="studio-label">Generated</p>
+          <div className="picture-grid">
+            {generatedReady.map((asset) => (
+              <button
+                key={asset.id}
+                type="button"
+                aria-label={asset.purpose || asset.assetKey}
+                aria-pressed={asset.mediaId === mediaId}
+                onClick={() => asset.mediaId && onPick(asset.mediaId)}
+              >
+                {asset.url ? <img src={asset.url} alt="" /> : null}
+              </button>
+            ))}
+          </div>
+          {selectedGenerated ? (
+            <button type="button" disabled={regenBusy} onClick={() => void regenerate()}>
+              {regenBusy ? "Regenerating…" : "Regenerate image"}
+            </button>
+          ) : null}
+        </>
+      ) : features.data?.imageGenerationEnabled === false ? (
+        <p className="studio-hint">AI image generation is turned off.</p>
+      ) : null}
       {pictures.length > 0 ? (
         <div className="picture-grid">
           {pictures.map((file) => (
@@ -830,7 +1080,7 @@ function PictureField({ eventId, mediaId, alt, onPick, onAlt }: {
       <label>Description
         <input value={alt} placeholder="Describe the picture" onChange={(event) => onAlt(event.target.value)} />
       </label>
-      {message ? <p className="error-line">{message}</p> : null}
+      {message ? <p className={message.endsWith(".") && !message.includes("not") && !message.includes("error") && !message.includes("could not") ? "studio-hint" : "error-line"}>{message}</p> : null}
     </>
   );
 }
@@ -1026,31 +1276,115 @@ function CarouselSlides({ eventId, slides, onUpload, onPick, onShift, onRemove }
   );
 }
 
-function Layer({ node, breakpoint, selectedId, onSelect, onShift, depth, index, count }: {
+function Layer({ node, breakpoint, selectedId, onSelect, onShift, onToggleVisible, onToggleLock, onRename, onMove, depth, index, count, parentId }: {
   node: EditorNode;
   breakpoint: Breakpoint;
   selectedId: string;
   onSelect: (id: string) => void;
   onShift: (id: string, direction: -1 | 1) => void;
+  onToggleVisible: (id: string, hidden: boolean) => void;
+  onToggleLock: (id: string, locked: boolean) => void;
+  onRename: (id: string, name: string) => void;
+  onMove: (id: string, parentId: string, index: number) => void;
   depth: number;
   index: number;
   count: number;
+  parentId: string;
 }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [editing, setEditing] = useState(false);
   const hidden = stylesFor(node, breakpoint).display === "none";
+  const zIndex = stylesFor(node, breakpoint).zIndex || "0";
+  const hasChildren = node.children.length > 0;
   return (
     <div>
-      <div className={depth > 0 ? "studio-layer" : "studio-layer is-root"} style={{ paddingLeft: depth * 12 }}>
-        <button type="button" aria-pressed={selectedId === node.id} onClick={() => onSelect(node.id)}>{node.name}{hidden ? " · Hidden" : ""}</button>
+      <div
+        className={depth > 0 ? "studio-layer" : "studio-layer is-root"}
+        style={{ paddingLeft: depth * 12 }}
+        draggable={depth > 0}
+        onDragStart={(event) => {
+          if (depth === 0) return;
+          event.dataTransfer.setData("application/prism-layer", JSON.stringify({ id: node.id, parentId }));
+          event.dataTransfer.effectAllowed = "move";
+        }}
+        onDragOver={(event) => {
+          if (depth === 0) return;
+          event.preventDefault();
+        }}
+        onDrop={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (!parentId) return;
+          try {
+            const payload = JSON.parse(event.dataTransfer.getData("application/prism-layer") || "{}") as { id?: string; parentId?: string };
+            if (!payload.id || payload.parentId !== parentId || payload.id === node.id) return;
+            onMove(payload.id, parentId, index);
+          } catch {
+            /* ignore */
+          }
+        }}
+      >
+        {hasChildren ? (
+          <button type="button" aria-label={collapsed ? `Expand ${node.name}` : `Collapse ${node.name}`} onClick={() => setCollapsed((value) => !value)}>
+            {collapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          </button>
+        ) : <span />}
+        {editing ? (
+          <input
+            autoFocus
+            aria-label={`Rename ${node.name}`}
+            defaultValue={node.name}
+            onBlur={(event) => { onRename(node.id, event.target.value.trim() || node.name); setEditing(false); }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                onRename(node.id, event.currentTarget.value.trim() || node.name);
+                setEditing(false);
+              }
+              if (event.key === "Escape") setEditing(false);
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            aria-pressed={selectedId === node.id}
+            onClick={() => onSelect(node.id)}
+            onDoubleClick={() => setEditing(true)}
+          >
+            {node.name}
+            <span className="studio-layer-meta">z{zIndex}{hidden ? " · Hidden" : ""}{node.locked ? " · Locked" : ""}</span>
+          </button>
+        )}
         {depth > 0 ? (
           <>
-            <button type="button" aria-label={`Move ${node.name} earlier`} disabled={index === 0} onClick={() => onShift(node.id, -1)}><ChevronUp size={14} /></button>
-            <button type="button" aria-label={`Move ${node.name} later`} disabled={index === count - 1} onClick={() => onShift(node.id, 1)}><ChevronDown size={14} /></button>
+            <button type="button" aria-label={hidden ? `Show ${node.name}` : `Hide ${node.name}`} onClick={() => onToggleVisible(node.id, !hidden)}>
+              {hidden ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+            <button type="button" aria-label={node.locked ? `Unlock ${node.name}` : `Lock ${node.name}`} onClick={() => onToggleLock(node.id, !node.locked)}>
+              {node.locked ? <Lock size={14} /> : <Unlock size={14} />}
+            </button>
+            <button type="button" aria-label={`Move ${node.name} earlier`} disabled={index === 0 || Boolean(node.locked)} onClick={() => onShift(node.id, -1)}><ChevronUp size={14} /></button>
+            <button type="button" aria-label={`Move ${node.name} later`} disabled={index === count - 1 || Boolean(node.locked)} onClick={() => onShift(node.id, 1)}><ChevronDown size={14} /></button>
           </>
         ) : null}
       </div>
-      {node.children.map((child, childIndex) => (
-        <Layer key={child.id} node={child} breakpoint={breakpoint} selectedId={selectedId} onSelect={onSelect} onShift={onShift} depth={depth + 1} index={childIndex} count={node.children.length} />
-      ))}
+      {!collapsed ? node.children.map((child, childIndex) => (
+        <Layer
+          key={child.id}
+          node={child}
+          breakpoint={breakpoint}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          onShift={onShift}
+          onToggleVisible={onToggleVisible}
+          onToggleLock={onToggleLock}
+          onRename={onRename}
+          onMove={onMove}
+          depth={depth + 1}
+          index={childIndex}
+          count={node.children.length}
+          parentId={node.id}
+        />
+      )) : null}
     </div>
   );
 }

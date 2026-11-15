@@ -36,6 +36,7 @@ public final class QuestionnaireCatalog {
             }
             kept.set(key, value(mapper, question, incoming.get(key)));
         }
+        copyUserPalette(mapper, kept, incoming);
         return kept;
     }
 
@@ -50,7 +51,41 @@ public final class QuestionnaireCatalog {
                 visible.set(key, answers.get(key));
             }
         }
+        copyUserPalette(mapper, visible, answers);
         return visible;
+    }
+
+    /** DraftSide palette is not a questionnaire field but must reach generation. */
+    public static void copyUserPalette(ObjectMapper mapper, ObjectNode target, JsonNode source) {
+        if (target == null || source == null || !source.isObject()) {
+            return;
+        }
+        JsonNode palette = source.path("colourPalette");
+        if (!palette.isObject()) {
+            palette = source.path("colorPalette");
+        }
+        if (!palette.isObject()) {
+            return;
+        }
+        String background = palette.path("background").asText("").trim();
+        String ink = palette.path("ink").asText("").trim();
+        String accent = palette.path("accent").asText("").trim();
+        if (!isHex(background) || !isHex(ink) || !isHex(accent)) {
+            return;
+        }
+        ObjectNode kept = mapper.createObjectNode();
+        kept.put("background", background);
+        kept.put("ink", ink);
+        kept.put("accent", accent);
+        String name = palette.path("name").asText("").trim();
+        if (!name.isBlank() && name.length() <= 64) {
+            kept.put("name", name);
+        }
+        target.set("colourPalette", kept);
+    }
+
+    private static boolean isHex(String value) {
+        return value != null && value.matches("(?i)^#([0-9a-f]{3}|[0-9a-f]{6})$");
     }
 
     public static void requireVisible(JsonNode definition, JsonNode answers) {

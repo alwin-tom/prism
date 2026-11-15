@@ -2,7 +2,7 @@
 
 For a full analysis of every step, verbatim prompts, OpenRouter response parsing, conversion to the client website, schemas, model knobs, post-process, and quality levers, see **[openrouter-website-generation-deep-dive.md](./openrouter-website-generation-deep-dive.md)**.
 
-WebAux can start a website from a category questionnaire, then ask OpenRouter for a page in the existing visual document. The template wizard at `/app/new` stays available. Generation is off until `PRISM_AI_WEBSITE_GENERATION_ENABLED=true`.
+WebAux starts a website from a category questionnaire, then asks OpenRouter for a page in the existing visual document. The template wizard at `/app/new` stays available.
 
 The generated page is schema 1. It opens in the existing studio and follows the existing review, payment, and publishing rules. Nothing is published automatically.
 
@@ -28,7 +28,7 @@ BABY uses the baptism template category. CONFERENCE, BUSINESS use corporate. POR
 
 The browser never calls OpenRouter. `HttpOpenRouterClient` posts to `{OPENROUTER_BASE_URL}/chat/completions` with the API key, `HTTP-Referer`, and `X-OpenRouter-Title: WebAux`.
 
-Prompt version `prism-website-6` by default. When `PRISM_AI_CREATIVE_V2_ENABLED=true`, generation uses Creative Design Intelligence V2 (`webaux-creative-v2`): archetype catalogue, design-system tokens, visual blueprint, and deterministic visual QA. With `PRISM_AI_DESIGN_LIBRARY_ENABLED=true`, retrieval + Design Director consume the Design Reference Library. See [ai-design-v2/implementation-notes.md](./ai-design-v2/implementation-notes.md) and [ai-design-v2/design-reference-library.md](./ai-design-v2/design-reference-library.md).
+Generation always uses Creative Design Intelligence V2 (`webaux-creative-v2`): archetype catalogue, design-system tokens, visual blueprint, and deterministic visual QA. When a design-reference retriever bean is available, retrieval + Design Director consume the Design Reference Library. See [ai-design-v2/implementation-notes.md](./ai-design-v2/implementation-notes.md) and [ai-design-v2/design-reference-library.md](./ai-design-v2/design-reference-library.md).
 
 A carousel is a `CAROUSEL` element whose children are `IMAGE` nodes. Its preset is one of `minimal`, `cards`, `hero`, `coverflow`, `fade`, or `editorial`. The model leaves `preset`, `autoplay`, `interval`, and `perView` empty on every other element. `styles.background` may be a hex colour or a `linear-gradient` with no `url()`. The system text is fixed. Answers are placed in the user message as data. The selected `style` is the writing tone. A birthday `theme` is the tone as well. A conference `theme` is the subject of the event, not the voice. Headings are titles and paragraphs are two to four sentences in that tone. The model may connect the supplied facts. It may not invent a name, date, place, phone number, or URL. When no tone is chosen, weddings and anniversaries read as elegant, birthdays and baby celebrations as warm, portfolios as editorial, and corporate, conference, and business pages as formal.
 
@@ -57,7 +57,7 @@ The API returns the existing in-flight job instead of starting a second one. Rep
 
 ## API
 
-- `GET /api/v1/config/features` includes `aiWebsiteGenerationEnabled`.
+- `GET /api/v1/config/features` includes runtime flags such as `imageGenerationEnabled`.
 - `GET /api/v1/website-categories` and `GET /api/v1/website-categories/{code}`
 - `GET /api/v1/questionnaires/{code}`
 - `GET|POST /api/v1/website-creation-sessions`
@@ -71,7 +71,7 @@ The API returns the existing in-flight job instead of starting a second one. Rep
 
 ## Configuration
 
-See `.env.example`. Defaults keep generation off and the key empty. Do not commit a real key. Coolify can set the same variables; `docker-compose.yml` forwards them.
+See `.env.example`. Leave `OPENROUTER_API_KEY` empty in git. Do not commit a real key. Coolify can set the same variables; `docker-compose.yml` forwards them.
 
 `PRISM_AI_MAX_GENERATIONS_PER_USER` defaults to 20. Repair attempts default to 1. Timeout defaults to 120 seconds. Output tokens default to 8000. Paid fallback defaults to off. A daily budget of 0 means no spend cap. The same is true for the per-generation cost cap.
 

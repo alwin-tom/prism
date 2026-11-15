@@ -21,13 +21,10 @@ public class PrismProperties {
     private final Razorpay razorpay = new Razorpay();
     private final Admin admin = new Admin();
 
-    private boolean advancedEditorEnabled;
     private final Creation creation = new Creation();
     private final OpenRouter openrouter = new OpenRouter();
-
-    public boolean isAdvancedEditorEnabled() {
-        return advancedEditorEnabled;
-    }
+    private final Image image = new Image();
+    private final UiModels uiModels = new UiModels();
 
     public Creation getCreation() {
         return creation;
@@ -37,8 +34,12 @@ public class PrismProperties {
         return openrouter;
     }
 
-    public void setAdvancedEditorEnabled(boolean advancedEditorEnabled) {
-        this.advancedEditorEnabled = advancedEditorEnabled;
+    public Image getImage() {
+        return image;
+    }
+
+    public UiModels getUiModels() {
+        return uiModels;
     }
 
     public boolean isOtpBypassEnabled() {
@@ -117,47 +118,76 @@ public class PrismProperties {
         return admin;
     }
 
+    /**
+     * Website-design model strategy. Backed by {@code WEBAUX_USE_FREE_UI_MODELS}
+     * and premium OpenRouter model ids. Unrelated AI features (moderation, image gen)
+     * must not read this block.
+     */
+    public static class UiModels {
+        /** Raw env value. Missing/invalid defaults to free mode via {@link #isUseFreeUiModels()}. */
+        private String useFreeUiModels = "true";
+        private String premiumPrimaryModel = "anthropic/claude-opus-5.5";
+        private String premiumSecondaryModel = "openai/gpt-6-astra";
+        private String premiumFallbackModel = "google/gemini-4-carbon";
+        private String premiumRefinementModel = "moonshotai/kimi-k3.1-pro";
+
+        public String getUseFreeUiModels() {
+            return useFreeUiModels;
+        }
+
+        public void setUseFreeUiModels(String useFreeUiModels) {
+            this.useFreeUiModels = useFreeUiModels;
+        }
+
+        public boolean isUseFreeUiModels() {
+            if (useFreeUiModels == null || useFreeUiModels.isBlank()) {
+                return true;
+            }
+            String value = useFreeUiModels.trim().toLowerCase();
+            if ("false".equals(value) || "0".equals(value) || "no".equals(value) || "off".equals(value)) {
+                return false;
+            }
+            return true;
+        }
+
+        public String getPremiumPrimaryModel() {
+            return premiumPrimaryModel;
+        }
+
+        public void setPremiumPrimaryModel(String premiumPrimaryModel) {
+            this.premiumPrimaryModel = premiumPrimaryModel;
+        }
+
+        public String getPremiumSecondaryModel() {
+            return premiumSecondaryModel;
+        }
+
+        public void setPremiumSecondaryModel(String premiumSecondaryModel) {
+            this.premiumSecondaryModel = premiumSecondaryModel;
+        }
+
+        public String getPremiumFallbackModel() {
+            return premiumFallbackModel;
+        }
+
+        public void setPremiumFallbackModel(String premiumFallbackModel) {
+            this.premiumFallbackModel = premiumFallbackModel;
+        }
+
+        public String getPremiumRefinementModel() {
+            return premiumRefinementModel;
+        }
+
+        public void setPremiumRefinementModel(String premiumRefinementModel) {
+            this.premiumRefinementModel = premiumRefinementModel;
+        }
+    }
+
     public static class Creation {
-        private boolean enabled;
-        private boolean creativeV2Enabled;
-        private boolean designLibraryEnabled;
-        private boolean designEmbeddingsEnabled;
         private String designEmbeddingProvider = "";
         private String designEmbeddingModel = "";
         private int designEmbeddingDimensions = 1536;
         private int maxGenerationsPerUser = 20;
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        public boolean isCreativeV2Enabled() {
-            return creativeV2Enabled;
-        }
-
-        public void setCreativeV2Enabled(boolean creativeV2Enabled) {
-            this.creativeV2Enabled = creativeV2Enabled;
-        }
-
-        public boolean isDesignLibraryEnabled() {
-            return designLibraryEnabled;
-        }
-
-        public void setDesignLibraryEnabled(boolean designLibraryEnabled) {
-            this.designLibraryEnabled = designLibraryEnabled;
-        }
-
-        public boolean isDesignEmbeddingsEnabled() {
-            return designEmbeddingsEnabled;
-        }
-
-        public void setDesignEmbeddingsEnabled(boolean designEmbeddingsEnabled) {
-            this.designEmbeddingsEnabled = designEmbeddingsEnabled;
-        }
 
         public String getDesignEmbeddingProvider() {
             return designEmbeddingProvider;
@@ -198,9 +228,11 @@ public class PrismProperties {
         private String planningModel = "";
         private String generationModel = "";
         private String repairModel = "";
+        private String moderationModel = "";
         private String planningFallbacks = "";
         private String generationFallbacks = "";
         private String repairFallbacks = "";
+        private String moderationFallbacks = "";
         private boolean allowPaidFallback;
         private int timeoutSeconds = 120;
         private int maxRetries = 2;
@@ -221,12 +253,16 @@ public class PrismProperties {
         public void setGenerationModel(String generationModel) { this.generationModel = generationModel; }
         public String getRepairModel() { return repairModel; }
         public void setRepairModel(String repairModel) { this.repairModel = repairModel; }
+        public String getModerationModel() { return moderationModel; }
+        public void setModerationModel(String moderationModel) { this.moderationModel = moderationModel; }
         public String getPlanningFallbacks() { return planningFallbacks; }
         public void setPlanningFallbacks(String planningFallbacks) { this.planningFallbacks = planningFallbacks; }
         public String getGenerationFallbacks() { return generationFallbacks; }
         public void setGenerationFallbacks(String generationFallbacks) { this.generationFallbacks = generationFallbacks; }
         public String getRepairFallbacks() { return repairFallbacks; }
         public void setRepairFallbacks(String repairFallbacks) { this.repairFallbacks = repairFallbacks; }
+        public String getModerationFallbacks() { return moderationFallbacks; }
+        public void setModerationFallbacks(String moderationFallbacks) { this.moderationFallbacks = moderationFallbacks; }
         public boolean isAllowPaidFallback() { return allowPaidFallback; }
         public void setAllowPaidFallback(boolean allowPaidFallback) { this.allowPaidFallback = allowPaidFallback; }
         public int getTimeoutSeconds() { return timeoutSeconds; }
@@ -299,6 +335,49 @@ public class PrismProperties {
         public void setRefreshTokenExpiry(long refreshTokenExpiry) {
             this.refreshTokenExpiry = refreshTokenExpiry;
         }
+    }
+
+    public static class Image {
+        private boolean enabled;
+        private String provider = "openrouter";
+        private boolean freeFirst = true;
+        private boolean paidFallbackEnabled;
+        private int maxImagesPerWebsite = 3;
+        private BigDecimal maxCostPerImageUsd = new BigDecimal("0.05");
+        private BigDecimal maxCostPerWebsiteUsd = new BigDecimal("0.15");
+        private int maxRetries = 2;
+        private int modelCacheMinutes = 360;
+        private int waitSeconds = 120;
+        private boolean base64Enabled;
+        private int base64MaxSizeKb = 2048;
+        private String preferredModels = "";
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        public String getProvider() { return provider; }
+        public void setProvider(String provider) { this.provider = provider; }
+        public boolean isFreeFirst() { return freeFirst; }
+        public void setFreeFirst(boolean freeFirst) { this.freeFirst = freeFirst; }
+        public boolean isPaidFallbackEnabled() { return paidFallbackEnabled; }
+        public void setPaidFallbackEnabled(boolean paidFallbackEnabled) { this.paidFallbackEnabled = paidFallbackEnabled; }
+        public int getMaxImagesPerWebsite() { return maxImagesPerWebsite; }
+        public void setMaxImagesPerWebsite(int maxImagesPerWebsite) { this.maxImagesPerWebsite = maxImagesPerWebsite; }
+        public BigDecimal getMaxCostPerImageUsd() { return maxCostPerImageUsd == null ? BigDecimal.ZERO : maxCostPerImageUsd; }
+        public void setMaxCostPerImageUsd(BigDecimal maxCostPerImageUsd) { this.maxCostPerImageUsd = maxCostPerImageUsd; }
+        public BigDecimal getMaxCostPerWebsiteUsd() { return maxCostPerWebsiteUsd == null ? BigDecimal.ZERO : maxCostPerWebsiteUsd; }
+        public void setMaxCostPerWebsiteUsd(BigDecimal maxCostPerWebsiteUsd) { this.maxCostPerWebsiteUsd = maxCostPerWebsiteUsd; }
+        public int getMaxRetries() { return maxRetries; }
+        public void setMaxRetries(int maxRetries) { this.maxRetries = maxRetries; }
+        public int getModelCacheMinutes() { return modelCacheMinutes; }
+        public void setModelCacheMinutes(int modelCacheMinutes) { this.modelCacheMinutes = modelCacheMinutes; }
+        public int getWaitSeconds() { return waitSeconds; }
+        public void setWaitSeconds(int waitSeconds) { this.waitSeconds = waitSeconds; }
+        public boolean isBase64Enabled() { return base64Enabled; }
+        public void setBase64Enabled(boolean base64Enabled) { this.base64Enabled = base64Enabled; }
+        public int getBase64MaxSizeKb() { return base64MaxSizeKb; }
+        public void setBase64MaxSizeKb(int base64MaxSizeKb) { this.base64MaxSizeKb = base64MaxSizeKb; }
+        public String getPreferredModels() { return preferredModels; }
+        public void setPreferredModels(String preferredModels) { this.preferredModels = preferredModels; }
     }
 
     public static class Media {

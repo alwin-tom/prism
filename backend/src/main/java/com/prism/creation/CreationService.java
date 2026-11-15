@@ -10,6 +10,7 @@ import com.prism.editor.EditorDocumentService;
 import com.prism.event.EventDeletionService;
 import com.prism.event.EventService;
 import com.prism.event.EventSite;
+import com.prism.imagegen.ImageGenerationJobService;
 import com.prism.media.MediaRepository;
 import com.prism.revision.EventRevision;
 import com.prism.shared.config.PrismProperties;
@@ -33,10 +34,9 @@ import java.util.UUID;
 @Service
 public class CreationService {
 
-    private static final Set<String> ACTIVE_JOBS = Set.of("QUEUED", "PLANNING", "GENERATING", "VALIDATING", "REPAIRING");
+    private static final Set<String> ACTIVE_JOBS = Set.of("QUEUED", "PLANNING", "GENERATING", "VALIDATING", "REPAIRING", "IMAGES");
     private static final List<String> TITLE_KEYS = List.of("coupleNames", "person", "parents", "title", "businessName", "name", "organisation");
 
-    private final PrismProperties properties;
     private final WebsiteCategoryRepository categories;
     private final QuestionnaireDefinitionRepository definitions;
     private final WebsiteCreationSessionRepository sessions;
@@ -52,9 +52,9 @@ public class CreationService {
     private final ApplicationEventPublisher publisher;
     private final AiRuntime runtime;
     private final ArchetypeCatalog archetypes;
+    private final ImageGenerationJobService imageJobs;
 
     public CreationService(
-            PrismProperties properties,
             WebsiteCategoryRepository categories,
             QuestionnaireDefinitionRepository definitions,
             WebsiteCreationSessionRepository sessions,
@@ -69,9 +69,9 @@ public class CreationService {
             ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             AiRuntime runtime,
-            ArchetypeCatalog archetypes
+            ArchetypeCatalog archetypes,
+            ImageGenerationJobService imageJobs
     ) {
-        this.properties = properties;
         this.categories = categories;
         this.definitions = definitions;
         this.sessions = sessions;
@@ -86,30 +86,22 @@ public class CreationService {
         this.mapper = mapper;
         this.publisher = publisher;
         this.runtime = runtime;
+        this.imageJobs = imageJobs;
         this.archetypes = archetypes;
-    }
-
-    public void requireEnabled() {
-        if (!properties.getCreation().isEnabled()) {
-            throw ApiException.forbidden("AI website generation is turned off.");
-        }
     }
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> categories() {
-        requireEnabled();
         return categories.findByActiveTrueOrderByDisplayOrderAsc().stream().map(this::category).toList();
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> category(String code) {
-        requireEnabled();
         return category(requireCategory(code));
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> questionnaire(String code, Integer version) {
-        requireEnabled();
         WebsiteCategory category = requireCategory(code);
         QuestionnaireDefinition definition = version == null
                 ? activeDefinition(category)
@@ -119,13 +111,11 @@ public class CreationService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> sessions(UserPrincipal principal) {
-        requireEnabled();
         return sessions.findByUserIdOrderByUpdatedAtDesc(principal.id()).stream().map(session -> session(session, false)).toList();
     }
 
     @Transactional
     public Map<String, Object> start(UserPrincipal principal, String code, String ip) {
-        requireEnabled();
         WebsiteCategory category = requireCategory(code);
         if (!category.active) {
             throw ApiException.badRequest("That website type is not available.");
@@ -151,7 +141,6 @@ public class CreationService {
 
     @Transactional
     public void discard(UUID id, UserPrincipal principal, String ip) {
-        requireEnabled();
         WebsiteCreationSession session = owned(id, principal);
         if (session.eventId != null) {
             deletion.delete(events.requireDeletable(session.eventId, principal), principal, ip);
@@ -166,13 +155,11 @@ public class CreationService {
 
     @Transactional(readOnly = true)
     public Map<String, Object> session(UUID id, UserPrincipal principal) {
-        requireEnabled();
         return session(owned(id, principal), true);
     }
 
     @Transactional
     public Map<String, Object> saveAnswers(UUID id, JsonNode answers, String step, UserPrincipal principal) {
-        requireEnabled();
         WebsiteCreationSession session = owned(id, principal);
         rejectFinished(session);
         QuestionnaireDefinition definition = pinned(session);
@@ -189,7 +176,6 @@ public class CreationService {
 
     @Transactional
     public Map<String, Object> progress(UUID id, String step, UserPrincipal principal) {
-        requireEnabled();
         WebsiteCreationSession session = owned(id, principal);
         session.currentStep = step(step);
         session.updatedAt = Instant.now();
@@ -198,7 +184,6 @@ public class CreationService {
 
     @Transactional
     public Map<String, Object> complete(UUID id, UserPrincipal principal) {
-        requireEnabled();
         WebsiteCreationSession session = owned(id, principal);
         rejectFinished(session);
         QuestionnaireDefinition definition = pinned(session);
@@ -211,7 +196,6 @@ public class CreationService {
 
     @Transactional
     public Map<String, Object> generate(UUID id, boolean confirmReplace, UserPrincipal principal) {
-        requireEnabled();
         WebsiteCreationSession session = owned(id, principal);
         if (session.eventId == null) {
             throw ApiException.badRequest("This website has no draft yet.");
@@ -244,7 +228,7 @@ public class CreationService {
         job.userId = principal.id();
         job.eventId = event.id;
         job.status = "QUEUED";
-        job.promptVersion = properties.getCreation().isCreativeV2Enabled() ? CreativeSchemas.PROMPT_VERSION : PrismSchemas.PROMPT_VERSION;
+        job.promptVersion = CreativeSchemas.PROMPT_VERSION;
         job.inputTokens = 0;
         job.outputTokens = 0;
         jobs.save(job);
@@ -258,13 +242,11 @@ public class CreationService {
 
     @Transactional(readOnly = true)
     public Map<String, Object> job(UUID id, UserPrincipal principal) {
-        requireEnabled();
         return job(ownedJob(id, principal));
     }
 
     @Transactional
     public Map<String, Object> cancel(UUID id, UserPrincipal principal) {
-        requireEnabled();
         WebsiteGenerationJob job = ownedJob(id, principal);
         if ("COMPLETED".equals(job.status) || "FAILED".equals(job.status) || "CANCELLED".equals(job.status)) {
             return job(job);
@@ -283,7 +265,6 @@ public class CreationService {
 
     @Transactional
     public Map<String, Object> retry(UUID id, UserPrincipal principal) {
-        requireEnabled();
         WebsiteGenerationJob previous = ownedJob(id, principal);
         if (!"FAILED".equals(previous.status) && !"CANCELLED".equals(previous.status)) {
             throw ApiException.badRequest("Only a failed generation can be retried.");
@@ -293,7 +274,6 @@ public class CreationService {
 
     @Transactional(readOnly = true)
     public Map<String, Object> result(UUID id, UserPrincipal principal) {
-        requireEnabled();
         WebsiteGenerationJob job = ownedJob(id, principal);
         if (!"COMPLETED".equals(job.status)) {
             throw ApiException.badRequest("This generation is not ready.");
@@ -305,7 +285,6 @@ public class CreationService {
 
     @Transactional
     public Map<String, Object> openEditor(UUID id, UserPrincipal principal) {
-        requireEnabled();
         WebsiteCreationSession session = owned(id, principal);
         if (session.eventId == null || !"GENERATED".equals(session.status) && !"EDITING".equals(session.status)) {
             throw ApiException.badRequest("Generate a page before opening the editor.");
@@ -328,8 +307,29 @@ public class CreationService {
         QuestionnaireDefinition definition = pinned(session);
         JsonNode configuration = effectiveConfiguration(category.code, definition.configurationJson);
         ObjectNode answers = QuestionnaireCatalog.visibleAnswers(mapper, configuration, session.answersJson);
+        injectEventPalette(answers, session.eventId);
         Set<String> ownedMedia = ownedMedia(configuration, session.answersJson, session.eventId);
         return new Prepared(job.id, session.id, session.userId, session.eventId, category.code, answers, ownedMedia);
+    }
+
+    /** Prefer answers.colourPalette; fall back to the event theme saved by DraftSide "Use this palette". */
+    private void injectEventPalette(ObjectNode answers, UUID eventId) {
+        if (answers == null || eventId == null || DesignDirection.hasUserPalette(answers)) {
+            return;
+        }
+        EventRevision revision = events.latest(eventId);
+        if (revision == null || revision.configurationJson == null) {
+            return;
+        }
+        JsonNode theme = revision.configurationJson.path("theme");
+        if (!theme.isObject()) {
+            return;
+        }
+        ObjectNode palette = mapper.createObjectNode();
+        palette.put("background", theme.path("background").asText(""));
+        palette.put("ink", theme.path("ink").asText(""));
+        palette.put("accent", theme.path("accent").asText(""));
+        QuestionnaireCatalog.copyUserPalette(mapper, answers, mapper.createObjectNode().set("colourPalette", palette));
     }
 
     @Transactional
@@ -623,7 +623,7 @@ public class CreationService {
     }
 
     private JsonNode withCreativePreferences(String categoryCode, JsonNode questions) {
-        if (!properties.getCreation().isCreativeV2Enabled() || questions == null || !questions.isArray()) {
+        if (questions == null || !questions.isArray()) {
             return questions;
         }
         com.fasterxml.jackson.databind.node.ArrayNode out = mapper.createArrayNode();
@@ -719,6 +719,7 @@ public class CreationService {
         body.put("requestCount", job.requestCount);
         body.put("startedAt", job.startedAt);
         body.put("completedAt", job.completedAt);
+        body.put("imageProgress", imageJobs.progressForWebsiteJob(job.id));
         return body;
     }
 }

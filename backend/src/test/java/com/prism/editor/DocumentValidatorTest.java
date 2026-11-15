@@ -172,4 +172,120 @@ class DocumentValidatorTest {
         assertEquals("Where?", clean.path("root").path("children").get(2).path("children").get(0).path("props").path("title").asText());
         assertEquals("Ceremony", clean.path("root").path("children").get(3).path("children").get(0).path("props").path("title").asText());
     }
+
+    @Test
+    void keepsBackgroundMediaAndCollectsItWithoutAllowingCssUrls() throws Exception {
+        ObjectNode document = (ObjectNode) mapper.readTree("""
+                {
+                  "schemaVersion": 1,
+                  "documentId": "11111111-1111-1111-1111-111111111111",
+                  "page": {"title": "Anna", "description": ""},
+                  "root": {
+                    "id": "page", "type": "SECTION", "name": "Page", "props": {},
+                    "styles": {
+                      "backgroundMediaId": "22222222-2222-2222-2222-222222222222",
+                      "backgroundSize": "cover",
+                      "backgroundPosition": "center",
+                      "backgroundRepeat": "no-repeat",
+                      "backgroundAttachment": "scroll",
+                      "backgroundOverlayType": "solid",
+                      "backgroundOverlayColor": "#000000",
+                      "backgroundOverlayOpacity": "40",
+                      "zIndex": "2"
+                    },
+                    "children": [
+                      {"id": "title", "type": "HEADING", "name": "Heading", "props": {"text": "Anna", "level": 1}, "styles": {"zIndex": "1"}, "children": []}
+                    ]
+                  }
+                }
+                """);
+        ObjectNode clean = validator.sanitize(document);
+        assertEquals("22222222-2222-2222-2222-222222222222", clean.path("root").path("styles").path("backgroundMediaId").asText());
+        assertEquals("cover", clean.path("root").path("styles").path("backgroundSize").asText());
+        assertEquals("solid", clean.path("root").path("styles").path("backgroundOverlayType").asText());
+        assertEquals(java.util.Set.of("22222222-2222-2222-2222-222222222222"), validator.mediaIds(clean));
+        ((ObjectNode) document.path("root").path("styles")).put("backgroundMediaId", "not-a-uuid");
+        assertThrows(ApiException.class, () -> validator.sanitize(document));
+    }
+
+    @Test
+    void keepsInlineRichTextLinksAndRejectsDangerousOnes() throws Exception {
+        ObjectNode document = (ObjectNode) mapper.readTree("""
+                {
+                  "schemaVersion": 1,
+                  "documentId": "11111111-1111-1111-1111-111111111111",
+                  "page": {"title": "Anna", "description": ""},
+                  "root": {
+                    "id": "page", "type": "SECTION", "name": "Page", "props": {}, "styles": {},
+                    "children": [
+                      {
+                        "id": "copy",
+                        "type": "PARAGRAPH",
+                        "name": "Text",
+                        "props": {
+                          "text": "Discover our events and register today.",
+                          "richText": [
+                            {"text": "Discover our events and "},
+                            {"text": "register today", "href": "https://example.com/register", "target": "_blank"},
+                            {"text": "."}
+                          ],
+                          "href": "",
+                          "linkUnderline": 1
+                        },
+                        "styles": {},
+                        "children": []
+                      }
+                    ]
+                  }
+                }
+                """);
+        ObjectNode clean = validator.sanitize(document);
+        assertEquals(3, clean.path("root").path("children").get(0).path("props").path("richText").size());
+        assertEquals("https://example.com/register", clean.path("root").path("children").get(0).path("props").path("richText").get(1).path("href").asText());
+        ((ObjectNode) document.path("root").path("children").get(0).path("props").path("richText").get(1)).put("href", "javascript:alert(1)");
+        assertThrows(ApiException.class, () -> validator.sanitize(document));
+    }
+
+    @Test
+    void keepsAMarqueeWithItemsAndCollectsImageMedia() throws Exception {
+        ObjectNode document = (ObjectNode) mapper.readTree("""
+                {
+                  "schemaVersion": 1,
+                  "documentId": "11111111-1111-1111-1111-111111111111",
+                  "page": {"title": "Anna", "description": ""},
+                  "root": {
+                    "id": "page", "type": "SECTION", "name": "Page", "props": {}, "styles": {},
+                    "children": [
+                      {
+                        "id": "ticker",
+                        "type": "MARQUEE",
+                        "name": "Marquee",
+                        "props": {
+                          "text": "Hello",
+                          "direction": "left",
+                          "speed": 40,
+                          "duration": 28,
+                          "gap": 24,
+                          "delay": 0,
+                          "loop": 1,
+                          "pauseOnHover": 1,
+                          "pauseOnClick": 0,
+                          "animationEnabled": 1,
+                          "items": [
+                            {"id": "i1", "kind": "text", "text": "Hello", "href": "https://example.com"},
+                            {"id": "i2", "kind": "image", "mediaId": "22222222-2222-2222-2222-222222222222", "alt": "Logo"}
+                          ]
+                        },
+                        "styles": {"overflow": "hidden"},
+                        "children": []
+                      }
+                    ]
+                  }
+                }
+                """);
+        ObjectNode clean = validator.sanitize(document);
+        assertEquals("MARQUEE", clean.path("root").path("children").get(0).path("type").asText());
+        assertEquals(2, clean.path("root").path("children").get(0).path("props").path("items").size());
+        assertEquals(java.util.Set.of("22222222-2222-2222-2222-222222222222"), validator.mediaIds(clean));
+    }
 }

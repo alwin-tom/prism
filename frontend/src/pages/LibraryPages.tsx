@@ -254,7 +254,7 @@ export function DomainsPage() {
 
       {events.isError ? <p className="error-line">{errorMessage(events.error, "The sites could not be loaded.")}</p> : null}
       {events.isLoading ? <div className="skeleton" style={{ height: 160 }} /> : rows.length === 0 ? (
-        <Empty>A site shows its address here once you create it. <Link to="/app/new">New event site</Link></Empty>
+        <Empty>A site shows its address here once you create it. <Link to="/app/create">Create a Website</Link></Empty>
       ) : (
         <div className="domains-grid">
           {rows.map((event) => (
@@ -347,7 +347,7 @@ export function HelpPage() {
       <div className="work help-copy">
         <section className="panel">
           <h2>Create</h2>
-          <p>Create a website walks through questions, then the event name, public address, and hosting days. New event site starts from a template instead. Hosting is ₹500 a day.</p>
+          <p>Create a website walks through questions, then the event name, public address, and hosting days. Hosting is ₹500 a day.</p>
         </section>
         <section className="panel">
           <h2>Review</h2>
@@ -359,7 +359,7 @@ export function HelpPage() {
         </section>
         <section className="panel">
           <h2>Studio and invites</h2>
-          <p>The studio saves a version of the page. Push version writes that version immediately. The invite card and QR code use the public address, so a guest can open the site from a printed badge.</p>
+          <p>The visual editor saves the page. Push version writes a restore point. Submit for review sends the draft to a reviewer. The invite card and QR code use the public address.</p>
         </section>
       </div>
     </>

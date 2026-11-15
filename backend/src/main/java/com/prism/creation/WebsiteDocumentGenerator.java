@@ -9,6 +9,8 @@ import com.prism.editor.DocumentValidator;
 import com.prism.shared.config.PrismProperties;
 import com.prism.shared.exception.ApiException;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -26,39 +28,43 @@ public class WebsiteDocumentGenerator {
     private final DocumentNormalizer normalizer;
     private final ArchetypeCatalog archetypes;
     private final CreativeSchemas creativeSchemas;
-    private final PrismProperties properties;
     private final DesignReferenceRetriever designReferences;
+    private final WebsiteUiModelSelector modelSelector;
+    private final boolean legacyOnly;
+    private final ThreadLocal<WebsiteUiModelSelector.Selection> lastSelection = new ThreadLocal<>();
 
+    @Autowired
     public WebsiteDocumentGenerator(
             ObjectMapper mapper,
             ArchetypeCatalog archetypes,
             CreativeSchemas creativeSchemas,
-            PrismProperties properties,
-            ObjectProvider<DesignReferenceRetriever> designReferences
+            ObjectProvider<DesignReferenceRetriever> designReferences,
+            WebsiteUiModelSelector modelSelector
+    ) {
+        this(mapper, archetypes, creativeSchemas, designReferences.getIfAvailable(), modelSelector, false);
+    }
+
+    private WebsiteDocumentGenerator(
+            ObjectMapper mapper,
+            ArchetypeCatalog archetypes,
+            CreativeSchemas creativeSchemas,
+            @Nullable DesignReferenceRetriever designReferences,
+            @Nullable WebsiteUiModelSelector modelSelector,
+            boolean legacyOnly
     ) {
         this.mapper = mapper;
         this.validator = new DocumentValidator(mapper);
         this.normalizer = new DocumentNormalizer(mapper);
         this.archetypes = archetypes;
         this.creativeSchemas = creativeSchemas;
-        this.properties = properties;
-        this.designReferences = designReferences.getIfAvailable();
+        this.designReferences = designReferences;
+        this.modelSelector = modelSelector;
+        this.legacyOnly = legacyOnly;
     }
 
     /** Test helper: legacy pipeline only. */
     static WebsiteDocumentGenerator legacyForTests(ObjectMapper mapper) {
-        PrismProperties properties = new PrismProperties();
-        properties.getCreation().setCreativeV2Enabled(false);
-        return new WebsiteDocumentGenerator(mapper, new ArchetypeCatalog(mapper), new CreativeSchemas(mapper), properties, emptyRetriever());
-    }
-
-    private static ObjectProvider<DesignReferenceRetriever> emptyRetriever() {
-        return new ObjectProvider<>() {
-            @Override
-            public DesignReferenceRetriever getObject() {
-                return null;
-            }
-        };
+        return new WebsiteDocumentGenerator(mapper, new ArchetypeCatalog(mapper), new CreativeSchemas(mapper), null, null, true);
     }
 
     public Generated generate(OpenRouterClient client, PrismProperties.OpenRouter settings, String category, JsonNode answers, Set<String> mediaIds, Consumer<String> stage) {
@@ -66,10 +72,10 @@ public class WebsiteDocumentGenerator {
     }
 
     public Generated generate(OpenRouterClient client, PrismProperties.OpenRouter settings, String category, JsonNode answers, Set<String> mediaIds, Consumer<String> stage, UUID userId) {
-        if (properties.getCreation().isCreativeV2Enabled()) {
-            return generateV2(client, settings, category, answers, mediaIds, stage, userId);
+        if (legacyOnly) {
+            return generateLegacy(client, settings, category, answers, mediaIds, stage);
         }
-        return generateLegacy(client, settings, category, answers, mediaIds, stage);
+        return generateV2(client, settings, category, answers, mediaIds, stage, userId);
     }
 
     private Generated generateV2(OpenRouterClient client, PrismProperties.OpenRouter settings, String category, JsonNode answers, Set<String> mediaIds, Consumer<String> stage, UUID userId) {
@@ -85,12 +91,13 @@ public class WebsiteDocumentGenerator {
         int output = 0;
         int repairs = 0;
         try {
+            lastSelection.remove();
             String preferred = answers == null ? "" : answers.path("visualDirection").asText("");
             if (preferred.isBlank() && answers != null) {
                 preferred = answers.path("style").asText("");
             }
             stage.accept("PLANNING");
-            boolean library = properties.getCreation().isDesignLibraryEnabled() && designReferences != null;
+            boolean library = designReferences != null;
             if (library) {
                 DesignReferenceRetriever.Result retrieval = designReferences.retrieve(category, preferred, answers, userId);
                 retrieved = retrieval.compact();
@@ -99,7 +106,7 @@ public class WebsiteDocumentGenerator {
                 retrievalNote.put("stage", "DESIGN_RETRIEVAL");
                 retrievalNote.put("mode", retrievalMode);
                 retrievalNote.put("count", retrieval.ids().size());
-                OpenRouterClient.Completion directorCall = call(client, settings, model(settings.getPlanningModel(), settings.getGenerationModel()), settings.getPlanningFallbacks(), budget,
+                OpenRouterClient.Completion directorCall = call(client, settings, WebsiteUiModelSelector.Task.PLANNING, budget,
                         PromptBuilder.designDirector(category, answers, mediaIds, archetypes.promptCatalog(category), preferred, retrieved),
                         creativeSchemas.director(), CreativeSchemas.DIRECTOR_SCHEMA);
                 note(stages, "DESIGN_DIRECTOR", directorCall);
@@ -113,7 +120,7 @@ public class WebsiteDocumentGenerator {
                 creative = directorToCreative(director);
                 blueprint = directorToBlueprint(director);
             } else {
-                OpenRouterClient.Completion directionCall = call(client, settings, model(settings.getPlanningModel(), settings.getGenerationModel()), settings.getPlanningFallbacks(), budget,
+                OpenRouterClient.Completion directionCall = call(client, settings, WebsiteUiModelSelector.Task.PLANNING, budget,
                         PromptBuilder.creativeDirection(category, answers, mediaIds, archetypes.promptCatalog(category), preferred),
                         creativeSchemas.direction(), CreativeSchemas.DIRECTION_SCHEMA);
                 note(stages, "CREATIVE_DIRECTION", directionCall);
@@ -167,7 +174,7 @@ public class WebsiteDocumentGenerator {
 
             if (blueprint == null) {
                 String archetypeGuide = archetypes.byId(archetypeId).map(JsonNode::toString).orElse(archetypeId);
-                OpenRouterClient.Completion blueprintCall = call(client, settings, model(settings.getPlanningModel(), settings.getGenerationModel()), settings.getPlanningFallbacks(), budget,
+                OpenRouterClient.Completion blueprintCall = call(client, settings, WebsiteUiModelSelector.Task.PLANNING, budget,
                         PromptBuilder.visualBlueprint(category, answers, mediaIds, creative, designSystem, archetypeGuide),
                         creativeSchemas.blueprint(), CreativeSchemas.BLUEPRINT_SCHEMA);
                 note(stages, "VISUAL_BLUEPRINT", blueprintCall);
@@ -191,13 +198,13 @@ public class WebsiteDocumentGenerator {
                 String heroPattern = blueprint.path("hero").path("pattern").asText("full-width-hero");
                 planObject.withArray("patterns").insert(0, heroPattern);
             }
-            applyDirectorDesignHints(designSystem, creative);
+            applyDirectorDesignHints(designSystem, creative, answers);
 
             stage.accept("GENERATING");
             String documentPrompt = retrieved.isEmpty()
                     ? PromptBuilder.documentFromBlueprint(category, answers, mediaIds, planNode, blueprint, designSystem)
                     : PromptBuilder.documentFromBlueprintWithReferences(category, answers, mediaIds, planNode, blueprint, designSystem, retrieved);
-            OpenRouterClient.Completion draft = call(client, settings, model(settings.getGenerationModel(), settings.getPlanningModel()), settings.getGenerationFallbacks(), budget,
+            OpenRouterClient.Completion draft = call(client, settings, WebsiteUiModelSelector.Task.GENERATION, budget,
                     documentPrompt,
                     PrismSchemas.document(mapper), PrismSchemas.DOCUMENT_SCHEMA);
             note(stages, "GENERATING", draft);
@@ -210,7 +217,7 @@ public class WebsiteDocumentGenerator {
             while (attempt.document() == null && repairs < repairsAllowed) {
                 repairs++;
                 stage.accept("REPAIRING");
-                OpenRouterClient.Completion repair = call(client, settings, model(settings.getRepairModel(), settings.getGenerationModel()), settings.getRepairFallbacks(), budget,
+                OpenRouterClient.Completion repair = call(client, settings, WebsiteUiModelSelector.Task.REPAIR, budget,
                         PromptBuilder.repair(attempt.problems(), last), PrismSchemas.document(mapper), PrismSchemas.DOCUMENT_SCHEMA);
                 note(stages, "REPAIRING", repair);
                 input += repair.inputTokens();
@@ -228,7 +235,7 @@ public class WebsiteDocumentGenerator {
             List<String> qaNotes = DeterministicVisualQa.actionable(qa);
             if (!qaNotes.isEmpty() && repairs == 0 && repairsAllowed > 0) {
                 stage.accept("REPAIRING");
-                OpenRouterClient.Completion refine = call(client, settings, model(settings.getRepairModel(), settings.getGenerationModel()), settings.getRepairFallbacks(), budget,
+                OpenRouterClient.Completion refine = call(client, settings, WebsiteUiModelSelector.Task.REFINEMENT, budget,
                         PromptBuilder.refine(qaNotes, attempt.document(), category, answers, planNode), PrismSchemas.document(mapper), PrismSchemas.DOCUMENT_SCHEMA);
                 note(stages, "QA_REFINE", refine);
                 input += refine.inputTokens();
@@ -271,6 +278,8 @@ public class WebsiteDocumentGenerator {
             return new Generated(planNode, last, directed, attempt.warnings(), input, output, usedModel, repairs, budget.cost(), budget.latencyMs(), budget.requests(), report);
         } catch (OpenRouterException exception) {
             throw new GenerationFailure(exception.getMessage(), planNode, last, input, output, repairs, budget, usage(budget, stages, null, retrieved, retrievalMode));
+        } finally {
+            lastSelection.remove();
         }
     }
 
@@ -283,8 +292,9 @@ public class WebsiteDocumentGenerator {
         int output = 0;
         int repairs = 0;
         try {
+            lastSelection.remove();
             stage.accept("PLANNING");
-            OpenRouterClient.Completion plan = call(client, settings, model(settings.getPlanningModel(), settings.getGenerationModel()), settings.getPlanningFallbacks(), budget, PromptBuilder.plan(category, answers, mediaIds), PrismSchemas.plan(mapper), PrismSchemas.PLAN_SCHEMA);
+            OpenRouterClient.Completion plan = call(client, settings, WebsiteUiModelSelector.Task.PLANNING, budget, PromptBuilder.plan(category, answers, mediaIds), PrismSchemas.plan(mapper), PrismSchemas.PLAN_SCHEMA);
             note(stages, "PLANNING", plan);
             planNode = plan.content();
             input += plan.inputTokens();
@@ -299,7 +309,7 @@ public class WebsiteDocumentGenerator {
                 planNode = planObject;
             }
             stage.accept("GENERATING");
-            OpenRouterClient.Completion draft = call(client, settings, model(settings.getGenerationModel(), settings.getPlanningModel()), settings.getGenerationFallbacks(), budget, PromptBuilder.document(category, answers, mediaIds, planNode), PrismSchemas.document(mapper), PrismSchemas.DOCUMENT_SCHEMA);
+            OpenRouterClient.Completion draft = call(client, settings, WebsiteUiModelSelector.Task.GENERATION, budget, PromptBuilder.document(category, answers, mediaIds, planNode), PrismSchemas.document(mapper), PrismSchemas.DOCUMENT_SCHEMA);
             note(stages, "GENERATING", draft);
             input += draft.inputTokens();
             output += draft.outputTokens();
@@ -310,7 +320,7 @@ public class WebsiteDocumentGenerator {
             while (attempt.document() == null && repairs < repairsAllowed) {
                 repairs++;
                 stage.accept("REPAIRING");
-                OpenRouterClient.Completion repair = call(client, settings, model(settings.getRepairModel(), settings.getGenerationModel()), settings.getRepairFallbacks(), budget, PromptBuilder.repair(attempt.problems(), last), PrismSchemas.document(mapper), PrismSchemas.DOCUMENT_SCHEMA);
+                OpenRouterClient.Completion repair = call(client, settings, WebsiteUiModelSelector.Task.REPAIR, budget, PromptBuilder.repair(attempt.problems(), last), PrismSchemas.document(mapper), PrismSchemas.DOCUMENT_SCHEMA);
                 note(stages, "REPAIRING", repair);
                 input += repair.inputTokens();
                 output += repair.outputTokens();
@@ -325,7 +335,7 @@ public class WebsiteDocumentGenerator {
             DesignQuality.Result quality = DesignQuality.assess(attempt.document(), direction);
             if (quality.overall() < 72 && repairs == 0 && repairsAllowed > 0) {
                 stage.accept("REPAIRING");
-                OpenRouterClient.Completion refine = call(client, settings, model(settings.getRepairModel(), settings.getGenerationModel()), settings.getRepairFallbacks(), budget, PromptBuilder.refine(quality.issues(), attempt.document(), category, answers, planNode), PrismSchemas.document(mapper), PrismSchemas.DOCUMENT_SCHEMA);
+                OpenRouterClient.Completion refine = call(client, settings, WebsiteUiModelSelector.Task.REFINEMENT, budget, PromptBuilder.refine(quality.issues(), attempt.document(), category, answers, planNode), PrismSchemas.document(mapper), PrismSchemas.DOCUMENT_SCHEMA);
                 note(stages, "REFINING", refine);
                 input += refine.inputTokens();
                 output += refine.outputTokens();
@@ -352,24 +362,83 @@ public class WebsiteDocumentGenerator {
             return new Generated(planNode, last, directed, attempt.warnings(), input, output, usedModel, repairs, budget.cost(), budget.latencyMs(), budget.requests(), report);
         } catch (OpenRouterException exception) {
             throw new GenerationFailure(exception.getMessage(), planNode, last, input, output, repairs, budget, usage(budget, stages, null));
+        } finally {
+            lastSelection.remove();
         }
     }
 
-    private OpenRouterClient.Completion call(OpenRouterClient client, PrismProperties.OpenRouter settings, String model, String fallbacks, AttemptBudget budget, String user, JsonNode schema, String schemaName) {
+    private OpenRouterClient.Completion call(
+            OpenRouterClient client,
+            PrismProperties.OpenRouter settings,
+            WebsiteUiModelSelector.Task task,
+            AttemptBudget budget,
+            String user,
+            JsonNode schema,
+            String schemaName
+    ) {
+        WebsiteUiModelSelector.Selection selection = resolveSelection(task, settings);
+        if (selection.model() == null || selection.model().isBlank()) {
+            throw new OpenRouterException(
+                    OpenRouterException.Kind.AUTH,
+                    selection.strategy() == WebsiteUiModelSelector.Strategy.PREMIUM
+                            ? "Premium UI models are enabled but no usable model id is configured."
+                            : "Website generation is not configured."
+            );
+        }
         OpenRouterClient.Route route = new OpenRouterClient.Route(
-                model(model, ""),
-                OpenRouterModels.split(fallbacks),
-                settings.isAllowPaidFallback(),
+                selection.model(),
+                selection.fallbacks(),
+                selection.allowPaidFallback(),
                 settings.getMaxRetries(),
                 settings.getMaxFallbacks(),
                 budget
         );
-        return client.complete(route, PromptBuilder.SYSTEM, user, schema, schemaName);
+        String system = selection.strategy() == WebsiteUiModelSelector.Strategy.PREMIUM
+                ? PromptBuilder.premiumSystem()
+                : PromptBuilder.SYSTEM;
+        OpenRouterClient.Completion completion = client.complete(route, system, user, schema, schemaName);
+        lastSelection.set(selection);
+        return completion;
+    }
+
+    private WebsiteUiModelSelector.Selection resolveSelection(WebsiteUiModelSelector.Task task, PrismProperties.OpenRouter settings) {
+        if (modelSelector != null) {
+            return modelSelector.select(task, settings);
+        }
+        // Legacy/unit-test path: preserve direct free-model settings behaviour.
+        return switch (task) {
+            case PLANNING -> new WebsiteUiModelSelector.Selection(
+                    WebsiteUiModelSelector.Strategy.FREE,
+                    task,
+                    model(settings.getPlanningModel(), settings.getGenerationModel()),
+                    OpenRouterModels.split(settings.getPlanningFallbacks()),
+                    settings.isAllowPaidFallback()
+            );
+            case GENERATION -> new WebsiteUiModelSelector.Selection(
+                    WebsiteUiModelSelector.Strategy.FREE,
+                    task,
+                    model(settings.getGenerationModel(), settings.getPlanningModel()),
+                    OpenRouterModels.split(settings.getGenerationFallbacks()),
+                    settings.isAllowPaidFallback()
+            );
+            case REPAIR, REFINEMENT -> new WebsiteUiModelSelector.Selection(
+                    WebsiteUiModelSelector.Strategy.FREE,
+                    task,
+                    model(settings.getRepairModel(), settings.getGenerationModel()),
+                    OpenRouterModels.split(settings.getRepairFallbacks()),
+                    settings.isAllowPaidFallback()
+            );
+        };
     }
 
     private void note(com.fasterxml.jackson.databind.node.ArrayNode stages, String name, OpenRouterClient.Completion completion) {
         ObjectNode stage = stages.addObject();
         stage.put("stage", name);
+        WebsiteUiModelSelector.Selection selection = lastSelection.get();
+        if (selection != null) {
+            stage.put("strategy", selection.strategy().name());
+            stage.put("task", selection.task().name());
+        }
         stage.put("requestedModel", completion.requestedModel());
         stage.put("actualModel", completion.model());
         stage.put("inputTokens", completion.inputTokens());
@@ -394,6 +463,14 @@ public class WebsiteDocumentGenerator {
         usage.put("requests", budget.requests());
         usage.put("retrievalMode", retrievalMode == null ? "none" : retrievalMode);
         usage.set("retrievedReferences", retrieved == null ? mapper.createArrayNode() : retrieved);
+        WebsiteUiModelSelector.Selection selection = lastSelection.get();
+        if (selection != null) {
+            usage.put("uiModelStrategy", selection.strategy().name());
+        } else if (modelSelector != null) {
+            usage.put("uiModelStrategy", modelSelector.strategy().name());
+        } else {
+            usage.put("uiModelStrategy", WebsiteUiModelSelector.Strategy.FREE.name());
+        }
         if (qa != null) {
             usage.set("visualQa", qa);
         }
@@ -422,21 +499,24 @@ public class WebsiteDocumentGenerator {
         return blueprint;
     }
 
-    private void applyDirectorDesignHints(ObjectNode designSystem, JsonNode creative) {
+    private void applyDirectorDesignHints(ObjectNode designSystem, JsonNode creative, JsonNode answers) {
         JsonNode hints = creative.path("designSystemHints");
         if (!hints.isObject()) {
             return;
         }
+        boolean keepUserColours = DesignDirection.hasUserPalette(answers);
         ObjectNode colors = designSystem.with("colors");
-        if (hints.path("background").isTextual()) {
-            colors.put("background", hints.path("background").asText());
-        }
-        if (hints.path("text").isTextual()) {
-            colors.put("text", hints.path("text").asText());
-        }
-        if (hints.path("accent").isTextual()) {
-            colors.put("accent", hints.path("accent").asText());
-            colors.put("primary", hints.path("accent").asText());
+        if (!keepUserColours) {
+            if (hints.path("background").isTextual()) {
+                colors.put("background", hints.path("background").asText());
+            }
+            if (hints.path("text").isTextual()) {
+                colors.put("text", hints.path("text").asText());
+            }
+            if (hints.path("accent").isTextual()) {
+                colors.put("accent", hints.path("accent").asText());
+                colors.put("primary", hints.path("accent").asText());
+            }
         }
         ObjectNode fonts = designSystem.with("fonts");
         if (hints.path("displayFont").isTextual()) {
@@ -510,7 +590,10 @@ public class WebsiteDocumentGenerator {
         throw new OpenRouterException(OpenRouterException.Kind.AUTH, "Website generation is not configured.");
     }
 
-    public record Generated(JsonNode plan, JsonNode raw, ObjectNode document, List<String> warnings, int inputTokens, int outputTokens, String model, int repairs, BigDecimal costUsd, long latencyMs, int requests, JsonNode usage) {
+    public record Generated(JsonNode plan, JsonNode raw, ObjectNode document, List<String> warnings, int inputTokens, int outputTokens, String model, int repairs, BigDecimal costUsd, long latencyMs, int requests, JsonNode usage, JsonNode imagePlan) {
+        public Generated(JsonNode plan, JsonNode raw, ObjectNode document, List<String> warnings, int inputTokens, int outputTokens, String model, int repairs, BigDecimal costUsd, long latencyMs, int requests, JsonNode usage) {
+            this(plan, raw, document, warnings, inputTokens, outputTokens, model, repairs, costUsd, latencyMs, requests, usage, plan == null ? null : plan.get("imagePlan"));
+        }
     }
 
     public static class GenerationFailure extends RuntimeException {

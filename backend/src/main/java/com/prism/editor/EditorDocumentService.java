@@ -8,7 +8,6 @@ import com.prism.event.EventService;
 import com.prism.event.EventSite;
 import com.prism.media.MediaRepository;
 import com.prism.revision.EventRevision;
-import com.prism.shared.config.PrismProperties;
 import com.prism.shared.exception.ApiException;
 import com.prism.shared.security.UserPrincipal;
 import org.springframework.stereotype.Service;
@@ -29,15 +28,13 @@ public class EditorDocumentService {
     private final MediaRepository media;
     private final DocumentValidator validator;
     private final ObjectMapper mapper;
-    private final PrismProperties properties;
 
     public EditorDocumentService(
             EditorDocumentRepository documents,
             EditorVersionRepository versions,
             EventService events,
             MediaRepository media,
-            ObjectMapper mapper,
-            PrismProperties properties
+            ObjectMapper mapper
     ) {
         this.documents = documents;
         this.versions = versions;
@@ -45,18 +42,10 @@ public class EditorDocumentService {
         this.media = media;
         this.validator = new DocumentValidator(mapper);
         this.mapper = mapper;
-        this.properties = properties;
-    }
-
-    public void requireEnabled() {
-        if (!properties.isAdvancedEditorEnabled()) {
-            throw ApiException.forbidden("The advanced editor is turned off.");
-        }
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> read(UUID eventId, UserPrincipal principal) {
-        requireEnabled();
         EventSite event = events.requireOwner(eventId, principal);
         EventRevision revision = events.latest(event.id);
         EditorDocument document = documents.findByRevisionId(revision.id)
@@ -66,7 +55,6 @@ public class EditorDocumentService {
 
     @Transactional
     public Map<String, Object> convert(UUID eventId, UserPrincipal principal) {
-        requireEnabled();
         EventSite event = events.requireOwner(eventId, principal);
         EventRevision revision = draft(event);
         if (documents.findByRevisionId(revision.id).isPresent()) {
@@ -92,7 +80,6 @@ public class EditorDocumentService {
 
     @Transactional
     public Map<String, Object> save(UUID eventId, JsonNode document, int version, UserPrincipal principal, boolean history) {
-        requireEnabled();
         EventSite event = events.requireOwner(eventId, principal);
         EventRevision revision = draft(event);
         ObjectNode clean = validator.sanitize(document);
@@ -115,7 +102,6 @@ public class EditorDocumentService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> history(UUID eventId, UserPrincipal principal) {
-        requireEnabled();
         EventSite event = events.requireOwner(eventId, principal);
         EditorDocument document = documents.findByRevisionId(events.latest(event.id).id)
                 .orElseThrow(() -> ApiException.notFound("This event has no visual page yet."));
@@ -130,7 +116,6 @@ public class EditorDocumentService {
 
     @Transactional
     public Map<String, Object> restore(UUID eventId, UUID versionId, UserPrincipal principal) {
-        requireEnabled();
         EventSite event = events.requireOwner(eventId, principal);
         EventRevision revision = draft(event);
         EditorDocument current = documents.findByRevisionId(revision.id)
@@ -162,7 +147,6 @@ public class EditorDocumentService {
     }
 
     public ObjectNode validate(UUID eventId, JsonNode document, UserPrincipal principal) {
-        requireEnabled();
         events.requireOwner(eventId, principal);
         return validator.sanitize(document);
     }
@@ -205,11 +189,7 @@ public class EditorDocumentService {
     }
 
     private EventRevision draft(EventSite event) {
-        EventRevision revision = events.latest(event.id);
-        if (!"DRAFT".equals(revision.submissionStatus)) {
-            throw ApiException.badRequest("Save a draft before editing the visual page.");
-        }
-        return revision;
+        return events.ensureEditableDraft(event);
     }
 
     private void assertMedia(UUID eventId, JsonNode document) {

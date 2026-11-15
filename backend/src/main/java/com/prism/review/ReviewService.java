@@ -4,6 +4,10 @@ import com.prism.event.EventRepository;
 import com.prism.event.EventService;
 import com.prism.event.EventSite;
 import com.prism.hosting.HostingService;
+import com.prism.moderation.ModerationJobService;
+import com.prism.moderation.ModerationReportService;
+import com.prism.moderation.WebsiteModerationReport;
+import com.prism.moderation.WebsiteModerationReportRepository;
 import com.prism.notification.OutboxService;
 import com.prism.publishing.PublishingService;
 import com.prism.revision.EventRevision;
@@ -32,6 +36,9 @@ public class ReviewService {
     private final OutboxService outbox;
     private final AuditService audit;
     private final UserRepository users;
+    private final WebsiteModerationReportRepository moderationReports;
+    private final ModerationReportService moderation;
+    private final ModerationJobService moderationJobs;
 
     public ReviewService(
             EventRepository events,
@@ -42,7 +49,10 @@ public class ReviewService {
             PublishingService publishing,
             OutboxService outbox,
             AuditService audit,
-            UserRepository users
+            UserRepository users,
+            WebsiteModerationReportRepository moderationReports,
+            ModerationReportService moderation,
+            ModerationJobService moderationJobs
     ) {
         this.events = events;
         this.eventService = eventService;
@@ -53,6 +63,9 @@ public class ReviewService {
         this.outbox = outbox;
         this.audit = audit;
         this.users = users;
+        this.moderationReports = moderationReports;
+        this.moderation = moderation;
+        this.moderationJobs = moderationJobs;
     }
 
     @Transactional
@@ -68,7 +81,12 @@ public class ReviewService {
                 events.save(event);
             }
         }
-        return eventService.present(event, revision == null ? eventService.latest(event.id) : revision);
+        EventRevision shown = revision == null ? eventService.latest(event.id) : revision;
+        if (shown != null && moderationReports.findByRevisionId(shown.id).isEmpty()
+                && ("SUBMITTED".equals(shown.submissionStatus) || "IN_REVIEW".equals(shown.submissionStatus))) {
+            moderationJobs.enqueue(shown);
+        }
+        return eventService.present(event, shown);
     }
 
     @Transactional
@@ -78,6 +96,13 @@ public class ReviewService {
         EventRevision revision = currentQueue(event.id);
         if (revision == null) {
             throw ApiException.conflict("There is no submission waiting on a reviewer.");
+        }
+        WebsiteModerationReport report = moderationReports.findByRevisionId(revision.id).orElse(null);
+        if (moderation.blocksApproval(report)) {
+            throw ApiException.conflict("Wait for AI content moderation to finish before recording a review decision.");
+        }
+        if ("APPROVED".equals(decision) && (report == null || !"COMPLETED".equals(report.status))) {
+            throw ApiException.conflict("Approval requires a completed moderation report. Retry moderation or request changes.");
         }
         String note = comments == null ? "" : comments.trim();
         if (!"APPROVED".equals(decision) && note.length() < 3) {

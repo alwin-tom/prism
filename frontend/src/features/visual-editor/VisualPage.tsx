@@ -1,11 +1,15 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type DragEvent, type MouseEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type DragEvent, type MouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { api, errorMessage } from "../../services/api";
 import { collectFonts, presentedStyles, resolvedTokens, stack, useFonts, type TypographySettings } from "../typography/fonts";
+import { hasOverlay, overlayCss, BACKGROUND_META_KEYS } from "./background";
 import type { Breakpoint, EditorDocument, EditorNode } from "./document";
 import { findNode, propsFor, stylesFor, viewportDevice } from "./document";
 import { alignMove, centeredOn, contentBoxWidth, contentFrame, edgeDrift, moveStyles, pageFrame, percentOf, readRotate, resizeStyles, rotateTransform, shiftFrame, usedOffset, type Frame, type GuideLine, type Handle } from "./geometry";
+import { RichTextContent, WholeLink, linkStyleFromProps } from "./RichTextContent";
+import { MarqueeFrame } from "./MarqueeFrame";
+import { runsHaveLinks, effectiveRuns, type PropValue } from "./richText";
 
 export type VisualRsvp = {
   slug: string;
@@ -107,9 +111,11 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, countdownFal
   onGuides?: (guides: GuideLine[]) => void;
   onOpenRsvp?: () => void;
 }) {
-  const style = css(presentedStyles(node, breakpoint, tokens));
+  const presented = presentedStyles(node, breakpoint, tokens);
+  const style = softenTextEllipse(node, applySurface(css(presented), presented, mediaEventId));
   const local = propsFor(node, breakpoint);
   if (node.type === "SPACER") style.height = `${Number(local.size ?? 24)}px`;
+  const overlay = node.type === "IMAGE" ? null : overlayCss(presented);
   const selected = selectedId === node.id;
   const editing = Boolean(onSelect);
   const select = (event: MouseEvent) => {
@@ -188,16 +194,57 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, countdownFal
   const body = node.children.map((child) => (
     <VisualNode key={child.id} node={child} root={root} tokens={tokens} breakpoint={breakpoint} mediaEventId={mediaEventId} countdownFallback={countdownFallback} selectedId={selectedId} selectedIds={selectedIds} zoom={zoom} onSelect={onSelect} onDropType={onDropType} onResize={onResize} onUploadPicture={onUploadPicture} onAddPictures={onAddPictures} onGuides={onGuides} onOpenRsvp={onOpenRsvp} />
   ));
+  const veil = overlay ? <span className="visual-bg-overlay" aria-hidden style={{ background: overlay.background, opacity: overlay.opacity }} /> : null;
   if (node.type === "HEADING") {
     const level = Math.min(6, Math.max(1, Number(node.props.level ?? 2)));
     const Tag = `h${level}` as "h1";
-    return <Tag {...edit} style={style}>{String(node.props.text ?? "")}</Tag>;
+    const runs = effectiveRuns(node.props as Record<string, PropValue>);
+    return (
+      <Tag {...edit} style={style}>
+        {veil}
+        <WholeLink
+          href={String(node.props.href ?? "")}
+          target={String(node.props.linkTarget ?? "_self")}
+          title={String(node.props.linkTitle ?? "")}
+          editing={editing}
+          hasInlineLinks={runsHaveLinks(runs)}
+        >
+          <RichTextContent props={node.props as Record<string, PropValue>} editing={editing} linkStyle={linkStyleFromProps(node.props as Record<string, PropValue>)} />
+        </WholeLink>
+      </Tag>
+    );
   }
-  if (node.type === "PARAGRAPH") return <p {...edit} style={style}>{String(node.props.text ?? "")}</p>;
+  if (node.type === "PARAGRAPH") {
+    const runs = effectiveRuns(node.props as Record<string, PropValue>);
+    return (
+      <p {...edit} style={style}>
+        {veil}
+        <WholeLink
+          href={String(node.props.href ?? "")}
+          target={String(node.props.linkTarget ?? "_self")}
+          title={String(node.props.linkTitle ?? "")}
+          editing={editing}
+          hasInlineLinks={runsHaveLinks(runs)}
+        >
+          <RichTextContent props={node.props as Record<string, PropValue>} editing={editing} linkStyle={linkStyleFromProps(node.props as Record<string, PropValue>)} />
+        </WholeLink>
+      </p>
+    );
+  }
   if (node.type === "QUOTE") {
+    const runs = effectiveRuns(node.props as Record<string, PropValue>);
     return (
       <blockquote {...edit} style={style}>
-        <p>{String(node.props.text ?? "")}</p>
+        {veil}
+        <WholeLink
+          href={String(node.props.href ?? "")}
+          target={String(node.props.linkTarget ?? "_self")}
+          title={String(node.props.linkTitle ?? "")}
+          editing={editing}
+          hasInlineLinks={runsHaveLinks(runs)}
+        >
+          <p><RichTextContent props={node.props as Record<string, PropValue>} editing={editing} linkStyle={linkStyleFromProps(node.props as Record<string, PropValue>)} /></p>
+        </WholeLink>
         {String(node.props.attribution ?? "") ? <cite>{String(node.props.attribution)}</cite> : null}
       </blockquote>
     );
@@ -220,16 +267,31 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, countdownFal
             onOpenRsvp();
           }}
         >
-          {label}
+          {veil}{label}
         </button>
       );
     }
+    if (editing) {
+      return <span {...button} style={style} data-href={safe ? href : undefined}>{veil}{label}</span>;
+    }
     return safe
-      ? <a {...button} style={style} href={href}>{label}</a>
-      : <span {...button} style={style}>{label}</span>;
+      ? <a {...button} style={style} href={href} target={String(node.props.linkTarget ?? "") === "_blank" ? "_blank" : undefined} rel={String(node.props.linkTarget ?? "") === "_blank" ? "noopener noreferrer" : undefined}>{veil}{label}</a>
+      : <span {...button} style={style}>{veil}{label}</span>;
+  }
+  if (node.type === "MARQUEE") {
+    return (
+      <MarqueeFrame
+        props={local as Record<string, PropValue>}
+        style={style}
+        edit={edit}
+        overlay={veil}
+        mediaEventId={mediaEventId}
+        editing={editing}
+      />
+    );
   }
   if (node.type === "CAROUSEL") {
-    return <CarouselFrame node={node} edit={edit} style={style} mediaEventId={mediaEventId} breakpoint={breakpoint} paused={editing} onUploadPicture={onUploadPicture} onAddPictures={onAddPictures} />;
+    return <CarouselFrame node={node} edit={edit} style={style} mediaEventId={mediaEventId} breakpoint={breakpoint} paused={editing} onUploadPicture={onUploadPicture} onAddPictures={onAddPictures} overlay={veil} />;
   }
   if (node.type === "IMAGE") {
     const src = mediaSrc(String(local.mediaId ?? ""), mediaEventId);
@@ -241,6 +303,7 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, countdownFal
     const target = String(local.target ?? "").trim() || String(countdownFallback ?? "").trim();
     return (
       <div {...edit} style={style} data-kind="COUNTDOWN">
+        {veil}
         {String(local.label ?? "") ? <p className="visual-countdown-label">{String(local.label)}</p> : null}
         <CountdownFace target={target} />
       </div>
@@ -249,6 +312,7 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, countdownFal
   if (node.type === "FAQ_ACCORDION") {
     return (
       <section {...edit} style={style} data-kind="FAQ_ACCORDION">
+        {veil}
         {String(local.title ?? "") ? <h2>{String(local.title)}</h2> : null}
         {body}
       </section>
@@ -257,14 +321,16 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, countdownFal
   if (node.type === "FAQ_ITEM") {
     return (
       <details {...edit} style={style} data-kind="FAQ_ITEM">
+        {veil}
         <summary>{String(local.title ?? "Question")}</summary>
-        <p>{String(local.text ?? "")}</p>
+        <p><RichTextContent props={local as Record<string, PropValue>} editing={editing} linkStyle={linkStyleFromProps(local as Record<string, PropValue>)} /></p>
       </details>
     );
   }
   if (node.type === "TIMELINE") {
     return (
       <section {...edit} style={style} data-kind="TIMELINE">
+        {veil}
         {String(local.title ?? "") ? <h2>{String(local.title)}</h2> : null}
         <ol className="visual-timeline">{body}</ol>
       </section>
@@ -273,12 +339,13 @@ function VisualNode({ node, root, tokens, breakpoint, mediaEventId, countdownFal
   if (node.type === "TIMELINE_ITEM") {
     return (
       <li {...edit} style={style} data-kind="TIMELINE_ITEM">
+        {veil}
         <strong>{String(local.title ?? "")}</strong>
-        {String(local.text ?? "") ? <p>{String(local.text)}</p> : null}
+        {String(local.text ?? "") ? <p><RichTextContent props={local as Record<string, PropValue>} editing={editing} linkStyle={linkStyleFromProps(local as Record<string, PropValue>)} /></p> : null}
       </li>
     );
   }
-  return <div {...edit} style={style} data-kind={node.type}>{body}</div>;
+  return <div {...edit} style={style} data-kind={node.type}>{veil}{body}</div>;
 }
 
 function CountdownFace({ target }: { target: string }) {
@@ -667,7 +734,7 @@ function EmptyPicture({ edit, style, onFile }: {
   );
 }
 
-function CarouselFrame({ node, edit, style, mediaEventId, breakpoint, paused, onUploadPicture, onAddPictures }: {
+function CarouselFrame({ node, edit, style, mediaEventId, breakpoint, paused, onUploadPicture, onAddPictures, overlay }: {
   node: EditorNode;
   edit: {
     className?: string;
@@ -679,6 +746,7 @@ function CarouselFrame({ node, edit, style, mediaEventId, breakpoint, paused, on
   paused: boolean;
   onUploadPicture?: (nodeId: string, file: File) => Promise<void>;
   onAddPictures?: (parentId: string, files: File[]) => Promise<void>;
+  overlay?: ReactNode;
 }) {
   const slides = node.children.filter((child) => child.type === "IMAGE");
   const local = propsFor(node, breakpoint);
@@ -720,6 +788,7 @@ function CarouselFrame({ node, edit, style, mediaEventId, breakpoint, paused, on
         if (Math.abs(delta) > 40) setIndex((value) => value + (delta < 0 ? 1 : -1));
       }}
     >
+      {overlay}
       <div className="prism-track" style={preset === "fade" ? undefined : { transform: `translateX(-${(current * 100) / view}%)` }}>
         {(slides.length ? slides : [node]).map((slide, position) => {
           const media = String(slide.props.mediaId ?? "");
@@ -844,7 +913,7 @@ function horizontalBasis(element: HTMLElement, zoom: number) {
   return contentBoxWidth(parent);
 }
 
-const SKIPPED_STYLE = new Set(["fontId", "fontRole"]);
+const SKIPPED_STYLE = new Set<string>(["fontId", "fontRole", ...BACKGROUND_META_KEYS]);
 
 function css(styles: Record<string, string>): CSSProperties {
   const next: Record<string, string> = {};
@@ -874,6 +943,72 @@ function css(styles: Record<string, string>): CSSProperties {
     next.WebkitTextFillColor = "transparent";
   }
   return next as CSSProperties;
+}
+
+/** Turn circular text panels into readable rounded cards (editor + published). */
+function softenTextEllipse(node: EditorNode, style: CSSProperties): CSSProperties {
+  if (node.type === "IMAGE" || node.type === "BUTTON") return style;
+  const radius = typeof style.borderRadius === "string" ? style.borderRadius : "";
+  if (!isEllipseRadius(radius) || !holdsReadableText(node)) return style;
+  const next: CSSProperties = {
+    ...style,
+    borderRadius: "24px",
+    textAlign: "center",
+    overflow: "hidden",
+  };
+  const padding = typeof style.padding === "string" ? style.padding : "";
+  if (!padding || thinPadding(padding)) next.padding = "36px 32px";
+  if (!style.display) {
+    next.display = "flex";
+    next.flexDirection = "column";
+    next.justifyContent = "center";
+    next.alignItems = "center";
+    next.gap = "12px";
+  }
+  return next;
+}
+
+function isEllipseRadius(radius: string) {
+  const value = radius.trim().toLowerCase();
+  if (!value.endsWith("%")) return false;
+  const amount = Number.parseFloat(value);
+  return Number.isFinite(amount) && amount >= 40;
+}
+
+function holdsReadableText(node: EditorNode): boolean {
+  if (["HEADING", "PARAGRAPH", "QUOTE", "FAQ_ITEM", "TIMELINE_ITEM"].includes(node.type)) {
+    return Boolean(String(node.props.text ?? node.props.title ?? "").trim());
+  }
+  return node.children.some(holdsReadableText);
+}
+
+function thinPadding(padding: string) {
+  return padding.split(/\s+/).some((part) => {
+    const amount = Number.parseFloat(part);
+    if (!Number.isFinite(amount)) return false;
+    return part.includes("%") ? amount < 12 : amount < 24;
+  });
+}
+
+/** Resolve backgroundMediaId to a safe url() and prepare stacking for overlays. */
+function applySurface(style: CSSProperties, styles: Record<string, string>, mediaEventId?: string): CSSProperties {
+  const next: CSSProperties = { ...style };
+  const mediaId = (styles.backgroundMediaId ?? "").trim();
+  const src = mediaSrc(mediaId, mediaEventId);
+  const overlay = hasOverlay(styles);
+  if (src && !styles.textGradient) {
+    next.backgroundImage = `url("${src}")`;
+    if (!next.backgroundSize) next.backgroundSize = styles.backgroundSize || "cover";
+    if (!next.backgroundPosition) next.backgroundPosition = styles.backgroundPosition || "center";
+    if (!next.backgroundRepeat) next.backgroundRepeat = styles.backgroundRepeat || "no-repeat";
+    if (!next.backgroundAttachment) next.backgroundAttachment = styles.backgroundAttachment || "scroll";
+  }
+  if (src || overlay) {
+    const position = typeof next.position === "string" ? next.position : "";
+    if (!position || position === "static") next.position = "relative";
+    next.isolation = "isolate";
+  }
+  return next;
 }
 
 function mediaSrc(value: string, eventId?: string) {

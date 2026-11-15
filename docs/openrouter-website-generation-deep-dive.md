@@ -22,13 +22,12 @@ Companion overview: [ai-website-generation.md](./ai-website-generation.md).
 
 ## 1. Product shape (what the user experiences)
 
-1. Feature flag `PRISM_AI_WEBSITE_GENERATION_ENABLED=true` (also exposed as `aiWebsiteGenerationEnabled` on `GET /api/v1/config/features`).
-2. Customer opens the guided create flow (not the template wizard at `/app/new`).
-3. Chooses a **website category** → server creates a draft event named **"Untitled website"** + a creation session pinned to a questionnaire version.
-4. Answers the questionnaire (conditional questions; images upload into the existing media store).
-5. Completes answers → **review** screen.
-6. Clicks generate → job `QUEUED` → async OpenRouter pipeline → preview.
-7. Opens studio at `/app/events/{id}/studio`. Review / payment / publish are unchanged; generation never publishes.
+1. Customer opens the guided create flow at `/app/create` (the template wizard at `/app/new` remains available).
+2. Chooses a **website category** → server creates a draft event named **"Untitled website"** + a creation session pinned to a questionnaire version.
+3. Answers the questionnaire (conditional questions; images upload into the existing media store).
+4. Completes answers → **review** screen.
+5. Clicks generate → job `QUEUED` → async OpenRouter pipeline → preview.
+6. Opens studio at `/app/events/{id}/studio`. Review / payment / publish are unchanged; generation never publishes.
 
 Nothing in the browser talks to OpenRouter. Only the backend holds `OPENROUTER_API_KEY`.
 
@@ -102,7 +101,6 @@ That is a **document** user prompt with the **answers JSON used as the “plan�
 
 | Variable | Role | Default |
 |----------|------|---------|
-| `PRISM_AI_WEBSITE_GENERATION_ENABLED` | Master switch | `false` |
 | `PRISM_AI_MAX_GENERATIONS_PER_USER` | Lifetime job count per user | `20` |
 | `OPENROUTER_API_KEY` | Bearer token (server only) | empty |
 | `OPENROUTER_BASE_URL` | API root | `https://openrouter.ai/api/v1` |
@@ -788,7 +786,7 @@ Useful for analysing a run:
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | `/api/v1/config/features` | `aiWebsiteGenerationEnabled` |
+| GET | `/api/v1/config/features` | Runtime flags (e.g. `imageGenerationEnabled`) |
 | GET | `/api/v1/website-categories` | Active categories |
 | GET | `/api/v1/questionnaires/{code}` | Questions for category |
 | POST | `/api/v1/website-creation-sessions` | Start draft + session |

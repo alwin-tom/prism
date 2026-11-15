@@ -90,17 +90,31 @@ public class PublicHtmlRenderer {
         switch (type) {
             case "HEADING" -> {
                 int level = Math.min(6, Math.max(1, props.path("level").asInt(2)));
-                body.append("<h").append(level).append(">").append(esc(props.path("text").asText(""))).append("</h").append(level).append(">");
+                body.append("<h").append(level).append(">").append(richOrPlain(props)).append("</h").append(level).append(">");
             }
-            case "PARAGRAPH" -> body.append("<p>").append(esc(props.path("text").asText(""))).append("</p>");
+            case "PARAGRAPH" -> body.append("<p>").append(richOrPlain(props)).append("</p>");
             case "BUTTON" -> {
                 String href = props.path("href").asText("");
                 String label = esc(props.path("text").asText(""));
-                if (href.startsWith("https://") || href.startsWith("http://") || href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("#") || href.startsWith("/")) {
-                    body.append("<p><a href=\"").append(esc(href)).append("\">").append(label).append("</a></p>");
+                if (safeHref(href)) {
+                    body.append("<p><a href=\"").append(esc(href)).append("\"").append(targetAttrs(props.path("linkTarget").asText(""))).append(">").append(label).append("</a></p>");
                 } else if (!label.isBlank()) {
                     body.append("<p>").append(label).append("</p>");
                 }
+            }
+            case "MARQUEE" -> {
+                body.append("<section class=\"marquee\">");
+                if (props.path("items").isArray() && props.path("items").size() > 0) {
+                    for (JsonNode item : props.path("items")) {
+                        if ("image".equals(item.path("kind").asText(""))) {
+                            continue;
+                        }
+                        body.append("<p>").append(richOrPlain(item)).append("</p>");
+                    }
+                } else {
+                    body.append("<p>").append(esc(props.path("text").asText(""))).append("</p>");
+                }
+                body.append("</section>");
             }
             case "IMAGE" -> {
                 String src = props.path("mediaId").asText("");
@@ -109,7 +123,7 @@ public class PublicHtmlRenderer {
                 }
             }
             case "QUOTE" -> {
-                body.append("<blockquote><p>").append(esc(props.path("text").asText(""))).append("</p>");
+                body.append("<blockquote><p>").append(richOrPlain(props)).append("</p>");
                 String attribution = props.path("attribution").asText("");
                 if (!attribution.isBlank()) {
                     body.append("<cite>").append(esc(attribution)).append("</cite>");
@@ -133,9 +147,9 @@ public class PublicHtmlRenderer {
                 body.append("</section>");
             }
             case "FAQ_ITEM" -> body.append("<details><summary>").append(esc(props.path("title").asText("")))
-                    .append("</summary><p>").append(esc(props.path("text").asText(""))).append("</p></details>");
+                    .append("</summary><p>").append(richOrPlain(props)).append("</p></details>");
             case "TIMELINE_ITEM" -> body.append("<div><strong>").append(esc(props.path("title").asText("")))
-                    .append("</strong><p>").append(esc(props.path("text").asText(""))).append("</p></div>");
+                    .append("</strong><p>").append(richOrPlain(props)).append("</p></div>");
             default -> {
                 for (JsonNode child : node.path("children")) {
                     appendVisual(body, child);
@@ -262,6 +276,51 @@ public class PublicHtmlRenderer {
                 + "h2{font-size:28px;margin:40px 0 8px}p,li{font-size:18px}a{color:inherit}"
                 + "p.prism-credit{margin:32px 0 0;font:11px/16px sans-serif;letter-spacing:.01em;text-align:center;opacity:.55}</style>"
                 + "</head><body>" + body + "</body></html>";
+    }
+
+    private String richOrPlain(JsonNode props) {
+        JsonNode rich = props.path("richText");
+        if (rich.isArray() && rich.size() > 0) {
+            StringBuilder out = new StringBuilder();
+            for (JsonNode run : rich) {
+                String text = esc(run.path("text").asText(""));
+                String href = run.path("href").asText("");
+                if (safeHref(href)) {
+                    out.append("<a href=\"").append(esc(href)).append("\"")
+                            .append(targetAttrs(run.path("target").asText("")))
+                            .append(run.path("title").asText("").isBlank() ? "" : " title=\"" + esc(run.path("title").asText("")) + "\"")
+                            .append(">").append(text).append("</a>");
+                } else {
+                    out.append(text);
+                }
+            }
+            return out.toString();
+        }
+        String plain = esc(props.path("text").asText(""));
+        String href = props.path("href").asText("");
+        if (safeHref(href) && !plain.isBlank()) {
+            return "<a href=\"" + esc(href) + "\"" + targetAttrs(props.path("linkTarget").asText("")) + ">" + plain + "</a>";
+        }
+        return plain;
+    }
+
+    private static boolean safeHref(String href) {
+        if (href == null || href.isBlank()) {
+            return false;
+        }
+        String lower = href.toLowerCase();
+        if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:")) {
+            return false;
+        }
+        return href.startsWith("https://") || href.startsWith("http://") || href.startsWith("mailto:")
+                || href.startsWith("tel:") || href.startsWith("#") || href.startsWith("/");
+    }
+
+    private static String targetAttrs(String target) {
+        if ("_blank".equalsIgnoreCase(target)) {
+            return " target=\"_blank\" rel=\"noopener noreferrer\"";
+        }
+        return "";
     }
 
     private static String esc(String value) {

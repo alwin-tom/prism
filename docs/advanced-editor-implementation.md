@@ -1,6 +1,6 @@
 # Advanced editor implementation
 
-WebAux keeps the template editor. The visual editor is a second mode on the same event revision. `PRISM_ADVANCED_EDITOR_ENABLED` defaults to false. `GET /api/v1/config/features` returns `{ "advancedEditorEnabled": true|false }`. Editor writes check the flag. A published page still renders a saved visual document when the flag is off.
+WebAux keeps the template editor. The visual editor is always available as a second mode on the same event revision. A published page renders a saved visual document through the shared `VisualPage` renderer.
 
 ## Architecture
 

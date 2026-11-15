@@ -32,8 +32,7 @@ public class OpenRouterEmbeddingClient implements EmbeddingClient {
     @Override
     public boolean available() {
         PrismProperties.Creation creation = properties.getCreation();
-        return creation.isDesignEmbeddingsEnabled()
-                && "openrouter".equalsIgnoreCase(blank(creation.getDesignEmbeddingProvider()))
+        return "openrouter".equalsIgnoreCase(blank(creation.getDesignEmbeddingProvider()))
                 && !blank(properties.getOpenrouter().getApiKey()).isBlank()
                 && !blank(creation.getDesignEmbeddingModel()).isBlank();
     }

@@ -3,7 +3,16 @@ import { Check, Info, Loader2, Sparkles } from "lucide-react";
 import { Button } from "../../components/ui";
 import type { EventSite } from "../../types";
 
-type StageCode = "QUEUED" | "PLANNING" | "GENERATING" | "REPAIRING" | "VALIDATING" | "COMPLETED" | "FAILED" | "CANCELLED";
+type StageCode = "QUEUED" | "PLANNING" | "GENERATING" | "REPAIRING" | "VALIDATING" | "IMAGES" | "COMPLETED" | "FAILED" | "CANCELLED";
+
+export type ImageProgress = {
+  total: number;
+  completed: number;
+  failed: number;
+  skipped: number;
+  pending: number;
+  currentLabel: string;
+};
 
 type StageDef = {
   code: StageCode;
@@ -49,6 +58,13 @@ const STAGES: StageDef[] = [
     activeHint: "Running checks…",
     activities: ["Checking page structure", "Verifying media links", "Preparing preview"],
   },
+  {
+    code: "IMAGES",
+    title: "Creating visual assets",
+    description: "Planning and generating a small set of contextual images when they improve the design.",
+    activeHint: "Generating images…",
+    activities: ["Planning visual assets", "Preparing image prompts", "Generating hero or section images", "Optimising and attaching images"],
+  },
 ];
 
 const TIPS = [
@@ -67,11 +83,12 @@ const TIPS = [
 ];
 
 const PROGRESS: Record<string, number> = {
-  QUEUED: 12,
-  PLANNING: 32,
-  GENERATING: 58,
-  REPAIRING: 78,
-  VALIDATING: 92,
+  QUEUED: 10,
+  PLANNING: 28,
+  GENERATING: 48,
+  REPAIRING: 64,
+  VALIDATING: 78,
+  IMAGES: 90,
   COMPLETED: 100,
   FAILED: 0,
   CANCELLED: 0,
@@ -117,6 +134,7 @@ export function GenerationProgress({
   categoryName,
   answers,
   event,
+  imageProgress,
   onCancel,
   onRetry,
 }: {
@@ -126,6 +144,7 @@ export function GenerationProgress({
   categoryName: string | null;
   answers?: Record<string, unknown>;
   event?: EventSite;
+  imageProgress?: ImageProgress | null;
   onCancel: () => void;
   onRetry: () => void;
 }) {
@@ -212,7 +231,7 @@ export function GenerationProgress({
                 ? status === "CANCELLED" ? "Generation cancelled" : "Generation paused"
                 : status === "COMPLETED"
                   ? "All stages complete"
-                  : `Stage ${Math.min(currentIdx + 1, 5)} of 5 in progress`}
+                  : `Stage ${Math.min(currentIdx + 1, STAGES.length)} of ${STAGES.length} in progress`}
             </span>
             <span>
               {failed
@@ -274,6 +293,15 @@ export function GenerationProgress({
                         <span className="swatch" style={{ background: "#0d9488" }} />
                         <span className="swatch" style={{ background: "#f87171" }} />
                         <em>Editorial · responsive type scale</em>
+                      </div>
+                    ) : null}
+                    {stage.code === "IMAGES" && imageProgress && imageProgress.total > 0 ? (
+                      <div className="gen-chips">
+                        <span className="gen-chip"><Check size={12} /> {imageProgress.completed} completed</span>
+                        {imageProgress.pending > 0 ? <span className="gen-chip">{imageProgress.pending} pending</span> : null}
+                        {imageProgress.failed > 0 ? <span className="gen-chip">{imageProgress.failed} failed</span> : null}
+                        {imageProgress.skipped > 0 ? <span className="gen-chip">{imageProgress.skipped} skipped</span> : null}
+                        {imageProgress.currentLabel ? <span className="gen-chip">{imageProgress.currentLabel}</span> : null}
                       </div>
                     ) : null}
                     {active ? (

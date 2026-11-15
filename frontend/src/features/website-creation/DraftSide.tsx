@@ -105,7 +105,7 @@ export function DraftSide({ questions, answers, palette, onPalette, event, apply
         </div>
         <p className="palette-selected"><span>{palette.name}</span> · surface {palette.background} · text {palette.ink} · accent {palette.accent}</p>
         <Button type="button" tone="secondary" disabled={!event || applying} onClick={onApply}>{applying ? "Saving" : "Use this palette"}</Button>
-        <p className="studio-hint">The palette is saved on the site. The generated page can still choose its own type.</p>
+        <p className="studio-hint">Saved for this draft. Generation uses these colours; typography still follows the design direction.</p>
       </section>
       <section className="panel wizard-card">
         <h2>Smart fill</h2>

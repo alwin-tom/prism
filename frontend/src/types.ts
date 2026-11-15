@@ -114,6 +114,20 @@ export type ReviewNote = {
   createdAt: string;
 };
 
+export type ModerationSummary = {
+  reportId: string;
+  status: string;
+  overallRisk: string;
+  summary: { critical: number; high: number; medium: number; low: number; clean: boolean };
+  explanation: string | null;
+  model: string | null;
+  provider: string;
+  completedAt: string | null;
+  errorDetails: string | null;
+  readyForDecision: boolean;
+  blocksApproval: boolean;
+};
+
 export type EventSite = {
   id: string;
   eventName: string;
@@ -133,6 +147,7 @@ export type EventSite = {
   publicUrl: string;
   hosting: HostingSummary;
   latestReview: ReviewNote | null;
+  moderation?: ModerationSummary | null;
 };
 
 export type Quote = {

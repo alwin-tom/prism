@@ -33,11 +33,7 @@ public class EditorController {
     @GetMapping("/config/features")
     public ApiResponse<Map<String, Boolean>> features() {
         java.util.Map<String, Boolean> flags = new java.util.LinkedHashMap<>();
-        flags.put("advancedEditorEnabled", properties.isAdvancedEditorEnabled());
-        flags.put("aiWebsiteGenerationEnabled", properties.getCreation().isEnabled());
-        flags.put("aiCreativeV2Enabled", properties.getCreation().isCreativeV2Enabled());
-        flags.put("aiDesignLibraryEnabled", properties.getCreation().isDesignLibraryEnabled());
-        flags.put("aiDesignEmbeddingsEnabled", properties.getCreation().isDesignEmbeddingsEnabled());
+        flags.put("imageGenerationEnabled", properties.getImage().isEnabled());
         return ApiResponse.ok(flags);
     }
 

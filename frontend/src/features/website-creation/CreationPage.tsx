@@ -1,13 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Baby, Briefcase, Building2, Cake, Gem, Heart, Monitor, Smartphone, Sparkles, Tablet, UserRound } from "lucide-react";
+import { Baby, Briefcase, Building2, Cake, Gem, Heart, Monitor, Sparkles, UserRound } from "lucide-react";
 import { HostingRunway } from "../../components/hosting/HostingRunway";
 import { DeleteWebsiteButton } from "../../components/DeleteWebsiteButton";
 import { Button, Empty, Field, Pill } from "../../components/ui";
 import { quoteFromDays } from "../../utils/money";
-import { FRAME_WIDTH, type EditorNode } from "../visual-editor/document";
-import { VisualPage } from "../visual-editor/VisualPage";
 import { api, errorMessage } from "../../services/api";
 import type { Envelope, EventSite } from "../../types";
 import { isEmpty, visible } from "./conditions";
@@ -29,30 +27,12 @@ const ICONS = {
 } as const;
 
 export function CreationPage() {
-  const features = useQuery({
-    queryKey: ["features"],
-    queryFn: async () => (await api.get<Envelope<{ aiWebsiteGenerationEnabled: boolean; advancedEditorEnabled: boolean }>>("/config/features")).data.data,
-  });
   const { sessionId } = useParams();
-  if (features.isLoading) return <p className="studio-note">Loading.</p>;
-  if (!features.data?.aiWebsiteGenerationEnabled) {
-    return (
-      <>
-        <div className="sheet-title">
-          <div>
-            <h1>Let's create your website</h1>
-            <p>Question-led generation is turned off. You can still start from a template.</p>
-          </div>
-        </div>
-        <Button asChild><Link to="/app/new">Start from a template</Link></Button>
-      </>
-    );
-  }
-  if (!sessionId) return <Welcome editorEnabled={features.data.advancedEditorEnabled} />;
-  return <Wizard sessionId={sessionId} editorEnabled={features.data.advancedEditorEnabled} />;
+  if (!sessionId) return <Welcome />;
+  return <Wizard sessionId={sessionId} />;
 }
 
-function Welcome({ editorEnabled }: { editorEnabled: boolean }) {
+function Welcome() {
   const navigate = useNavigate();
   const sessions = useQuery({
     queryKey: ["creation-sessions"],
@@ -93,7 +73,7 @@ function Welcome({ editorEnabled }: { editorEnabled: boolean }) {
       ) : null}
       {start.isError ? <p className="error-line">{errorMessage(start.error, "The website could not be started.")}</p> : null}
       <section className="list">
-        {drafts.length === 0 ? <Empty>No website drafts yet. {editorEnabled ? "" : ""}</Empty> : drafts.map((session) => (
+        {drafts.length === 0 ? <Empty>No website drafts yet.</Empty> : drafts.map((session) => (
           <div key={session.id} className="site-row-line">
             <Link to={`/app/create/${session.id}`} className="site-row">
               <div>
@@ -109,12 +89,11 @@ function Welcome({ editorEnabled }: { editorEnabled: boolean }) {
           </div>
         ))}
       </section>
-      <p className="studio-hint"><Link to="/app/new">Start from a template</Link></p>
     </>
   );
 }
 
-function Wizard({ sessionId, editorEnabled }: { sessionId: string; editorEnabled: boolean }) {
+function Wizard({ sessionId }: { sessionId: string }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const session = useQuery({
@@ -126,19 +105,35 @@ function Wizard({ sessionId, editorEnabled }: { sessionId: string; editorEnabled
   const [index, setIndex] = useState(0);
   const [step, setStep] = useState("questions");
   const [jobId, setJobId] = useState<string | null>(null);
-  const [frame, setFrame] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [message, setMessage] = useState("");
   const [dirty, setDirty] = useState(false);
   const [palette, setPalette] = useState<Palette>(PALETTES[0]);
   const [applyingPalette, setApplyingPalette] = useState(false);
 
+  const event = useQuery({
+    queryKey: ["event", session.data?.eventId],
+    enabled: Boolean(session.data?.eventId),
+    queryFn: async () => (await api.get<Envelope<EventSite>>(`/events/${session.data?.eventId}`)).data.data,
+  });
+
   useEffect(() => {
     if (!session.data || ready) return;
-    setAnswers(session.data.answers ?? {});
+    const nextAnswers = session.data.answers ?? {};
+    setAnswers(nextAnswers);
+    setPalette(paletteFromAnswers(nextAnswers) ?? PALETTES[0]);
     setStep(session.data.currentStep || "questions");
     setJobId(session.data.latestJobId ?? null);
     setReady(true);
   }, [session.data, ready]);
+
+  useEffect(() => {
+    if (!ready || !event.data?.configuration?.theme) return;
+    setPalette((current) => {
+      const fromAnswers = paletteFromAnswers(answers);
+      if (fromAnswers) return fromAnswers;
+      return matchPalette(event.data!.configuration.theme) ?? current;
+    });
+  }, [answers, event.data, ready]);
 
   const questions = session.data?.questions ?? [];
   const screen = step === "editor" ? "preview" : step;
@@ -170,16 +165,26 @@ function Wizard({ sessionId, editorEnabled }: { sessionId: string; editorEnabled
     }
   }, [job.data?.status, queryClient, session.data?.eventId, sessionId]);
 
-  const event = useQuery({
-    queryKey: ["event", session.data?.eventId],
-    enabled: Boolean(session.data?.eventId),
-    queryFn: async () => (await api.get<Envelope<EventSite>>(`/events/${session.data?.eventId}`)).data.data,
-  });
+  function rememberPalette(next: Palette) {
+    setPalette(next);
+    setAnswers((currentAnswers) => ({
+      ...currentAnswers,
+      colourPalette: {
+        name: next.name,
+        background: next.background,
+        ink: next.ink,
+        accent: next.accent,
+      },
+    }));
+    setDirty(true);
+    setMessage("");
+  }
 
   async function applyPalette() {
     if (!event.data) return;
     setApplyingPalette(true);
     try {
+      rememberPalette(palette);
       const configuration = structuredClone(event.data.configuration);
       configuration.theme.background = palette.background;
       configuration.theme.ink = palette.ink;
@@ -215,6 +220,18 @@ function Wizard({ sessionId, editorEnabled }: { sessionId: string; editorEnabled
   async function generate(confirmReplace: boolean) {
     setMessage("");
     try {
+      const withPalette = {
+        ...answers,
+        colourPalette: {
+          name: palette.name,
+          background: palette.background,
+          ink: palette.ink,
+          accent: palette.accent,
+        },
+      };
+      setAnswers(withPalette);
+      await api.put(`/website-creation-sessions/${sessionId}/answers`, { answers: withPalette });
+      setDirty(false);
       const created = (await api.post<Envelope<GenerationJob>>(`/website-creation-sessions/${sessionId}/generate`, { confirmReplace })).data.data;
       setJobId(created.id);
       setStep("generating");
@@ -292,6 +309,7 @@ function Wizard({ sessionId, editorEnabled }: { sessionId: string; editorEnabled
           categoryName={session.data.categoryName}
           answers={answers}
           event={event.data}
+          imageProgress={job.data?.imageProgress}
           onCancel={() => { if (jobId) void api.post(`/website-generation-jobs/${jobId}/cancel`).then(() => setStep("review")); }}
           onRetry={() => { if (jobId) void api.post<Envelope<GenerationJob>>(`/website-generation-jobs/${jobId}/retry`).then((response) => { setJobId(response.data.data.id); }); }}
         />
@@ -299,9 +317,6 @@ function Wizard({ sessionId, editorEnabled }: { sessionId: string; editorEnabled
       {screen === "preview" ? (
         <Preview
           event={event.data}
-          frame={frame}
-          onFrame={setFrame}
-          editorEnabled={editorEnabled}
           onRegenerate={() => void generate(true)}
           onAnswers={() => setStep("review")}
           onEdit={async () => {
@@ -317,7 +332,7 @@ function Wizard({ sessionId, editorEnabled }: { sessionId: string; editorEnabled
           questions={shown}
           answers={answers}
           palette={palette}
-          onPalette={setPalette}
+          onPalette={rememberPalette}
           event={event.data}
           applying={applyingPalette}
           onApply={() => void applyPalette()}
@@ -331,6 +346,31 @@ function Wizard({ sessionId, editorEnabled }: { sessionId: string; editorEnabled
       </div>
     </>
   );
+}
+
+function paletteFromAnswers(answers: Record<string, unknown>): Palette | null {
+  const raw = answers.colourPalette ?? answers.colorPalette;
+  if (!raw || typeof raw !== "object") return null;
+  const palette = raw as { name?: string; background?: string; ink?: string; accent?: string };
+  return matchPalette({
+    name: palette.name,
+    background: palette.background ?? "",
+    ink: palette.ink ?? "",
+    accent: palette.accent ?? "",
+  });
+}
+
+function matchPalette(theme: { name?: string; background?: string; ink?: string; accent?: string }): Palette | null {
+  const byName = theme.name ? PALETTES.find((item) => item.name === theme.name) : undefined;
+  if (byName) return byName;
+  const background = (theme.background ?? "").toLowerCase();
+  const ink = (theme.ink ?? "").toLowerCase();
+  const accent = (theme.accent ?? "").toLowerCase();
+  return PALETTES.find((item) =>
+    item.background.toLowerCase() === background
+    && item.ink.toLowerCase() === ink
+    && item.accent.toLowerCase() === accent
+  ) ?? null;
 }
 
 function Review({ site, answers, questions, onEdit, onDetails, onGenerate }: {
@@ -393,58 +433,19 @@ function Review({ site, answers, questions, onEdit, onDetails, onGenerate }: {
   );
 }
 
-function Preview({ event, frame, onFrame, editorEnabled, onRegenerate, onAnswers, onEdit }: {
+function Preview({ event, onRegenerate, onAnswers, onEdit }: {
   event?: EventSite;
-  frame: "desktop" | "tablet" | "mobile";
-  onFrame: (frame: "desktop" | "tablet" | "mobile") => void;
-  editorEnabled: boolean;
   onRegenerate: () => void;
   onAnswers: () => void;
   onEdit: () => void;
 }) {
-  const width = FRAME_WIDTH[frame];
-  const frameRef = useRef<HTMLDivElement>(null);
-  const pageRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [pageHeight, setPageHeight] = useState(0);
-  useLayoutEffect(() => {
-    const box = frameRef.current;
-    const page = pageRef.current;
-    if (!box || !page) return;
-    const fit = () => {
-      const available = box.clientWidth;
-      const next = available > 0 ? Math.min(1, Math.round((available / width) * 100) / 100) : 1;
-      setScale(next);
-      setPageHeight(page.offsetHeight);
-    };
-    fit();
-    const observer = new ResizeObserver(fit);
-    observer.observe(box);
-    observer.observe(page);
-    return () => observer.disconnect();
-  }, [width, event?.editorDocument]);
   return (
     <section className="creation-preview">
-      <div className="wizard-actions">
-        <Button type="button" tone="secondary" aria-pressed={frame === "desktop"} onClick={() => onFrame("desktop")}><Monitor size={16} /> Desktop</Button>
-        <Button type="button" tone="secondary" aria-pressed={frame === "tablet"} onClick={() => onFrame("tablet")}><Tablet size={16} /> Tablet</Button>
-        <Button type="button" tone="secondary" aria-pressed={frame === "mobile"} onClick={() => onFrame("mobile")}><Smartphone size={16} /> Mobile</Button>
-      </div>
       {event ? <SiteDetails event={event} mode="preview" onSaved={() => undefined} /> : <p className="studio-note">Loading the hosting details.</p>}
-      <div className="preview-frame" ref={frameRef} style={{ width: "100%", overflow: "auto" }}>
-        {event?.editorDocument ? (
-          <div className="creation-preview-fit" style={{ width: Math.round(width * scale), height: Math.round(pageHeight * scale) }}>
-            <div ref={pageRef} className="creation-preview-page" style={{ width, transform: `scale(${scale})` }}>
-              {hasCopy(event.editorDocument.root) ? null : <p className="studio-note">This draft has a page structure and no words yet. Regenerate it so the answers are written into the page.</p>}
-              <VisualPage document={event.editorDocument} breakpoint={frame} mediaEventId={event.id} />
-            </div>
-          </div>
-        ) : <p className="studio-note">The page is not ready to preview yet.</p>}
-      </div>
       <div className="wizard-actions">
         <Button type="button" tone="secondary" onClick={onRegenerate}>Regenerate</Button>
         <Button type="button" tone="secondary" onClick={onAnswers}>Edit answers</Button>
-        {editorEnabled ? <Button type="button" onClick={onEdit}>Continue editing</Button> : null}
+        <Button type="button" onClick={onEdit}>Visual editor</Button>
       </div>
     </section>
   );
@@ -563,7 +564,7 @@ function SiteDetails({ event, mode, onBack, onSaved }: {
 function screenCopy(screen: string) {
   if (screen === "details") return "Name the event, choose the public address, and see what the hosting days cost.";
   if (screen === "review") return "Review what you told us, then generate the page.";
-  if (screen === "preview") return "This is the generated page. Set the address and hosting, then submit it for review or keep editing.";
+  if (screen === "preview") return "Set the address and hosting, then open the visual editor, regenerate, or submit for review.";
   return "Answer what you know. Optional questions can be skipped.";
 }
 
@@ -574,12 +575,6 @@ function reviewStatus(site: EventSite) {
   if (site.status === "SUBMITTED" || site.status === "IN_REVIEW") return "With a reviewer. The draft is locked until they answer.";
   if (site.status === "EXPIRED") return "Hosting has ended. Extend it to publish the site again.";
   return "A draft. Submit it when the page and the address are ready.";
-}
-
-function hasCopy(node: EditorNode): boolean {
-  const text = node.props?.text;
-  if ((node.type === "HEADING" || node.type === "PARAGRAPH" || node.type === "BUTTON") && typeof text === "string" && text.trim() !== "") return true;
-  return node.children.some((child) => hasCopy(child));
 }
 
 function display(value: unknown) {

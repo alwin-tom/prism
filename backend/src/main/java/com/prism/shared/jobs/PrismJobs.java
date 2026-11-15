@@ -7,6 +7,7 @@ import com.prism.hosting.HostingService;
 import com.prism.media.EventMedia;
 import com.prism.media.MediaRepository;
 import com.prism.media.MediaService;
+import com.prism.moderation.ModerationJobService;
 import com.prism.notification.OutboxProcessor;
 import com.prism.notification.OutboxService;
 import com.prism.payment.PaymentService;
@@ -41,6 +42,7 @@ public class PrismJobs {
     private final MediaService mediaService;
     private final UserRepository users;
     private final com.prism.shared.config.PrismProperties properties;
+    private final ModerationJobService moderationJobs;
 
     public PrismJobs(
             AdvisoryLock locks,
@@ -53,7 +55,8 @@ public class PrismJobs {
             MediaRepository media,
             MediaService mediaService,
             UserRepository users,
-            com.prism.shared.config.PrismProperties properties
+            com.prism.shared.config.PrismProperties properties,
+            ModerationJobService moderationJobs
     ) {
         this.locks = locks;
         this.hosting = hosting;
@@ -66,6 +69,7 @@ public class PrismJobs {
         this.mediaService = mediaService;
         this.users = users;
         this.properties = properties;
+        this.moderationJobs = moderationJobs;
     }
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 20_000)
@@ -74,6 +78,7 @@ public class PrismJobs {
         run(8142002L, () -> payments.expirePending(Instant.now().minus(2, ChronoUnit.HOURS)));
         run(8142003L, () -> outboxProcessor.processDue(Instant.now()));
         run(8142004L, this::cleanupMedia);
+        run(8142005L, moderationJobs::recoverInterrupted);
     }
 
     public void expireAndRemind() {

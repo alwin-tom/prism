@@ -2,17 +2,15 @@
 
 Admin-managed design patterns that influence AI website generation through retrieval + Design Director.
 
-## Feature flags
+## Configuration
+
+Design library retrieval runs whenever a `DesignReferenceRetriever` bean is available (always in the app). Hybrid vector re-rank activates when embedding provider/model/API key are configured.
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `PRISM_AI_DESIGN_LIBRARY_ENABLED` | `false` | Enables retrieval + Design Director during creative V2 generation |
-| `PRISM_AI_DESIGN_EMBEDDINGS_ENABLED` | `false` | Optional hybrid vector re-rank |
 | `PRISM_AI_DESIGN_EMBEDDING_PROVIDER` | empty | e.g. `openrouter` |
 | `PRISM_AI_DESIGN_EMBEDDING_MODEL` | empty | Provider model id |
 | `PRISM_AI_DESIGN_EMBEDDING_DIMENSIONS` | `1536` | Must match vector column |
-
-Generation influence requires `PRISM_AI_CREATIVE_V2_ENABLED=true` as well.
 
 ## Database
 

@@ -66,10 +66,69 @@ describe("visual document", () => {
     const text = addChild(document, "page", "PARAGRAPH");
     restack(document, heading.id, "front");
     expect(document.root.children.map((child) => child.id)).toEqual([heading.id, text.id]);
-    expect(stylesFor(heading, "desktop").zIndex).toBe("20");
+    expect(stylesFor(heading, "desktop").zIndex).toBe("1");
+    expect(stylesFor(text, "desktop").zIndex).toBe("0");
     expect(stylesFor(heading, "desktop").position).toBe("relative");
     restack(document, heading.id, "back");
     expect(stylesFor(heading, "desktop").zIndex).toBe("0");
+    expect(stylesFor(text, "desktop").zIndex).toBe("1");
+  });
+
+  it("keeps sibling z-index values bounded when bringing forward repeatedly", () => {
+    const document = page();
+    const a = addChild(document, "page", "HEADING");
+    const b = addChild(document, "page", "PARAGRAPH");
+    const c = addChild(document, "page", "BUTTON");
+    for (let step = 0; step < 12; step += 1) restack(document, a.id, "forward");
+    expect(Number(stylesFor(a, "desktop").zIndex)).toBeLessThanOrEqual(2);
+    expect(stylesFor(a, "desktop").zIndex).toBe("2");
+    expect(stylesFor(b, "desktop").zIndex).toBe("0");
+    expect(stylesFor(c, "desktop").zIndex).toBe("1");
+  });
+
+  it("stores a background image and overlay without a css url", () => {
+    const document = page();
+    const section = document.root;
+    updateNode(document, section.id, {
+      styles: {
+        backgroundMediaId: "22222222-2222-2222-2222-222222222222",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "scroll",
+        backgroundOverlayType: "gradient",
+        backgroundOverlayColor: "#000000",
+        backgroundOverlayEnd: "#111111",
+        backgroundOverlayOpacity: "40",
+        backgroundOverlayAngle: "180",
+      },
+    }, "desktop");
+    expect(stylesFor(section, "desktop").backgroundMediaId).toBe("22222222-2222-2222-2222-222222222222");
+    expect(stylesFor(section, "desktop").background).toBeUndefined();
+    updateNode(document, section.id, {
+      styles: {
+        backgroundMediaId: "",
+        backgroundOverlayType: "",
+        backgroundOverlayColor: "",
+        backgroundOverlayOpacity: "",
+        backgroundOverlayAngle: "",
+        backgroundOverlayEnd: "",
+        backgroundSize: "",
+        backgroundPosition: "",
+        backgroundRepeat: "",
+        backgroundAttachment: "",
+      },
+    }, "desktop");
+    expect(stylesFor(section, "desktop").backgroundMediaId).toBeUndefined();
+  });
+
+  it("hides a locked layer without unlocking it", () => {
+    const document = page();
+    const heading = addChild(document, "page", "HEADING");
+    updateNode(document, heading.id, { locked: true }, "desktop");
+    setDeviceVisibility(document, heading.id, "desktop", true);
+    expect(heading.locked).toBe(true);
+    expect(stylesFor(heading, "desktop").display).toBe("none");
   });
 
   it("keeps an image move on the device that was edited", () => {

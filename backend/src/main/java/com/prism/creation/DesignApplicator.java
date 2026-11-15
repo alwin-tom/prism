@@ -1,5 +1,6 @@
 package com.prism.creation;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public final class DesignApplicator {
@@ -14,6 +15,7 @@ public final class DesignApplicator {
         ObjectNode copy = document.deepCopy();
         if (copy.path("root") instanceof ObjectNode root) {
             paint(root, direction, new int[]{0}, false, false);
+            repairTextEllipses(root, direction);
         }
         return copy;
     }
@@ -63,12 +65,21 @@ public final class DesignApplicator {
         } else if ("IMAGE".equals(type)) {
             styles.put("borderRadius", direction.imageRadius());
             styles.put("objectFit", "cover");
-        } else if ("GROUP".equals(type)) {
+        } else if ("GROUP".equals(type) || "CONTAINER".equals(type)) {
             styles.put("background", direction.surface());
             styles.put("color", direction.pageDark() ? direction.lightText() : direction.text());
-            styles.put("borderRadius", direction.radius());
+            styles.put("borderRadius", DesignDirection.cardRadius(direction.radius()));
             styles.put("boxShadow", direction.shadow());
-            styles.put("padding", "28px");
+            styles.put("padding", "32px 28px");
+            styles.put("textAlign", "center");
+            styles.put("overflow", "hidden");
+            if (styles.path("display").asText("").isBlank()) {
+                styles.put("display", "flex");
+                styles.put("flexDirection", "column");
+                styles.put("gap", "12px");
+                styles.put("justifyContent", "center");
+                styles.put("alignItems", "center");
+            }
         } else if ("FLEX".equals(type) || "GRID".equals(type)) {
             styles.put("display", "FLEX".equals(type) ? "flex" : "grid");
             if (styles.path("alignItems").asText("").isBlank()) {
@@ -104,13 +115,97 @@ public final class DesignApplicator {
             styles.put("textAlign", split ? "left" : "center");
         }
         centerFixedBox(styles);
-        boolean childDark = "GROUP".equals(type) ? direction.pageDark() : dark;
-        boolean childSplit = split || "GRID".equals(type) || ("FLEX".equals(type) && row(styles));
+        boolean childDark = "GROUP".equals(type) || "CONTAINER".equals(type) ? direction.pageDark() : dark;
+        // Card bodies stay centred so copy sits in the widest part of a rounded panel.
+        boolean childSplit = ("GROUP".equals(type) || "CONTAINER".equals(type))
+                ? false
+                : split || "GRID".equals(type) || ("FLEX".equals(type) && row(styles));
         for (int i = 0; i < node.path("children").size(); i++) {
             if (node.path("children").get(i) instanceof ObjectNode child) {
                 paint(child, direction, sectionCount, childDark, childSplit);
             }
         }
+    }
+
+    /**
+     * Convert circular/elliptical text panels into readable rounded cards.
+     * Circles remain valid for IMAGE-only decorative nodes.
+     */
+    static void repairTextEllipses(ObjectNode node, DesignDirection direction) {
+        if (node == null) {
+            return;
+        }
+        String type = node.path("type").asText("");
+        ObjectNode styles = node.with("styles");
+        String radius = styles.path("borderRadius").asText("");
+        boolean textPanel = holdsReadableText(node) && !"IMAGE".equals(type) && !"BUTTON".equals(type);
+        if (textPanel && DesignDirection.isEllipseRadius(radius)) {
+            styles.put("borderRadius", DesignDirection.cardRadius(direction == null ? "24px" : direction.radius()));
+            String padding = styles.path("padding").asText("");
+            if (padding.isBlank() || thinPadding(padding)) {
+                styles.put("padding", "36px 32px");
+            }
+            styles.put("textAlign", "center");
+            styles.put("overflow", "hidden");
+            if (styles.path("display").asText("").isBlank()) {
+                styles.put("display", "flex");
+                styles.put("flexDirection", "column");
+                styles.put("justifyContent", "center");
+                styles.put("alignItems", "center");
+                styles.put("gap", "12px");
+            }
+            centerTextDescendants(node);
+        }
+        for (JsonNode child : node.path("children")) {
+            if (child instanceof ObjectNode object) {
+                repairTextEllipses(object, direction);
+            }
+        }
+    }
+
+    private static void centerTextDescendants(ObjectNode node) {
+        for (JsonNode child : node.path("children")) {
+            if (!(child instanceof ObjectNode object)) {
+                continue;
+            }
+            String type = object.path("type").asText("");
+            if ("HEADING".equals(type) || "PARAGRAPH".equals(type) || "QUOTE".equals(type)) {
+                object.with("styles").put("textAlign", "center");
+            }
+            centerTextDescendants(object);
+        }
+    }
+
+    private static boolean holdsReadableText(JsonNode node) {
+        String type = node.path("type").asText("");
+        if ("HEADING".equals(type) || "PARAGRAPH".equals(type) || "QUOTE".equals(type) || "FAQ_ITEM".equals(type) || "TIMELINE_ITEM".equals(type)) {
+            return !node.path("props").path("text").asText("").isBlank() || !node.path("props").path("title").asText("").isBlank();
+        }
+        for (JsonNode child : node.path("children")) {
+            if (holdsReadableText(child)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean thinPadding(String padding) {
+        String[] parts = padding.trim().split("\\s+");
+        for (String part : parts) {
+            try {
+                double value = Double.parseDouble(part.replace("px", "").replace("%", ""));
+                if (part.contains("%")) {
+                    if (value < 12) {
+                        return true;
+                    }
+                } else if (value < 24) {
+                    return true;
+                }
+            } catch (NumberFormatException ignored) {
+                return false;
+            }
+        }
+        return false;
     }
 
     private static void releaseOffsets(ObjectNode styles) {

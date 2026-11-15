@@ -118,7 +118,68 @@ public record DesignDirection(
         if (found == null) {
             found = forContext(category, answers);
         }
-        return found.vary(salt(category, answers));
+        return found.vary(salt(category, answers)).withUserPalette(answers);
+    }
+
+    /** True when questionnaire answers carry an explicit DraftSide colour palette. */
+    public static boolean hasUserPalette(com.fasterxml.jackson.databind.JsonNode answers) {
+        if (answers == null || answers.isNull()) {
+            return false;
+        }
+        com.fasterxml.jackson.databind.JsonNode palette = answers.path("colourPalette");
+        if (!palette.isObject()) {
+            palette = answers.path("colorPalette");
+        }
+        return isHex(palette.path("background").asText(""))
+                && isHex(palette.path("ink").asText(""))
+                && isHex(palette.path("accent").asText(""));
+    }
+
+    /**
+     * Remap catalogue colours to the user's chosen surface/ink/accent while keeping fonts and composition.
+     */
+    public DesignDirection withUserPalette(com.fasterxml.jackson.databind.JsonNode answers) {
+        if (!hasUserPalette(answers)) {
+            return this;
+        }
+        com.fasterxml.jackson.databind.JsonNode palette = answers.path("colourPalette");
+        if (!palette.isObject()) {
+            palette = answers.path("colorPalette");
+        }
+        String background = normalizeHex(palette.path("background").asText(""));
+        String ink = normalizeHex(palette.path("ink").asText(""));
+        String accent = normalizeHex(palette.path("accent").asText(""));
+        boolean darkSurface = luminance(background) < 0.45;
+        String alternate = mix(background, ink, darkSurface ? 0.12 : 0.08);
+        String surface = darkSurface ? mix(background, "#ffffff", 0.12) : mix(background, "#ffffff", 0.55);
+        String muted = mix(ink, background, 0.45);
+        String light = darkSurface ? ink : mix("#ffffff", background, 0.15);
+        String hero = darkSurface
+                ? "linear-gradient(160deg, " + background + ", " + mix(background, accent, 0.35) + ")"
+                : "linear-gradient(160deg, " + mix(accent, background, 0.25) + ", " + background + ")";
+        return direction(
+                id,
+                name,
+                mood,
+                personality,
+                hero,
+                background,
+                alternate,
+                surface,
+                accent,
+                ink,
+                ink,
+                muted,
+                light,
+                displayFont,
+                bodyFont,
+                radius,
+                shadow,
+                imageRadius,
+                !darkSurface || luminance(mix(background, accent, 0.35)) < 0.55,
+                darkSurface,
+                composition
+        );
     }
 
     public ObjectNode json(ObjectMapper mapper) {
@@ -158,12 +219,12 @@ public record DesignDirection(
                 The hero is the first SECTION. Give it the hero background, large padding, and the page title.
                 Later SECTION backgrounds alternate between the page and alternate colours. Do not make every section white.
                 Headings use the display font. Paragraphs use the body font.
-                GROUP cards use the surface colour, the radius, and the shadow.
+                GROUP cards use the surface colour, a rectangular corner radius (%s or softer), and the shadow. Never use borderRadius 50%% on a GROUP, CONTAINER, or any element that holds a heading or paragraph — ellipses clip text. Reserve circular radius for IMAGE only.
                 A BUTTON uses the accent as its background.
                 When photos were supplied, the hero or the gallery uses them. Two or more photos in one section belong in one CAROUSEL.
                 Do not repeat the same alignment and the same column structure in consecutive sections.
                 """.formatted(name, mood, personality, composition, heroBackground, pageBackground, alternateBackground, surface,
-                accent, heading, text, muted, lightText, displayFont, bodyFont, radius, shadow, imageRadius);
+                accent, heading, text, muted, lightText, displayFont, bodyFont, radius, shadow, imageRadius, cardRadius(radius));
     }
 
     private DesignDirection vary(int salt) {
@@ -180,7 +241,8 @@ public record DesignDirection(
         if (mode == 2 && heroBackground.contains("deg")) {
             gradient = heroBackground.replaceAll("\\d+deg", "200deg");
         }
-        String nextRadius = mode == 2 && !"0".equals(radius) ? "50%" : radius;
+        // Circles suit photos, not text cards — keep card radius rectangular and only round images.
+        String nextRadius = mode == 2 && !"0".equals(radius) && !radius.endsWith("%") ? softerCardRadius(radius) : radius;
         String nextImage = mode == 2 && !"0".equals(imageRadius) ? "50%" : imageRadius;
         if (mode == 1) {
             return direction(id, name, mood, personality, gradient, alternateBackground, pageBackground, surface, accent,
@@ -235,5 +297,89 @@ public record DesignDirection(
 
     private static DesignDirection direction(String id, String name, String mood, String personality, String hero, String page, String alternate, String surface, String accent, String heading, String text, String muted, String light, String display, String body, String radius, String shadow, String imageRadius, boolean heroDark, boolean pageDark, String composition) {
         return new DesignDirection(id, name, mood, personality, hero, page, alternate, surface, accent, heading, text, muted, light, display, body, radius, shadow, imageRadius, heroDark, pageDark, composition);
+    }
+
+    /** Slightly softer card corner for variation — never an ellipse (50%). */
+    static String softerCardRadius(String radius) {
+        String value = radius == null ? "" : radius.trim().toLowerCase(Locale.ROOT);
+        if (value.isBlank() || "0".equals(value) || "0px".equals(value)) {
+            return "16px";
+        }
+        if (value.endsWith("%") || "999px".equals(value) || "9999px".equals(value)) {
+            return "24px";
+        }
+        try {
+            int px = Integer.parseInt(value.replace("px", "").trim());
+            return Math.min(32, Math.max(12, px + 4)) + "px";
+        } catch (NumberFormatException exception) {
+            return "20px";
+        }
+    }
+
+    /** Radius safe for text cards — ellipses clip multi-line copy. */
+    public static String cardRadius(String radius) {
+        String value = radius == null ? "" : radius.trim().toLowerCase(Locale.ROOT);
+        if (value.isBlank()) {
+            return "16px";
+        }
+        if (value.endsWith("%") || isEllipseRadius(value)) {
+            return "24px";
+        }
+        return radius.trim();
+    }
+
+    static boolean isEllipseRadius(String radius) {
+        String value = radius == null ? "" : radius.trim().toLowerCase(Locale.ROOT);
+        if (value.endsWith("%")) {
+            try {
+                return Double.parseDouble(value.substring(0, value.length() - 1)) >= 40;
+            } catch (NumberFormatException exception) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isHex(String value) {
+        return value != null && value.trim().matches("(?i)^#([0-9a-f]{3}|[0-9a-f]{6})$");
+    }
+
+    private static String normalizeHex(String value) {
+        String hex = value.trim();
+        if (hex.matches("(?i)^#[0-9a-f]{3}$")) {
+            return ("#" + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2) + hex.charAt(3) + hex.charAt(3)).toLowerCase(Locale.ROOT);
+        }
+        return hex.toLowerCase(Locale.ROOT);
+    }
+
+    private static double luminance(String hex) {
+        int[] rgb = rgb(hex);
+        double r = channel(rgb[0] / 255.0);
+        double g = channel(rgb[1] / 255.0);
+        double b = channel(rgb[2] / 255.0);
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    private static double channel(double value) {
+        return value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+    }
+
+    private static int[] rgb(String hex) {
+        String value = normalizeHex(hex).substring(1);
+        return new int[]{
+                Integer.parseInt(value.substring(0, 2), 16),
+                Integer.parseInt(value.substring(2, 4), 16),
+                Integer.parseInt(value.substring(4, 6), 16)
+        };
+    }
+
+    private static String mix(String left, String right, double amount) {
+        double t = Math.max(0, Math.min(1, amount));
+        int[] a = rgb(left);
+        int[] b = rgb(right);
+        return String.format(Locale.ROOT, "#%02x%02x%02x",
+                (int) Math.round(a[0] + (b[0] - a[0]) * t),
+                (int) Math.round(a[1] + (b[1] - a[1]) * t),
+                (int) Math.round(a[2] + (b[2] - a[2]) * t));
     }
 }
